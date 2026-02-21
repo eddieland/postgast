@@ -187,6 +187,9 @@ lib.pg_query_scan.restype = PgQueryScanResult
 lib.pg_query_split_with_scanner.argtypes = [c_char_p]
 lib.pg_query_split_with_scanner.restype = PgQuerySplitResult
 
+lib.pg_query_split_with_parser.argtypes = [c_char_p]
+lib.pg_query_split_with_parser.restype = PgQuerySplitResult
+
 lib.pg_query_deparse_protobuf.argtypes = [PgQueryProtobuf]
 lib.pg_query_deparse_protobuf.restype = PgQueryDeparseResult
 

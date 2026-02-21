@@ -3,8 +3,8 @@ from ctypes import POINTER, Structure
 
 import pytest
 
-from postgast._errors import PgQueryError, check_error
-from postgast._native import PgQueryError as CPgQueryError
+from postgast.errors import PgQueryError, check_error
+from postgast.native import PgQueryError as CPgQueryError
 
 
 class TestPgQueryError:

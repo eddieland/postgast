@@ -1,13 +1,13 @@
 ### Requirement: Generated protobuf module
 
-The package SHALL include a generated Python protobuf module (`_pg_query_pb2.py`) produced by running `protoc` against
+The package SHALL include a generated Python protobuf module (`pg_query_pb2.py`) produced by running `protoc` against
 the vendored `vendor/libpg_query/protobuf/pg_query.proto`. The generated file SHALL be committed to the repository so
 that users installing from source do not need `protoc`.
 
 #### Scenario: Module is importable
 
 - **WHEN** the package is installed
-- **THEN** `from postgast._pg_query_pb2 import ParseResult` succeeds without error
+- **THEN** `from postgast.pg_query_pb2 import ParseResult` succeeds without error
 
 #### Scenario: ParseResult message structure
 
@@ -26,18 +26,18 @@ official Google protobuf library.
 
 ### Requirement: Makefile regeneration target
 
-The project SHALL provide a `make proto` target that regenerates `_pg_query_pb2.py` from the vendored proto file. This
+The project SHALL provide a `make proto` target that regenerates `pg_query_pb2.py` from the vendored proto file. This
 target is used by maintainers when the vendored `pg_query.proto` is updated.
 
 #### Scenario: Regeneration produces identical output
 
 - **WHEN** `make proto` is run without modifying the vendored proto file
-- **THEN** the generated `_pg_query_pb2.py` is byte-identical to the committed version
+- **THEN** the generated `pg_query_pb2.py` is byte-identical to the committed version
 
 #### Scenario: Regeneration reflects proto changes
 
 - **WHEN** the vendored `pg_query.proto` is updated and `make proto` is run
-- **THEN** the generated `_pg_query_pb2.py` reflects the updated proto definitions
+- **THEN** the generated `pg_query_pb2.py` reflects the updated proto definitions
 
 ### Requirement: Protobuf module re-export
 

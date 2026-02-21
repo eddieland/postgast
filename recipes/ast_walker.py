@@ -53,7 +53,7 @@ def _(
     parse: Callable[[str], ParseResult],
 ):
     # --- Recipe: Extract table names ---
-    from postgast._pg_query_pb2 import RangeVar as _RangeVar
+    from postgast.pg_query_pb2 import RangeVar as _RangeVar
 
     _sql = "SELECT o.id, c.name FROM orders o JOIN customers c ON o.customer_id = c.id JOIN products p ON o.product_id = p.id"
     _tree = parse(_sql)
@@ -261,7 +261,7 @@ def _(
     INSERT INTO orders SELECT nextval('order_seq'), id, 0 FROM customers;
     CREATE TABLE reports AS SELECT c.name, SUM(o.total) FROM customers c JOIN orders o ON c.id = o.customer_id GROUP BY c.name;
     """
-    from postgast._pg_query_pb2 import RangeVar as _RangeVar
+    from postgast.pg_query_pb2 import RangeVar as _RangeVar
 
     _tree = parse(_sql)
 

@@ -8,7 +8,7 @@ from typing import TypeVar
 
 from google.protobuf.message import Message
 
-from postgast._pg_query_pb2 import (
+from postgast.pg_query_pb2 import (
     A_Star,
     ColumnRef,
     CreateFunctionStmt,
@@ -18,7 +18,7 @@ from postgast._pg_query_pb2 import (
     String,
     ViewStmt,
 )
-from postgast._walk import walk
+from postgast.walk import walk
 
 _M = TypeVar("_M", bound=Message)
 _OR_REPLACE_TYPES = (CreateFunctionStmt, CreateTrigStmt, ViewStmt)
@@ -221,8 +221,8 @@ def ensure_or_replace(sql: str) -> str:
     Raises:
         PgQueryError: If *sql* cannot be parsed.
     """
-    from postgast._deparse import deparse
-    from postgast._parse import parse
+    from postgast.deparse import deparse
+    from postgast.parse import parse
 
     tree = parse(sql)
     set_or_replace(tree)

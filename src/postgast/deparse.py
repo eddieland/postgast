@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import ctypes
 
-from postgast._errors import check_error
-from postgast._native import PgQueryProtobuf, lib
-from postgast._pg_query_pb2 import ParseResult
+from postgast.errors import check_error
+from postgast.native import PgQueryProtobuf, lib
+from postgast.pg_query_pb2 import ParseResult
 
 
 def deparse(tree: ParseResult) -> str:

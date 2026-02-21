@@ -80,7 +80,7 @@ packages = ["src/postgast"]
 
 [tool.ruff]
 line-length = 120
-exclude = ["src/postgast/_pg_query_pb2.py", "src/postgast/_pg_query_pb2.pyi"]
+exclude = ["src/postgast/pg_query_pb2.py", "src/postgast/pg_query_pb2.pyi"]
 
 [tool.ruff.format]
 preview = true
@@ -152,7 +152,7 @@ convention = "google"
 # https://marketplace.visualstudio.com/items?itemName=detachhead.basedpyright
 # https://docs.basedpyright.com/latest/configuration/config-files/#sample-pyprojecttoml-file
 include = ["src", "tests"]
-exclude = ["src/postgast/_pg_query_pb2.py", "src/postgast/_pg_query_pb2.pyi"]
+exclude = ["src/postgast/pg_query_pb2.py", "src/postgast/pg_query_pb2.pyi"]
 # By default BasedPyright is very strict, so you almost certainly want to disable
 # some of the rules.
 # First, these turn off warnings about (yes) how you ignore warnings:
@@ -200,7 +200,7 @@ end_of_line = "lf"
 
 [tool.codespell]
 ignore-words-list = "inout"
-skip = "src/postgast/_pg_query_pb2.py,src/postgast/_pg_query_pb2.pyi"
+skip = "src/postgast/pg_query_pb2.py,src/postgast/pg_query_pb2.pyi"
 
 [tool.pytest.ini_options]
 python_files = ["*.py"]

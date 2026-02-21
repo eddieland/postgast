@@ -1,15 +1,9 @@
 """Python bindings to libpg_query via ctypes."""
 
-from postgast import _pg_query_pb2 as pg_query_pb2
-from postgast._deparse import deparse
-from postgast._errors import PgQueryError
-from postgast._fingerprint import FingerprintResult, fingerprint
-from postgast._normalize import normalize
-from postgast._parse import parse
-from postgast._pg_query_pb2 import ParseResult
-from postgast._scan import scan
-from postgast._split import split
-from postgast._walk import Visitor, walk
+from postgast import pg_query_pb2
+from postgast.deparse import deparse
+from postgast.errors import PgQueryError
+from postgast.fingerprint import FingerprintResult, fingerprint
 from postgast.helpers import (
     FunctionIdentity,
     TriggerIdentity,
@@ -22,6 +16,12 @@ from postgast.helpers import (
     find_nodes,
     set_or_replace,
 )
+from postgast.normalize import normalize
+from postgast.parse import parse
+from postgast.pg_query_pb2 import ParseResult
+from postgast.scan import scan
+from postgast.split import split
+from postgast.walk import Visitor, walk
 
 __all__ = [
     "deparse",

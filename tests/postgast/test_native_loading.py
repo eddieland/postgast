@@ -10,7 +10,7 @@ import pytest
 
 def _import_native():
     """Import (or re-import) _native with a fresh module state."""
-    mod_name = "postgast._native"
+    mod_name = "postgast.native"
     if mod_name in sys.modules:
         del sys.modules[mod_name]
     return importlib.import_module(mod_name)

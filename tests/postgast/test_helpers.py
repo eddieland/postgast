@@ -16,8 +16,8 @@ from postgast import (
     parse,
     set_or_replace,
 )
-from postgast._errors import PgQueryError
-from postgast._pg_query_pb2 import ColumnRef, RangeVar
+from postgast.errors import PgQueryError
+from postgast.pg_query_pb2 import ColumnRef, RangeVar
 
 
 class TestFindNodes:
@@ -142,7 +142,7 @@ class TestSetOrReplace:
 
         for _field, node in walk(tree):
             if type(node).DESCRIPTOR.name == "CreateFunctionStmt":
-                from postgast._pg_query_pb2 import CreateFunctionStmt
+                from postgast.pg_query_pb2 import CreateFunctionStmt
 
                 assert isinstance(node, CreateFunctionStmt)
                 assert node.replace is True

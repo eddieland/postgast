@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from google.protobuf.message import Message
 
     from postgast import FingerprintResult, ParseResult, PgQueryError
-    from postgast._pg_query_pb2 import ScanResult
+    from postgast.pg_query_pb2 import ScanResult
 
 __generated_with = "0.19.11"
 app = marimo.App()

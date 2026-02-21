@@ -35,6 +35,17 @@ class PgQueryError(Exception):
         filename: str | None = None,
         lineno: int = 0,
     ) -> None:
+        """Create a PgQueryError.
+
+        Args:
+            message: Human-readable error description.
+            cursorpos: 1-based position in the SQL string where the
+                error was detected.
+            context: Additional parser context.
+            funcname: Internal C function name where the error originated.
+            filename: Internal C source file.
+            lineno: Line number in the C source file.
+        """
         super().__init__(message)
         self.message = message
         self.cursorpos = cursorpos

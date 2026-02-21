@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from postgast._errors import check_error
-from postgast._native import lib
+from postgast.errors import check_error
+from postgast.native import lib
 
 
 def split(sql: str) -> list[str]:

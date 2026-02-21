@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-postgast is a BSD-licensed Python library providing bindings to [libpg_query](https://github.com/pganalyze/libpg_query), the PostgreSQL parser extracted as a standalone C library. It calls libpg_query's C functions via Python's `ctypes` module — no Cython, Rust, or C extensions. Parse results are protobuf messages deserialized into Python objects.
+postgast is a BSD-licensed Python library providing bindings to [libpg_query](https://github.com/pganalyze/libpg_query),
+the PostgreSQL parser extracted as a standalone C library. It calls libpg_query's C functions via Python's `ctypes`
+module — no Cython, Rust, or C extensions. Parse results are protobuf messages deserialized into Python objects.
 
 Core operations: parse, deparse, normalize, fingerprint, split, and scan PostgreSQL SQL.
 
@@ -20,6 +22,7 @@ make all           # install + lint + test
 ```
 
 Run a single test:
+
 ```bash
 uv run pytest tests/test_foo.py::test_bar -v
 ```

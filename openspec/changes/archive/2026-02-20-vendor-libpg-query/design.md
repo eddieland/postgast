@@ -12,7 +12,8 @@ with uv-dynamic-versioning for git-tag-based versions.
 **Goals:**
 
 - `pip install postgast` works out of the box on Linux (x86_64, aarch64), macOS (x86_64, arm64), and Windows (x86_64)
-- The vendored library is compiled from libpg_query source during wheel build — no pre-built binaries checked into the repo
+- The vendored library is compiled from libpg_query source during wheel build — no pre-built binaries checked into the
+  repo
 - System-installed libpg_query remains a fallback, so users can override with their own build
 - sdist includes the libpg_query source so users can build from source on unsupported platforms
 
@@ -44,9 +45,9 @@ A submodule tracks upstream cleanly and `git submodule update --init` is well-su
 The hook will:
 
 1. Run `make build_shared` (Linux/macOS) or the equivalent Windows build in `vendor/libpg_query/`
-2. Determine the platform-appropriate library filename (`.so`, `.dylib`, `.dll`)
-3. Inject it into the wheel via `build_data['force_include']` mapping to `postgast/<libname>`
-4. Set `build_data['infer_tag'] = True` and `build_data['pure_python'] = False` for correct wheel platform tags
+1. Determine the platform-appropriate library filename (`.so`, `.dylib`, `.dll`)
+1. Inject it into the wheel via `build_data['force_include']` mapping to `postgast/<libname>`
+1. Set `build_data['infer_tag'] = True` and `build_data['pure_python'] = False` for correct wheel platform tags
 
 **Why over alternatives**:
 
@@ -59,8 +60,8 @@ The hook will:
 **Choice**: `_native.py` loading logic becomes:
 
 1. Look for the shared library adjacent to the `_native.py` file (`Path(__file__).parent / <libname>`)
-2. If not found, fall back to `ctypes.util.find_library("pg_query")` (current behavior)
-3. If neither found, raise `OSError` with an updated message
+1. If not found, fall back to `ctypes.util.find_library("pg_query")` (current behavior)
+1. If neither found, raise `OSError` with an updated message
 
 This keeps the existing system-library path working for users who install libpg_query themselves or develop against a
 custom build.
@@ -72,11 +73,11 @@ runners. Configuration lives in `pyproject.toml` under `[tool.cibuildwheel]`.
 
 Target matrix:
 
-| Platform | Architectures | Runner | Repair tool |
-| --- | --- | --- | --- |
-| Linux | x86_64, aarch64 | ubuntu-latest + QEMU | auditwheel |
-| macOS | x86_64, arm64 | macos-13 (Intel), macos-14 (ARM) | delocate |
-| Windows | AMD64 | windows-latest | delvewheel |
+| Platform | Architectures   | Runner                           | Repair tool |
+| -------- | --------------- | -------------------------------- | ----------- |
+| Linux    | x86_64, aarch64 | ubuntu-latest + QEMU             | auditwheel  |
+| macOS    | x86_64, arm64   | macos-13 (Intel), macos-14 (ARM) | delocate    |
+| Windows  | AMD64           | windows-latest                   | delvewheel  |
 
 cibuildwheel handles calling `hatch build` (which triggers the build hook) and running the repair tools that ensure the
 shared library is properly bundled and the wheel meets platform standards (manylinux, macOS delocate).
@@ -86,38 +87,36 @@ shared library is properly bundled and the wheel meets platform standards (manyl
 **Choice**: The existing `.github/workflows/publish.yml` will be updated to:
 
 1. Build wheels via cibuildwheel across the platform matrix
-2. Build an sdist separately (includes vendor/ source for from-source builds)
-3. Upload all artifacts and publish to PyPI
+1. Build an sdist separately (includes vendor/ source for from-source builds)
+1. Upload all artifacts and publish to PyPI
 
 The CI workflow (`.github/workflows/ci.yml`) continues to test on Linux only for development speed.
 
 ### 6. sdist includes libpg_query source
 
-**Choice**: Configure hatch to include `vendor/libpg_query/` in the sdist so that `pip install postgast` from source
-(no wheel available) compiles libpg_query automatically via the same build hook.
+**Choice**: Configure hatch to include `vendor/libpg_query/` in the sdist so that `pip install postgast` from source (no
+wheel available) compiles libpg_query automatically via the same build hook.
 
 ## Risks / Trade-offs
 
 **Wheel size increase** — Each platform wheel will include the compiled libpg_query (~2-4 MB). This is typical for
-packages vendoring native libraries and acceptable for the UX improvement.
-→ *Mitigation*: Only one platform's library is included per wheel.
+packages vendoring native libraries and acceptable for the UX improvement. → *Mitigation*: Only one platform's library
+is included per wheel.
 
 **libpg_query build time in CI** — Compiling PostgreSQL parser source takes ~2-3 minutes per platform. aarch64 via QEMU
-emulation may take 10+ minutes.
-→ *Mitigation*: Only runs on publish (release tags), not on every PR. Can add build caching later if needed.
+emulation may take 10+ minutes. → *Mitigation*: Only runs on publish (release tags), not on every PR. Can add build
+caching later if needed.
 
-**Git submodule friction** — Contributors must `git submodule update --init` after cloning.
-→ *Mitigation*: Document in CLAUDE.md/README. CI workflows use `submodules: true` in checkout.
+**Git submodule friction** — Contributors must `git submodule update --init` after cloning. → *Mitigation*: Document in
+CLAUDE.md/README. CI workflows use `submodules: true` in checkout.
 
 **Windows build complexity** — libpg_query's Windows support uses `nmake /F Makefile.msvc` or may need MinGW. The build
-hook must handle this path.
-→ *Mitigation*: Test Windows builds in CI early. If Windows proves too difficult initially, ship without Windows wheels
-and add later.
+hook must handle this path. → *Mitigation*: Test Windows builds in CI early. If Windows proves too difficult initially,
+ship without Windows wheels and add later.
 
 **auditwheel/delocate may flag libc dependencies** — The shared library links against libc, which auditwheel may try to
-bundle.
-→ *Mitigation*: libpg_query has no external dependencies beyond libc. auditwheel's manylinux policy already accounts
-for libc. Should work out of the box.
+bundle. → *Mitigation*: libpg_query has no external dependencies beyond libc. auditwheel's manylinux policy already
+accounts for libc. Should work out of the box.
 
 ## Open Questions
 

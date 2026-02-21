@@ -6,7 +6,7 @@ The module SHALL resolve the correct shared library for the current platform usi
 
 1. First, look for a vendored copy adjacent to the `_native.py` module (`libpg_query.so` on Linux, `libpg_query.dylib`
    on macOS, `pg_query.dll` on Windows).
-2. If no vendored copy is found, fall back to `ctypes.util.find_library("pg_query")` for system-installed libraries.
+1. If no vendored copy is found, fall back to `ctypes.util.find_library("pg_query")` for system-installed libraries.
 
 #### Scenario: Load vendored library on Linux
 

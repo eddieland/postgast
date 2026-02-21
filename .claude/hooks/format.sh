@@ -16,7 +16,7 @@ FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
 case "$FILE_PATH" in
     *.py)
-        uv run ruff check --fix --quiet "$FILE_PATH" 2>/dev/null || true
+        uv run ruff check --fix --ignore F401 --quiet "$FILE_PATH" 2>/dev/null || true
         uv run ruff format --quiet "$FILE_PATH" 2>/dev/null
         ;;
     *.md)

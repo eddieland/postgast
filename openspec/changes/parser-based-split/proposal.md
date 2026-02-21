@@ -8,8 +8,8 @@ valid SQL while preserving the scanner-based fallback for inputs that may contai
 ## What Changes
 
 - Add `pg_query_split_with_parser` ctypes binding to the native module
-- Add a `method` parameter to `split()` that selects between `"scanner"` (current default) and `"parser"`
-- Default remains `"scanner"` to preserve backward compatibility — no **BREAKING** changes
+- Add a `method` parameter to `split()` that selects between `"parser"` (new default) and `"scanner"`
+- **BREAKING**: Default changes from scanner-based to parser-based splitting (pre-1.0)
 
 ## Capabilities
 
@@ -19,8 +19,8 @@ _(none — this extends an existing capability)_
 
 ### Modified Capabilities
 
-- `split`: Add a `method` parameter accepting `"scanner"` (default) or `"parser"` to select the underlying libpg_query
-  split function (`pg_query_split_with_scanner` vs `pg_query_split_with_parser`)
+- `split`: Add a `method` parameter accepting `"parser"` (default) or `"scanner"` to select the underlying libpg_query
+  split function (`pg_query_split_with_parser` vs `pg_query_split_with_scanner`)
 
 ## Impact
 

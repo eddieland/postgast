@@ -2,12 +2,12 @@
 
 ### Requirement: Split function
 
-The module SHALL provide a `split(sql: str, *, method: Literal["scanner", "parser"] = "scanner") -> list[str]` function
+The module SHALL provide a `split(sql: str, *, method: Literal["scanner", "parser"] = "parser") -> list[str]` function
 that splits a multi-statement SQL string into individual statement strings. The `method` parameter SHALL select which
 libpg_query C function to call:
 
-- `"scanner"` (default) → `pg_query_split_with_scanner`
-- `"parser"` → `pg_query_split_with_parser`
+- `"parser"` (default) → `pg_query_split_with_parser`
+- `"scanner"` → `pg_query_split_with_scanner`
 
 The function SHALL use byte offsets from the C result to slice the UTF-8 encoded input and decode each slice back to a
 Python string.
@@ -49,10 +49,10 @@ Python string.
 - **WHEN** `split` is called with SQL that causes a scanner error
 - **THEN** it raises `PgQueryError` with a descriptive `message`
 
-#### Scenario: Default method is scanner
+#### Scenario: Default method is parser
 
 - **WHEN** `split` is called without a `method` argument
-- **THEN** it behaves identically to `split(sql, method="scanner")`
+- **THEN** it behaves identically to `split(sql, method="parser")`
 
 #### Scenario: Parser method splits valid SQL
 

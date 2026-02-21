@@ -15,11 +15,10 @@ known-valid SQL).
 
 - Expose `pg_query_split_with_parser` through the existing `split()` public API
 - Let callers choose between scanner and parser methods via a `method` parameter
-- Preserve full backward compatibility (default behavior unchanged)
+- Default to the parser method, as recommended by libpg_query upstream
 
 **Non-Goals:**
 
-- Changing the default split method — scanner remains the default
 - Adding a separate top-level `split_with_parser()` function
 - Exposing parser options (e.g., `PgQueryParseMode`) for the split call — libpg_query's split functions don't accept
   parser options
@@ -34,10 +33,11 @@ known-valid SQL).
 
 - *Separate `split_with_parser()` function* — adds API surface for a single flag toggle; the two functions would share
   identical signatures and return types, making them redundant.
-- *Replace scanner with parser entirely* — would break callers relying on the scanner's tolerance of invalid SQL.
+- *Replace scanner with parser entirely* — would remove the scanner fallback for invalid SQL.
 
 **Rationale:** A parameter keeps the API surface small and mirrors how libpg_query names the two variants (same prefix,
-different suffix). Users who don't care about the method never see the parameter.
+different suffix). Defaulting to `"parser"` follows the upstream recommendation; callers needing scanner tolerance can
+opt in with `method="scanner"`.
 
 ### 2. Parameter type: Literal string union vs. enum
 
@@ -61,7 +61,7 @@ so all existing result-handling and memory-cleanup code is reused without duplic
 
 ## Risks / Trade-offs
 
-- **Parser method rejects invalid SQL** → Expected behavior, documented. Users needing tolerance for broken SQL should
-  use the default `"scanner"` method.
+- **Default change rejects invalid SQL that scanner tolerated** → Acceptable pre-1.0 breaking change. Users needing
+  tolerance for broken SQL can pass `method="scanner"`.
 - **Minimal test coverage difference** — Both methods share the same result struct and slicing logic; the risk is low.
   Tests will cover parser-specific edge cases (e.g., `CREATE RULE` with inner semicolons) to confirm improved accuracy.

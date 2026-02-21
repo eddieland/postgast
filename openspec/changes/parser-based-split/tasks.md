@@ -5,7 +5,7 @@
 
 ## 2. Split function
 
-- [ ] 2.1 Add `method: Literal["scanner", "parser"] = "scanner"` keyword-only parameter to `split()` in
+- [ ] 2.1 Add `method: Literal["scanner", "parser"] = "parser"` keyword-only parameter to `split()` in
   `src/postgast/_split.py`
 - [ ] 2.2 Implement dispatch logic: map `"scanner"` → `lib.pg_query_split_with_scanner`, `"parser"` →
   `lib.pg_query_split_with_parser`, raise `ValueError` for anything else

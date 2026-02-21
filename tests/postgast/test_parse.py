@@ -1,18 +1,18 @@
-from postgast import parse
+from postgast import ParseResult, parse
 
 from .conftest import assert_pg_query_error
 
 
 class TestParse:
-    def test_simple_select(self, select1_tree):
+    def test_simple_select(self, select1_tree: ParseResult):
         assert select1_tree.version > 0
         assert len(select1_tree.stmts) == 1
         assert select1_tree.stmts[0].stmt.HasField("select_stmt")
 
-    def test_multi_statement(self, multi_stmt_tree):
+    def test_multi_statement(self, multi_stmt_tree: ParseResult):
         assert len(multi_stmt_tree.stmts) == 2
 
-    def test_ddl_create_table(self, create_table_tree):
+    def test_ddl_create_table(self, create_table_tree: ParseResult):
         assert len(create_table_tree.stmts) == 1
         assert create_table_tree.stmts[0].stmt.HasField("create_stmt")
 

@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from google.protobuf.message import Message
 
-from postgast import Visitor, parse, walk
+from postgast import ParseResult, Visitor, parse, walk
 
 
 class TestWalk:
-    def test_simple_select(self, select1_tree):
+    def test_simple_select(self, select1_tree: ParseResult):
         """4.1: walk yields ParseResult, RawStmt, and SelectStmt with correct field names."""
         nodes = list(walk(select1_tree))
 
@@ -32,7 +32,7 @@ class TestWalk:
         assert "target_list" in field_names
         assert "from_clause" in field_names
 
-    def test_walk_subtree(self, select1_tree):
+    def test_walk_subtree(self, select1_tree: ParseResult):
         """4.3: walk on a SelectStmt starts with ("", SelectStmt)."""
         select_stmt = select1_tree.stmts[0].stmt.select_stmt
         nodes = list(walk(select_stmt))
@@ -54,7 +54,7 @@ class TestWalk:
         for _, msg in walk(result):
             assert type(msg).DESCRIPTOR.name != "Node"
 
-    def test_scalar_fields_not_yielded(self, select1_tree):
+    def test_scalar_fields_not_yielded(self, select1_tree: ParseResult):
         """4.6: scalar fields (strings, ints, enums) are not yielded by walk."""
         for _, msg in walk(select1_tree):
             # Every yielded value should be a protobuf Message, not a scalar
@@ -63,7 +63,7 @@ class TestWalk:
 
 
 class TestVisitor:
-    def test_dispatch_to_visit_select_stmt(self, select1_tree):
+    def test_dispatch_to_visit_select_stmt(self, select1_tree: ParseResult):
         """4.7: Visitor dispatches to visit_SelectStmt when defined."""
         visited: list[Message] = []
 
@@ -75,7 +75,7 @@ class TestVisitor:
         assert len(visited) == 1
         assert type(visited[0]).DESCRIPTOR.name == "SelectStmt"
 
-    def test_fallback_to_generic_visit(self, select1_tree):
+    def test_fallback_to_generic_visit(self, select1_tree: ParseResult):
         """4.8: Visitor falls back to generic_visit when no specific handler is defined."""
         visited_types: list[str] = []
 

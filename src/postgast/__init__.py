@@ -6,6 +6,7 @@ from postgast._errors import PgQueryError
 from postgast._fingerprint import FingerprintResult, fingerprint
 from postgast._normalize import normalize
 from postgast._parse import parse
+from postgast._pg_query_pb2 import ParseResult
 from postgast._scan import scan
 from postgast._split import split
 from postgast._walk import Visitor, walk
@@ -36,6 +37,7 @@ __all__ = [
     "FunctionIdentity",
     "normalize",
     "parse",
+    "ParseResult",
     "pg_query_pb2",
     "PgQueryError",
     "scan",

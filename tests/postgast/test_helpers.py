@@ -4,6 +4,7 @@ import pytest
 
 from postgast import (
     FunctionIdentity,
+    ParseResult,
     TriggerIdentity,
     ensure_or_replace,
     extract_columns,
@@ -50,7 +51,7 @@ class TestFindNodes:
 
 
 class TestExtractTables:
-    def test_simple_table(self, users_tree):
+    def test_simple_table(self, users_tree: ParseResult):
         assert extract_tables(users_tree) == ["users"]
 
     def test_schema_qualified(self):
@@ -82,7 +83,7 @@ class TestExtractColumns:
         result = parse("SELECT u.name FROM users u")
         assert extract_columns(result) == ["u.name"]
 
-    def test_star(self, users_tree):
+    def test_star(self, users_tree: ParseResult):
         assert extract_columns(users_tree) == ["*"]
 
     def test_qualified_star(self):
@@ -117,7 +118,7 @@ class TestExtractFunctions:
 
 
 class TestHelpersOnSubtree:
-    def test_extract_tables_on_subtree(self, users_tree):
+    def test_extract_tables_on_subtree(self, users_tree: ParseResult):
         select_stmt = users_tree.stmts[0].stmt.select_stmt
         assert extract_tables(select_stmt) == ["users"]
 

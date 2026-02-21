@@ -168,12 +168,16 @@ reportExplicitAny = false
 reportImplicitStringConcatenation = false
 reportUnreachable = false
 reportUnannotatedClassAttribute = false
+# Enforce type annotations — previously warnings, now errors.
+reportMissingParameterType = "error"
+reportUnknownParameterType = "error"
+reportUnknownArgumentType = "error"
+reportUnknownMemberType = "error"
+reportUnknownVariableType = "error"
 # reportPrivateImportUsage = false
 # reportPrivateLocalImportUsage = false
 # reportMissingImports = false
 # reportUnnecessaryIsInstance = false
-# reportUnknownVariableType = false
-# reportUnknownArgumentType = false
 
 [tool.cibuildwheel]
 build = "cp310-* cp311-* cp312-* cp313-* cp314-*"

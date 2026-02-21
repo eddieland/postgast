@@ -5,28 +5,28 @@ from typing import Any
 
 import pytest
 
-from postgast import PgQueryError, deparse, parse
+from postgast import ParseResult, PgQueryError, deparse, parse
 
 # -- Parse-result fixtures (function scope for independent protobuf instances) --
 
 
 @pytest.fixture
-def select1_tree():
+def select1_tree() -> ParseResult:
     return parse("SELECT 1")
 
 
 @pytest.fixture
-def create_table_tree():
+def create_table_tree() -> ParseResult:
     return parse("CREATE TABLE t (id int PRIMARY KEY, name text)")
 
 
 @pytest.fixture
-def multi_stmt_tree():
+def multi_stmt_tree() -> ParseResult:
     return parse("SELECT 1; SELECT 2")
 
 
 @pytest.fixture
-def users_tree():
+def users_tree() -> ParseResult:
     return parse("SELECT * FROM users")
 
 

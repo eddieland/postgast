@@ -1,9 +1,8 @@
-from postgast import deparse, parse
-from postgast._pg_query_pb2 import ParseResult
+from postgast import ParseResult, deparse, parse
 
 
 class TestDeparse:
-    def test_simple_select_round_trip(self, select1_tree):
+    def test_simple_select_round_trip(self, select1_tree: ParseResult):
         sql = deparse(select1_tree)
         assert "SELECT" in sql.upper()
         assert "1" in sql
@@ -15,13 +14,13 @@ class TestDeparse:
         assert len(reparsed.stmts) == 1
         assert reparsed.stmts[0].stmt.HasField("select_stmt")
 
-    def test_ddl_create_table(self, create_table_tree):
+    def test_ddl_create_table(self, create_table_tree: ParseResult):
         sql = deparse(create_table_tree)
         reparsed = parse(sql)
         assert len(reparsed.stmts) == 1
         assert reparsed.stmts[0].stmt.HasField("create_stmt")
 
-    def test_multi_statement(self, multi_stmt_tree):
+    def test_multi_statement(self, multi_stmt_tree: ParseResult):
         sql = deparse(multi_stmt_tree)
         reparsed = parse(sql)
         assert len(reparsed.stmts) == 2

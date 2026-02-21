@@ -22,25 +22,12 @@ Fixtures:
 - **WHEN** a test requests `select1_tree`
 - **THEN** the result has `len(result.stmts) == 1` and `result.stmts[0].stmt.HasField("select_stmt")`
 
-### Requirement: Public API import test
+### Requirement: No boilerplate public import tests
 
-`conftest.py` SHALL contain a single parametrized test `test_public_api_importable` that verifies every name in
-`postgast.__all__` is importable and resolves to a valid object.
+Per-module `TestPublicImport` / `TestXxxPublicImport` classes SHALL NOT exist in any test file. Public API importability
+is validated statically by pyright via the type-checked `__init__.py` re-exports.
 
-This test SHALL replace all per-module `TestPublicImport` / `TestXxxPublicImport` classes. Those classes SHALL be
-removed from their respective test files.
-
-#### Scenario: All public API names are importable
-
-- **WHEN** the parametrized test runs over `postgast.__all__`
-- **THEN** `getattr(postgast, name)` succeeds for every entry
-
-#### Scenario: Functions are callable
-
-- **WHEN** the entry is a function (e.g., `parse`, `deparse`, `normalize`)
-- **THEN** `callable(getattr(postgast, name))` is `True`
-
-#### Scenario: Removed boilerplate classes
+#### Scenario: No import test classes remain
 
 - **WHEN** the refactoring is complete
 - **THEN** no test file in `tests/postgast/` contains a class whose name matches `Test*PublicImport`

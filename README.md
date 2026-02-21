@@ -8,15 +8,15 @@ the vendored C library.
 
 ## Features
 
-| Feature          | Status                                       | Description                                                                |
-| ---------------- | -------------------------------------------- | -------------------------------------------------------------------------- |
-| **Parse**        | [Available](openspec/specs/parse/)           | SQL text to protobuf AST                                                   |
-| **Deparse**      | [Available](openspec/specs/deparse/)         | AST back to SQL text                                                       |
-| **Normalize**    | [Available](openspec/specs/normalize/)       | Replace constants with parameter placeholders                              |
-| **Fingerprint**  | [Planned](openspec/changes/add-fingerprint/) | Identify structurally equivalent statements                                |
-| **Split**        | [Planned](openspec/changes/split/)           | Split multi-statement strings (respects strings, comments, dollar-quoting) |
-| **Scan**         | [Planned](openspec/changes/scan-tokenize/)   | Tokenize SQL with keyword classification                                   |
-| **Tree Walking** | [Available](openspec/specs/tree-walking/)    | Walk/visit AST nodes with depth-first traversal and visitor pattern        |
+| Feature          | Status                                     | Description                                                                |
+| ---------------- | ------------------------------------------ | -------------------------------------------------------------------------- |
+| **Parse**        | [Available](openspec/specs/parse/)         | SQL text to protobuf AST                                                   |
+| **Deparse**      | [Available](openspec/specs/deparse/)       | AST back to SQL text                                                       |
+| **Normalize**    | [Available](openspec/specs/normalize/)     | Replace constants with parameter placeholders                              |
+| **Fingerprint**  | [Available](openspec/specs/fingerprint/)   | Identify structurally equivalent statements                                |
+| **Split**        | [Planned](openspec/changes/split/)         | Split multi-statement strings (respects strings, comments, dollar-quoting) |
+| **Scan**         | [Planned](openspec/changes/scan-tokenize/) | Tokenize SQL with keyword classification                                   |
+| **Tree Walking** | [Available](openspec/specs/tree-walking/)  | Walk/visit AST nodes with depth-first traversal and visitor pattern        |
 
 Built on `libpg_query` 17-latest (PostgreSQL 17 parser).
 

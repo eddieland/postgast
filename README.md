@@ -8,12 +8,15 @@ the vendored C library.
 
 ## Features
 
-- **Parse** SQL into a protobuf-based AST
-- **Deparse** an AST back into SQL
-- **Normalize** queries (strip constants for grouping)
-- **Fingerprint** queries (identify structurally equivalent statements)
-- **Split** multi-statement strings safely (respects strings, comments, dollar-quoting)
-- **Scan** SQL into tokens with keyword classification
+| Feature          | Status                                        | Description                                                                |
+| ---------------- | --------------------------------------------- | -------------------------------------------------------------------------- |
+| **Parse**        | [Available](openspec/specs/parse/)            | SQL text to protobuf AST                                                   |
+| **Deparse**      | [Available](openspec/specs/deparse/)          | AST back to SQL text                                                       |
+| **Normalize**    | [Available](openspec/specs/normalize/)        | Replace constants with parameter placeholders                              |
+| **Fingerprint**  | Planned                                       | Identify structurally equivalent statements                                |
+| **Split**        | Planned                                       | Split multi-statement strings (respects strings, comments, dollar-quoting) |
+| **Scan**         | Planned                                       | Tokenize SQL with keyword classification                                   |
+| **Tree Walking** | [Planned](openspec/changes/add-tree-walking/) | Walk/visit AST nodes with depth-first traversal and visitor pattern        |
 
 Built on `libpg_query` 17-latest (PostgreSQL 17 parser).
 

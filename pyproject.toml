@@ -54,6 +54,7 @@ dev = [
     "pytest-sugar>=1.1.1",
     "pytest>=9.0.2",
     "ruff>=0.15.1",
+    "pytest-cov>=7.0.0",
 ]
 
 [build-system]
@@ -206,3 +207,13 @@ testpaths = ["src", "tests"]
 norecursedirs = []
 filterwarnings = []
 markers = []
+
+[tool.coverage.run]
+source = ["postgast"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+
+[tool.coverage.html]
+directory = "htmlcov"

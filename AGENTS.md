@@ -16,8 +16,8 @@ Core operations: parse, deparse, normalize, fingerprint, split, and scan Postgre
 make install       # Install dependencies (uv sync --all-extras)
 make fmt           # Autoformat: mdformat, codespell, ruff check --fix, ruff format
 make lint          # Format + type-check (basedpyright)
-make test          # Run all tests (unit + integration, requires Docker)
-make test-unit     # Run unit tests only (no Docker)
+make test          # Run tests
+make coverage      # Run tests with coverage + HTML report (htmlcov/)
 make all           # install + lint + test
 ```
 
@@ -51,7 +51,7 @@ names. The existing `_*.py` modules are a legacy convention that will be renamed
 - **Spell checker**: codespell
 - **Markdown formatter**: mdformat
 - Python 3.10+ (minimum version)
-- Tests use `pytest`; integration tests are marked with `@pytest.mark.integration` and require Docker
+- Tests use `pytest`; coverage via `pytest-cov` (`make coverage`)
 
 ## uv Best Practices
 

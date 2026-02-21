@@ -1,20 +1,35 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  postgast is a BSD-licensed Python library providing bindings to libpg_query,
+  the PostgreSQL parser extracted as a standalone C library. It calls libpg_query's
+  C functions via Python's ctypes module — no Cython, Rust, or C extensions. Parse
+  results are protobuf messages deserialized into Python objects.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  Core operations: parse, deparse, normalize, fingerprint, split, and scan PostgreSQL SQL.
+
+  Tech stack: Python 3.10+, ctypes, protobuf
+  Build: hatchling + uv (dependency management), uv-dynamic-versioning (git tags)
+  Formatter/Linter: Ruff (line-length 120, Google-style docstrings)
+  Type checker: BasedPyright
+  Tests: pytest (unit + integration; integration tests require Docker with PostgreSQL)
+  License: BSD-2-Clause
+
+  Layout:
+    src/postgast/   — Package source
+    tests/          — Test directory
+    openspec/       — Spec-driven change management
+
+  Conventions:
+    - All commands run via `uv run` within the project virtualenv
+    - `make fmt` before committing (mdformat, codespell, ruff)
+    - Integration tests marked with @pytest.mark.integration
+    - Internal/private modules prefixed with underscore (e.g. _native.py)
+
+rules:
+  proposal:
+    - Reference libpg_query C API specifics when relevant
+    - Always list impacted files under Impact
+  tasks:
+    - Each task should be independently testable where possible
+    - Include test tasks alongside implementation tasks

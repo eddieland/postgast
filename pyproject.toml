@@ -195,8 +195,7 @@ wrap = 120
 end_of_line = "lf"
 
 [tool.codespell]
-# Add here as needed:
-# ignore-words-list = "foo,bar"
+ignore-words-list = "inout"
 skip = "src/postgast/_pg_query_pb2.py,src/postgast/_pg_query_pb2.pyi"
 
 [tool.pytest.ini_options]

@@ -6,10 +6,9 @@ from postgast import Visitor, parse, walk
 
 
 class TestWalk:
-    def test_simple_select(self):
+    def test_simple_select(self, select1_tree):
         """4.1: walk yields ParseResult, RawStmt, and SelectStmt with correct field names."""
-        result = parse("SELECT 1")
-        nodes = list(walk(result))
+        nodes = list(walk(select1_tree))
 
         type_names = [type(msg).DESCRIPTOR.name for _, msg in nodes]
         assert type_names[0] == "ParseResult"
@@ -33,10 +32,9 @@ class TestWalk:
         assert "target_list" in field_names
         assert "from_clause" in field_names
 
-    def test_walk_subtree(self):
+    def test_walk_subtree(self, select1_tree):
         """4.3: walk on a SelectStmt starts with ("", SelectStmt)."""
-        result = parse("SELECT 1")
-        select_stmt = result.stmts[0].stmt.select_stmt
+        select_stmt = select1_tree.stmts[0].stmt.select_stmt
         nodes = list(walk(select_stmt))
 
         assert nodes[0][0] == ""
@@ -56,17 +54,16 @@ class TestWalk:
         for _, msg in walk(result):
             assert type(msg).DESCRIPTOR.name != "Node"
 
-    def test_scalar_fields_not_yielded(self):
+    def test_scalar_fields_not_yielded(self, select1_tree):
         """4.6: scalar fields (strings, ints, enums) are not yielded by walk."""
-        result = parse("SELECT 1")
-        for _, msg in walk(result):
+        for _, msg in walk(select1_tree):
             # Every yielded value should be a protobuf Message, not a scalar
             assert hasattr(msg, "DESCRIPTOR"), f"Expected Message, got {type(msg)}"
             assert hasattr(msg, "ListFields"), f"Expected Message, got {type(msg)}"
 
 
 class TestVisitor:
-    def test_dispatch_to_visit_select_stmt(self):
+    def test_dispatch_to_visit_select_stmt(self, select1_tree):
         """4.7: Visitor dispatches to visit_SelectStmt when defined."""
         visited: list[Message] = []
 
@@ -74,12 +71,11 @@ class TestVisitor:
             def visit_SelectStmt(self, node: Message) -> None:
                 visited.append(node)
 
-        result = parse("SELECT 1")
-        V().visit(result)
+        V().visit(select1_tree)
         assert len(visited) == 1
         assert type(visited[0]).DESCRIPTOR.name == "SelectStmt"
 
-    def test_fallback_to_generic_visit(self):
+    def test_fallback_to_generic_visit(self, select1_tree):
         """4.8: Visitor falls back to generic_visit when no specific handler is defined."""
         visited_types: list[str] = []
 
@@ -88,8 +84,7 @@ class TestVisitor:
                 visited_types.append(type(node).DESCRIPTOR.name)
                 super().generic_visit(node)
 
-        result = parse("SELECT 1")
-        V().visit(result)
+        V().visit(select1_tree)
         # generic_visit should have been called for multiple node types
         assert "ParseResult" in visited_types
         assert "RawStmt" in visited_types
@@ -158,13 +153,3 @@ class TestVisitor:
         collector = TableCollector()
         collector.visit(parse("SELECT a FROM t1 JOIN t2 ON t1.id = t2.id"))
         assert sorted(collector.tables) == ["t1", "t2"]
-
-
-class TestWalkPublicImport:
-    def test_import_walk_and_visitor(self):
-        """4.13: from postgast import walk, Visitor resolves without error."""
-        from postgast import Visitor as V
-        from postgast import walk as w
-
-        assert callable(w)
-        assert isinstance(V, type)

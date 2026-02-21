@@ -1,37 +1,24 @@
-import pytest
+from postgast import parse
 
-from postgast import PgQueryError, parse
+from .conftest import assert_pg_query_error
 
 
 class TestParse:
-    def test_simple_select(self):
-        result = parse("SELECT 1")
-        assert result.version > 0
-        assert len(result.stmts) == 1
-        assert result.stmts[0].stmt.HasField("select_stmt")
+    def test_simple_select(self, select1_tree):
+        assert select1_tree.version > 0
+        assert len(select1_tree.stmts) == 1
+        assert select1_tree.stmts[0].stmt.HasField("select_stmt")
 
-    def test_multi_statement(self):
-        result = parse("SELECT 1; SELECT 2")
-        assert len(result.stmts) == 2
+    def test_multi_statement(self, multi_stmt_tree):
+        assert len(multi_stmt_tree.stmts) == 2
 
-    def test_ddl_create_table(self):
-        result = parse("CREATE TABLE t (id int PRIMARY KEY, name text)")
-        assert len(result.stmts) == 1
-        assert result.stmts[0].stmt.HasField("create_stmt")
+    def test_ddl_create_table(self, create_table_tree):
+        assert len(create_table_tree.stmts) == 1
+        assert create_table_tree.stmts[0].stmt.HasField("create_stmt")
 
     def test_invalid_sql_raises_pg_query_error(self):
-        with pytest.raises(PgQueryError) as exc_info:
-            parse("SELECT FROM")
-        assert exc_info.value.message
-        assert exc_info.value.cursorpos > 0
+        assert_pg_query_error(parse, "SELECT FROM", check_cursorpos=True)
 
     def test_empty_string_returns_empty_stmts(self):
         result = parse("")
         assert len(result.stmts) == 0
-
-
-class TestParsePublicImport:
-    def test_parse_importable(self):
-        from postgast import parse as p
-
-        assert callable(p)

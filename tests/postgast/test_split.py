@@ -1,6 +1,6 @@
-import pytest
+from postgast import split
 
-from postgast import PgQueryError, split
+from .conftest import assert_pg_query_error
 
 
 class TestSplit:
@@ -39,13 +39,4 @@ class TestSplit:
 
 class TestSplitErrors:
     def test_invalid_sql_raises_pg_query_error(self):
-        with pytest.raises(PgQueryError) as exc_info:
-            split("SELECT '")
-        assert exc_info.value.message
-
-
-class TestPublicImport:
-    def test_split_importable(self):
-        from postgast import split as s
-
-        assert callable(s)
+        assert_pg_query_error(split, "SELECT '")

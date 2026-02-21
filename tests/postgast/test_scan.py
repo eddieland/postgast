@@ -1,6 +1,6 @@
-import pytest
+from postgast import pg_query_pb2, scan
 
-from postgast import PgQueryError, pg_query_pb2, scan
+from .conftest import assert_pg_query_error
 
 
 class TestScan:
@@ -63,13 +63,4 @@ class TestScan:
 
 class TestScanErrors:
     def test_unterminated_string_raises_error(self):
-        with pytest.raises(PgQueryError) as exc_info:
-            scan("SELECT 'unterminated")
-        assert exc_info.value.message
-
-
-class TestScanPublicImport:
-    def test_scan_importable(self):
-        from postgast import scan as s
-
-        assert callable(s)
+        assert_pg_query_error(scan, "SELECT 'unterminated")

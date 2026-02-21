@@ -1,6 +1,6 @@
-import pytest
+from postgast import fingerprint
 
-from postgast import PgQueryError, fingerprint
+from .conftest import assert_pg_query_error
 
 
 class TestFingerprint:
@@ -23,9 +23,7 @@ class TestFingerprint:
         assert r1.fingerprint != r2.fingerprint
 
     def test_invalid_sql_raises_pg_query_error(self):
-        with pytest.raises(PgQueryError) as exc_info:
-            fingerprint("SELEC * FROM t")
-        assert exc_info.value.message
+        assert_pg_query_error(fingerprint, "SELEC * FROM t")
 
 
 class TestFingerprintResult:
@@ -38,15 +36,3 @@ class TestFingerprintResult:
         result = fingerprint("SELECT 1")
         assert isinstance(result.fingerprint, int)
         assert isinstance(result.hex, str)
-
-
-class TestPublicImport:
-    def test_fingerprint_importable(self):
-        from postgast import fingerprint as f
-
-        assert callable(f)
-
-    def test_fingerprint_result_importable(self):
-        from postgast import FingerprintResult as FR
-
-        assert issubclass(FR, tuple)

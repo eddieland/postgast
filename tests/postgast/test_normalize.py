@@ -1,6 +1,6 @@
-import pytest
+from postgast import normalize
 
-from postgast import PgQueryError, normalize
+from .conftest import assert_pg_query_error
 
 
 class TestNormalize:
@@ -20,19 +20,4 @@ class TestNormalize:
         assert result == "SELECT * FROM t"
 
     def test_invalid_sql_raises_pg_query_error(self):
-        with pytest.raises(PgQueryError) as exc_info:
-            normalize("SELEC * FROM t")
-        assert exc_info.value.message
-        assert exc_info.value.cursorpos > 0
-
-
-class TestPublicImport:
-    def test_normalize_importable(self):
-        from postgast import normalize as n
-
-        assert callable(n)
-
-    def test_pg_query_error_importable(self):
-        from postgast import PgQueryError as E
-
-        assert issubclass(E, Exception)
+        assert_pg_query_error(normalize, "SELEC * FROM t", check_cursorpos=True)

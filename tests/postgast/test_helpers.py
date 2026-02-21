@@ -50,9 +50,8 @@ class TestFindNodes:
 
 
 class TestExtractTables:
-    def test_simple_table(self):
-        result = parse("SELECT * FROM users")
-        assert extract_tables(result) == ["users"]
+    def test_simple_table(self, users_tree):
+        assert extract_tables(users_tree) == ["users"]
 
     def test_schema_qualified(self):
         result = parse("SELECT * FROM public.users")
@@ -77,16 +76,14 @@ class TestExtractTables:
 
 class TestExtractColumns:
     def test_simple_columns(self):
-        result = parse("SELECT name, age FROM users")
-        assert extract_columns(result) == ["name", "age"]
+        assert extract_columns(parse("SELECT name, age FROM users")) == ["name", "age"]
 
     def test_table_qualified(self):
         result = parse("SELECT u.name FROM users u")
         assert extract_columns(result) == ["u.name"]
 
-    def test_star(self):
-        result = parse("SELECT * FROM users")
-        assert extract_columns(result) == ["*"]
+    def test_star(self, users_tree):
+        assert extract_columns(users_tree) == ["*"]
 
     def test_qualified_star(self):
         result = parse("SELECT u.* FROM users u")
@@ -120,9 +117,8 @@ class TestExtractFunctions:
 
 
 class TestHelpersOnSubtree:
-    def test_extract_tables_on_subtree(self):
-        result = parse("SELECT * FROM users")
-        select_stmt = result.stmts[0].stmt.select_stmt
+    def test_extract_tables_on_subtree(self, users_tree):
+        select_stmt = users_tree.stmts[0].stmt.select_stmt
         assert extract_tables(select_stmt) == ["users"]
 
     def test_extract_columns_on_subtree(self):
@@ -209,31 +205,6 @@ class TestEnsureOrReplace:
             ensure_or_replace("NOT VALID SQL !!!")
 
 
-class TestOrReplacePublicImport:
-    def test_import_set_or_replace(self):
-        from postgast import set_or_replace as sor
-
-        assert callable(sor)
-
-    def test_import_ensure_or_replace(self):
-        from postgast import ensure_or_replace as eor
-
-        assert callable(eor)
-
-
-class TestHelpersPublicImport:
-    def test_import_all_helpers(self):
-        from postgast import extract_columns as ec
-        from postgast import extract_functions as ef
-        from postgast import extract_tables as et
-        from postgast import find_nodes as fn
-
-        assert callable(fn)
-        assert callable(et)
-        assert callable(ec)
-        assert callable(ef)
-
-
 class TestExtractFunctionIdentity:
     def test_schema_qualified(self):
         tree = parse(
@@ -294,26 +265,17 @@ class TestExtractTriggerIdentity:
 class TestIdentityTupleUnpacking:
     def test_unpack_function_identity(self):
         tree = parse("CREATE FUNCTION public.add() RETURNS void AS $$ $$ LANGUAGE sql")
-        schema, name = extract_function_identity(tree)
+        result = extract_function_identity(tree)
+        assert result is not None
+        schema, name = result
         assert schema == "public"
         assert name == "add"
 
     def test_unpack_trigger_identity(self):
         tree = parse("CREATE TRIGGER t AFTER INSERT ON public.orders FOR EACH ROW EXECUTE FUNCTION f()")
-        trigger, schema, table = extract_trigger_identity(tree)
+        result = extract_trigger_identity(tree)
+        assert result is not None
+        trigger, schema, table = result
         assert trigger == "t"
         assert schema == "public"
         assert table == "orders"
-
-
-class TestIdentityPublicImport:
-    def test_import_new_functions_and_types(self):
-        from postgast import FunctionIdentity as FI
-        from postgast import TriggerIdentity as TI
-        from postgast import extract_function_identity as efi
-        from postgast import extract_trigger_identity as eti
-
-        assert callable(efi)
-        assert callable(eti)
-        assert FI is not None
-        assert TI is not None

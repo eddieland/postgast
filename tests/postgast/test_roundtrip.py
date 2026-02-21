@@ -2,23 +2,7 @@
 
 import pytest
 
-from postgast import deparse, parse
-
-
-def assert_roundtrip(sql: str) -> None:
-    """Assert that the canonical form is stable after one roundtrip.
-
-    Deparse canonicalizes SQL (e.g. ``INNER JOIN`` → ``JOIN``, ``integer`` → ``int``),
-    so the deparsed text may differ from the original. We verify that the canonical
-    form is a **fixed point**: deparsing the re-parsed canonical SQL produces the
-    same string again.
-    """
-    canonical = deparse(parse(sql))
-    canonical2 = deparse(parse(canonical))
-    assert canonical == canonical2, (
-        f"Canonical form not stable:\n  original:   {sql}\n  canonical:  {canonical}\n  canonical2: {canonical2}"
-    )
-
+from .conftest import assert_roundtrip
 
 # -- SELECT -------------------------------------------------------------------
 

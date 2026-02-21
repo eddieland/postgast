@@ -108,11 +108,49 @@ DDL_CASES = [
     "CREATE INDEX idx_lower ON t (lower(name))",
     # CREATE VIEW
     "CREATE VIEW v AS SELECT a, b FROM t",
+    # CREATE OR REPLACE VIEW
+    "CREATE OR REPLACE VIEW public.active_users AS SELECT id, name FROM users WHERE active",
     # DROP
     "DROP TABLE t",
     "DROP TABLE IF EXISTS t CASCADE",
     "DROP INDEX idx_a",
     "DROP VIEW v",
+    # DROP FUNCTION / TRIGGER
+    "DROP FUNCTION public.add(integer, integer)",
+    "DROP TRIGGER my_trg ON public.my_table",
+    # CREATE FUNCTION — simple SQL body
+    "CREATE FUNCTION public.add(a integer, b integer) RETURNS integer LANGUAGE sql AS $$ SELECT a + b $$",
+    # CREATE OR REPLACE FUNCTION
+    "CREATE OR REPLACE FUNCTION public.add(a integer, b integer) RETURNS integer LANGUAGE sql AS $$ SELECT a + b $$",
+    # PL/pgSQL trigger function with multi-line body
+    """CREATE FUNCTION public.audit_fn() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    INSERT INTO public.audit_log (table_name, action, row_data)
+    VALUES (TG_TABLE_NAME, TG_OP, row_to_json(NEW));
+    RETURN NEW;
+END;
+$$""",
+    # SECURITY DEFINER
+    "CREATE OR REPLACE FUNCTION public.secure_fn() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$ BEGIN RETURN NEW; END; $$",
+    # Default argument values
+    "CREATE OR REPLACE FUNCTION public.greet(name text DEFAULT 'world'::text) RETURNS text LANGUAGE sql AS $$ SELECT 'Hello, ' || name $$",
+    # Void return
+    "CREATE OR REPLACE FUNCTION public.noop() RETURNS void LANGUAGE sql AS $$  $$",
+    # Overloaded signatures (same name, different args) — tested individually
+    "CREATE FUNCTION public.convert(val integer) RETURNS text LANGUAGE sql AS $$ SELECT val::text $$",
+    "CREATE FUNCTION public.convert(val text) RETURNS text LANGUAGE sql AS $$ SELECT upper(val) $$",
+    # CREATE TRIGGER — BEFORE INSERT
+    "CREATE TRIGGER my_trg BEFORE INSERT ON public.my_table FOR EACH ROW EXECUTE FUNCTION public.my_fn()",
+    # CREATE TRIGGER — AFTER INSERT
+    "CREATE TRIGGER my_trg AFTER INSERT ON public.my_table FOR EACH ROW EXECUTE FUNCTION public.my_fn()",
+    # CREATE TRIGGER — multi-event
+    "CREATE TRIGGER my_trg AFTER INSERT OR UPDATE ON public.my_table FOR EACH ROW EXECUTE FUNCTION public.my_fn()",
+    # CREATE OR REPLACE TRIGGER — multi-event
+    "CREATE OR REPLACE TRIGGER my_trg AFTER INSERT OR UPDATE OR DELETE ON public.my_table FOR EACH ROW EXECUTE FUNCTION public.my_fn()",
+    # CREATE PROCEDURE
+    "CREATE PROCEDURE public.noop() LANGUAGE sql AS $$ SELECT 1 $$",
+    # CREATE AGGREGATE
+    "CREATE AGGREGATE public.my_sum(integer) (SFUNC = int4pl, STYPE = integer, INITCOND = '0')",
 ]
 
 

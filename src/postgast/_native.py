@@ -132,11 +132,20 @@ class PgQueryScanResult(Structure):
     ]
 
 
+class PgQuerySplitStmt(Structure):
+    """Mirrors the C PgQuerySplitStmt struct."""
+
+    _fields_ = [
+        ("stmt_location", c_int),
+        ("stmt_len", c_int),
+    ]
+
+
 class PgQuerySplitResult(Structure):
     """Result from pg_query_split_with_scanner."""
 
     _fields_ = [
-        ("stmts", POINTER(POINTER(c_int))),
+        ("stmts", POINTER(POINTER(PgQuerySplitStmt))),
         ("n_stmts", c_int),
         ("stderr_buffer", c_char_p),
         ("error", POINTER(PgQueryError)),

@@ -7,6 +7,7 @@ from postgast._fingerprint import FingerprintResult, fingerprint
 from postgast._normalize import normalize
 from postgast._parse import parse
 from postgast._scan import scan
+from postgast._split import split
 from postgast._walk import Visitor, walk
 
 __all__ = [
@@ -18,6 +19,7 @@ __all__ = [
     "pg_query_pb2",
     "PgQueryError",
     "scan",
+    "split",
     "Visitor",
     "walk",
 ]

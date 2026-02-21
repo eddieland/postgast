@@ -14,7 +14,7 @@ beyond the vendored C library.
 | **Deparse**      | [Available](openspec/specs/deparse/)      | AST back to SQL text                                                       |
 | **Normalize**    | [Available](openspec/specs/normalize/)    | Replace constants with parameter placeholders                              |
 | **Fingerprint**  | [Available](openspec/specs/fingerprint/)  | Identify structurally equivalent statements                                |
-| **Split**        | [Planned](openspec/changes/split/)        | Split multi-statement strings (respects strings, comments, dollar-quoting) |
+| **Split**        | [Available](openspec/specs/split/)        | Split multi-statement strings (respects strings, comments, dollar-quoting) |
 | **Scan**         | [Available](openspec/specs/scan/)         | Tokenize SQL with keyword classification                                   |
 | **Tree Walking** | [Available](openspec/specs/tree-walking/) | Walk/visit AST nodes with depth-first traversal and visitor pattern        |
 

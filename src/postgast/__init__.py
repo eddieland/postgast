@@ -10,10 +10,14 @@ from postgast._scan import scan
 from postgast._split import split
 from postgast._walk import Visitor, walk
 from postgast.helpers import (
+    FunctionIdentity,
+    TriggerIdentity,
     ensure_or_replace,
     extract_columns,
+    extract_function_identity,
     extract_functions,
     extract_tables,
+    extract_trigger_identity,
     find_nodes,
     set_or_replace,
 )
@@ -22,11 +26,14 @@ __all__ = [
     "deparse",
     "ensure_or_replace",
     "extract_columns",
+    "extract_function_identity",
     "extract_functions",
     "extract_tables",
+    "extract_trigger_identity",
     "find_nodes",
     "fingerprint",
     "FingerprintResult",
+    "FunctionIdentity",
     "normalize",
     "parse",
     "pg_query_pb2",
@@ -34,6 +41,7 @@ __all__ = [
     "scan",
     "set_or_replace",
     "split",
+    "TriggerIdentity",
     "Visitor",
     "walk",
 ]

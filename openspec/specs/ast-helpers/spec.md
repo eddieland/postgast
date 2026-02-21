@@ -140,9 +140,9 @@ collecting all `FuncCall` nodes in the tree.
 
 ### Requirement: All helpers accept any protobuf Message as input
 
-All three helper functions (`extract_tables`, `extract_columns`, `extract_functions`) SHALL accept any
-`google.protobuf.message.Message` instance as input, including `ParseResult`, individual statement nodes (e.g.,
-`SelectStmt`), or any subtree node.
+All helper functions (`extract_tables`, `extract_columns`, `extract_functions`, `extract_function_identity`,
+`extract_trigger_identity`) SHALL accept any `google.protobuf.message.Message` instance as input, including
+`ParseResult`, individual statement nodes (e.g., `SelectStmt`), or any subtree node.
 
 #### Scenario: Works on ParseResult
 
@@ -156,10 +156,12 @@ All three helper functions (`extract_tables`, `extract_columns`, `extract_functi
 
 ### Requirement: All helpers are exported from the postgast package
 
-`find_nodes`, `extract_tables`, `extract_columns`, and `extract_functions` SHALL be importable directly from the
-`postgast` package (i.e., `from postgast import find_nodes`).
+`find_nodes`, `extract_tables`, `extract_columns`, `extract_functions`, `extract_function_identity`,
+`extract_trigger_identity`, `FunctionIdentity`, and `TriggerIdentity` SHALL be importable directly from the `postgast`
+package (i.e., `from postgast import extract_function_identity`).
 
 #### Scenario: Direct import
 
-- **WHEN** a user writes `from postgast import find_nodes, extract_tables, extract_columns, extract_functions`
+- **WHEN** a user writes
+  `from postgast import extract_function_identity, extract_trigger_identity, FunctionIdentity, TriggerIdentity`
 - **THEN** the import SHALL succeed without errors

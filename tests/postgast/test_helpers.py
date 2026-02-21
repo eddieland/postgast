@@ -3,10 +3,14 @@ from __future__ import annotations
 import pytest
 
 from postgast import (
+    FunctionIdentity,
+    TriggerIdentity,
     ensure_or_replace,
     extract_columns,
+    extract_function_identity,
     extract_functions,
     extract_tables,
+    extract_trigger_identity,
     find_nodes,
     parse,
     set_or_replace,
@@ -228,3 +232,88 @@ class TestHelpersPublicImport:
         assert callable(et)
         assert callable(ec)
         assert callable(ef)
+
+
+class TestExtractFunctionIdentity:
+    def test_schema_qualified(self):
+        tree = parse(
+            "CREATE FUNCTION public.add(a integer, b integer) RETURNS integer AS $$ SELECT a + b $$ LANGUAGE sql"
+        )
+        result = extract_function_identity(tree)
+        assert result == FunctionIdentity(schema="public", name="add")
+
+    def test_unqualified(self):
+        tree = parse("CREATE FUNCTION my_func() RETURNS void AS $$ $$ LANGUAGE sql")
+        result = extract_function_identity(tree)
+        assert result == FunctionIdentity(schema=None, name="my_func")
+
+    def test_or_replace(self):
+        tree = parse("CREATE OR REPLACE FUNCTION myschema.do_stuff() RETURNS void AS $$ $$ LANGUAGE sql")
+        result = extract_function_identity(tree)
+        assert result == FunctionIdentity(schema="myschema", name="do_stuff")
+
+    def test_procedure_skipped(self):
+        tree = parse("CREATE PROCEDURE public.my_proc() LANGUAGE sql AS $$ $$ ")
+        assert extract_function_identity(tree) is None
+
+    def test_no_match(self):
+        tree = parse("SELECT 1")
+        assert extract_function_identity(tree) is None
+
+    def test_comments_before_name(self):
+        tree = parse(
+            "CREATE FUNCTION /* comment */ public.add(a int, b int) RETURNS int AS $$ SELECT a + b $$ LANGUAGE sql"
+        )
+        result = extract_function_identity(tree)
+        assert result == FunctionIdentity(schema="public", name="add")
+
+
+class TestExtractTriggerIdentity:
+    def test_schema_qualified_table(self):
+        tree = parse("CREATE TRIGGER my_trg AFTER INSERT ON public.orders FOR EACH ROW EXECUTE FUNCTION notify()")
+        result = extract_trigger_identity(tree)
+        assert result == TriggerIdentity(trigger="my_trg", schema="public", table="orders")
+
+    def test_unqualified_table(self):
+        tree = parse("CREATE TRIGGER audit_trg BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION audit()")
+        result = extract_trigger_identity(tree)
+        assert result == TriggerIdentity(trigger="audit_trg", schema=None, table="users")
+
+    def test_or_replace(self):
+        tree = parse(
+            "CREATE OR REPLACE TRIGGER my_trg AFTER INSERT ON myschema.events FOR EACH ROW EXECUTE FUNCTION log_event()"
+        )
+        result = extract_trigger_identity(tree)
+        assert result == TriggerIdentity(trigger="my_trg", schema="myschema", table="events")
+
+    def test_no_match(self):
+        tree = parse("SELECT 1")
+        assert extract_trigger_identity(tree) is None
+
+
+class TestIdentityTupleUnpacking:
+    def test_unpack_function_identity(self):
+        tree = parse("CREATE FUNCTION public.add() RETURNS void AS $$ $$ LANGUAGE sql")
+        schema, name = extract_function_identity(tree)
+        assert schema == "public"
+        assert name == "add"
+
+    def test_unpack_trigger_identity(self):
+        tree = parse("CREATE TRIGGER t AFTER INSERT ON public.orders FOR EACH ROW EXECUTE FUNCTION f()")
+        trigger, schema, table = extract_trigger_identity(tree)
+        assert trigger == "t"
+        assert schema == "public"
+        assert table == "orders"
+
+
+class TestIdentityPublicImport:
+    def test_import_new_functions_and_types(self):
+        from postgast import FunctionIdentity as FI
+        from postgast import TriggerIdentity as TI
+        from postgast import extract_function_identity as efi
+        from postgast import extract_trigger_identity as eti
+
+        assert callable(efi)
+        assert callable(eti)
+        assert FI is not None
+        assert TI is not None

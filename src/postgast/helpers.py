@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import typing
 from collections.abc import Generator
 
 from google.protobuf.message import Message
@@ -19,6 +20,21 @@ from postgast._pg_query_pb2 import (
 from postgast._walk import walk
 
 _OR_REPLACE_TYPES = (CreateFunctionStmt, CreateTrigStmt, ViewStmt)
+
+
+class FunctionIdentity(typing.NamedTuple):
+    """Identity parts of a ``CREATE FUNCTION`` statement."""
+
+    schema: str | None
+    name: str
+
+
+class TriggerIdentity(typing.NamedTuple):
+    """Identity parts of a ``CREATE TRIGGER`` statement."""
+
+    trigger: str
+    schema: str | None
+    table: str
 
 
 def find_nodes(tree: Message, node_type: str) -> Generator[Message, None, None]:
@@ -117,6 +133,58 @@ def extract_functions(tree: Message) -> list[str]:
                     parts.append(inner.sval)
         functions.append(".".join(parts))
     return functions
+
+
+def extract_function_identity(tree: Message) -> FunctionIdentity | None:
+    """Return the identity of the first ``CREATE FUNCTION`` statement in a parse tree.
+
+    Finds the first ``CreateFunctionStmt`` node where ``is_procedure`` is ``False``
+    and returns a :class:`FunctionIdentity` with the schema and function name.
+
+    Args:
+        tree: Any protobuf ``Message`` (``ParseResult``, ``SelectStmt``, etc.).
+
+    Returns:
+        A :class:`FunctionIdentity` or ``None`` if no matching node is found.
+    """
+    for node in find_nodes(tree, "CreateFunctionStmt"):
+        assert isinstance(node, CreateFunctionStmt)
+        if node.is_procedure:
+            continue
+        parts: list[str] = []
+        for name_node in node.funcname:
+            which = name_node.WhichOneof("node")
+            if which is not None:
+                inner = getattr(name_node, which)
+                if isinstance(inner, String):
+                    parts.append(inner.sval)
+        if len(parts) == 2:
+            return FunctionIdentity(schema=parts[0], name=parts[1])
+        if len(parts) == 1:
+            return FunctionIdentity(schema=None, name=parts[0])
+    return None
+
+
+def extract_trigger_identity(tree: Message) -> TriggerIdentity | None:
+    """Return the identity of the first ``CREATE TRIGGER`` statement in a parse tree.
+
+    Finds the first ``CreateTrigStmt`` node and returns a :class:`TriggerIdentity`
+    with the trigger name, schema, and table name.
+
+    Args:
+        tree: Any protobuf ``Message`` (``ParseResult``, ``SelectStmt``, etc.).
+
+    Returns:
+        A :class:`TriggerIdentity` or ``None`` if no matching node is found.
+    """
+    for node in find_nodes(tree, "CreateTrigStmt"):
+        assert isinstance(node, CreateTrigStmt)
+        return TriggerIdentity(
+            trigger=node.trigname,
+            schema=node.relation.schemaname or None,
+            table=node.relation.relname,
+        )
+    return None
 
 
 def set_or_replace(tree: Message) -> int:

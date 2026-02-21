@@ -9,10 +9,18 @@ from postgast._parse import parse
 from postgast._scan import scan
 from postgast._split import split
 from postgast._walk import Visitor, walk
-from postgast.helpers import extract_columns, extract_functions, extract_tables, find_nodes
+from postgast.helpers import (
+    ensure_or_replace,
+    extract_columns,
+    extract_functions,
+    extract_tables,
+    find_nodes,
+    set_or_replace,
+)
 
 __all__ = [
     "deparse",
+    "ensure_or_replace",
     "extract_columns",
     "extract_functions",
     "extract_tables",
@@ -24,6 +32,7 @@ __all__ = [
     "pg_query_pb2",
     "PgQueryError",
     "scan",
+    "set_or_replace",
     "split",
     "Visitor",
     "walk",

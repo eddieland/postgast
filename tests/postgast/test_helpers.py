@@ -1,6 +1,17 @@
 from __future__ import annotations
 
-from postgast import extract_columns, extract_functions, extract_tables, find_nodes, parse
+import pytest
+
+from postgast import (
+    ensure_or_replace,
+    extract_columns,
+    extract_functions,
+    extract_tables,
+    find_nodes,
+    parse,
+    set_or_replace,
+)
+from postgast._errors import PgQueryError
 
 
 class TestFindNodes:
@@ -117,6 +128,88 @@ class TestHelpersOnSubtree:
         result = parse("SELECT count(*) FROM t")
         select_stmt = result.stmts[0].stmt.select_stmt
         assert extract_functions(select_stmt) == ["count"]
+
+
+class TestSetOrReplace:
+    def test_create_function(self):
+        tree = parse("CREATE FUNCTION add(a int, b int) RETURNS int LANGUAGE sql AS $$ SELECT a + b $$")
+        assert set_or_replace(tree) == 1
+        # Verify the flag was actually set on the AST node
+        from postgast import walk
+
+        for _field, node in walk(tree):
+            if type(node).DESCRIPTOR.name == "CreateFunctionStmt":
+                assert node.replace is True  # pyright: ignore[reportAttributeAccessIssue]
+
+    def test_create_procedure(self):
+        tree = parse("CREATE PROCEDURE do_nothing() LANGUAGE sql AS $$ SELECT 1 $$")
+        assert set_or_replace(tree) == 1
+
+    def test_create_trigger(self):
+        tree = parse("CREATE TRIGGER my_trig BEFORE INSERT ON t FOR EACH ROW EXECUTE FUNCTION fn()")
+        assert set_or_replace(tree) == 1
+
+    def test_create_view(self):
+        tree = parse("CREATE VIEW v AS SELECT 1")
+        assert set_or_replace(tree) == 1
+
+    def test_already_or_replace(self):
+        tree = parse("CREATE OR REPLACE FUNCTION add(a int, b int) RETURNS int LANGUAGE sql AS $$ SELECT a + b $$")
+        assert set_or_replace(tree) == 0
+
+    def test_no_eligible_stmts(self):
+        tree = parse("SELECT 1; CREATE TABLE t (id int)")
+        assert set_or_replace(tree) == 0
+
+    def test_multi_statement(self):
+        sql = "CREATE FUNCTION f1() RETURNS int LANGUAGE sql AS $$ SELECT 1 $$; CREATE VIEW v AS SELECT 1"
+        tree = parse(sql)
+        assert set_or_replace(tree) == 2
+
+    def test_mixed_statements(self):
+        sql = "CREATE TABLE t (id int); CREATE FUNCTION f1() RETURNS int LANGUAGE sql AS $$ SELECT 1 $$; SELECT 1"
+        tree = parse(sql)
+        assert set_or_replace(tree) == 1
+
+
+class TestEnsureOrReplace:
+    def test_function(self):
+        result = ensure_or_replace("CREATE FUNCTION f() RETURNS int LANGUAGE sql AS $$ SELECT 1 $$")
+        assert "OR REPLACE" in result
+
+    def test_procedure(self):
+        result = ensure_or_replace("CREATE PROCEDURE p() LANGUAGE sql AS $$ SELECT 1 $$")
+        assert "OR REPLACE" in result
+
+    def test_trigger(self):
+        result = ensure_or_replace("CREATE TRIGGER t BEFORE INSERT ON tbl FOR EACH ROW EXECUTE FUNCTION fn()")
+        assert "OR REPLACE" in result
+
+    def test_view(self):
+        result = ensure_or_replace("CREATE VIEW v AS SELECT 1")
+        assert "OR REPLACE" in result
+
+    def test_idempotency(self):
+        sql = "CREATE FUNCTION f() RETURNS int LANGUAGE sql AS $$ SELECT 1 $$"
+        first = ensure_or_replace(sql)
+        second = ensure_or_replace(first)
+        assert first == second
+
+    def test_invalid_sql_raises(self):
+        with pytest.raises(PgQueryError):
+            ensure_or_replace("NOT VALID SQL !!!")
+
+
+class TestOrReplacePublicImport:
+    def test_import_set_or_replace(self):
+        from postgast import set_or_replace as sor
+
+        assert callable(sor)
+
+    def test_import_ensure_or_replace(self):
+        from postgast import ensure_or_replace as eor
+
+        assert callable(eor)
 
 
 class TestHelpersPublicImport:

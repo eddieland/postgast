@@ -8,6 +8,8 @@ from google.protobuf.message import Message
 
 from postgast._walk import walk
 
+_OR_REPLACE_TYPES = frozenset({"CreateFunctionStmt", "CreateTrigStmt", "ViewStmt"})
+
 
 def find_nodes(tree: Message, node_type: str) -> Generator[Message, None, None]:
     """Yield all protobuf messages matching *node_type* from a parse tree.
@@ -115,3 +117,48 @@ def extract_functions(tree: Message) -> list[str]:
                 parts.append(name_node.sval)  # pyright: ignore[reportUnknownMemberType,reportUnknownArgumentType]
         functions.append(".".join(parts))
     return functions
+
+
+def set_or_replace(tree: Message) -> int:
+    """Set ``replace = True`` on eligible DDL nodes in a parse tree.
+
+    Walks *tree* and flips the ``replace`` flag on
+    ``CreateFunctionStmt``, ``CreateTrigStmt``, and ``ViewStmt`` nodes
+    where it is currently ``False``.
+
+    Args:
+        tree: A protobuf ``Message`` (typically a ``ParseResult``).
+
+    Returns:
+        Number of nodes that were modified.
+    """
+    count = 0
+    for _field_name, node in walk(tree):
+        if type(node).DESCRIPTOR.name in _OR_REPLACE_TYPES:
+            if not node.replace:  # pyright: ignore[reportAttributeAccessIssue,reportUnknownMemberType]
+                node.replace = True  # pyright: ignore[reportAttributeAccessIssue]
+                count += 1
+    return count
+
+
+def ensure_or_replace(sql: str) -> str:
+    """Return *sql* with all eligible ``CREATE`` statements rewritten to ``CREATE OR REPLACE``.
+
+    Parses the input, sets ``replace = True`` on ``CreateFunctionStmt``,
+    ``CreateTrigStmt``, and ``ViewStmt`` nodes, and deparses back to SQL.
+
+    Args:
+        sql: One or more SQL statements.
+
+    Returns:
+        The rewritten SQL text.
+
+    Raises:
+        PgQueryError: If *sql* cannot be parsed.
+    """
+    from postgast._deparse import deparse
+    from postgast._parse import parse
+
+    tree = parse(sql)
+    set_or_replace(tree)
+    return deparse(tree)

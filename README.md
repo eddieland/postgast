@@ -3,8 +3,8 @@
 BSD-licensed Python bindings to [libpg_query](https://github.com/pganalyze/libpg_query), the PostgreSQL parser extracted
 as a standalone C library.
 
-Parse, deparse, normalize, fingerprint, split, and scan PostgreSQL SQL statements from Python with zero dependencies
-beyond the vendored C library.
+Parse, deparse, normalize, fingerprint, split, and scan PostgreSQL SQL statements from Python with a minimal dependency
+footprint — just `protobuf` and the vendored C library.
 
 ## Features
 
@@ -17,6 +17,7 @@ beyond the vendored C library.
 | **Split**        | [Available](openspec/specs/split/)        | Split multi-statement strings (respects strings, comments, dollar-quoting) |
 | **Scan**         | [Available](openspec/specs/scan/)         | Tokenize SQL with keyword classification                                   |
 | **Tree Walking** | [Available](openspec/specs/tree-walking/) | Walk/visit AST nodes with depth-first traversal and visitor pattern        |
+| **AST Helpers**  | [Available](openspec/specs/ast-helpers/)  | Extract tables, columns, and functions from a parse tree                   |
 
 Built on `libpg_query` 17-latest (PostgreSQL 17 parser).
 

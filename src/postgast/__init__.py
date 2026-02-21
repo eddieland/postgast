@@ -9,9 +9,14 @@ from postgast._parse import parse
 from postgast._scan import scan
 from postgast._split import split
 from postgast._walk import Visitor, walk
+from postgast.helpers import extract_columns, extract_functions, extract_tables, find_nodes
 
 __all__ = [
     "deparse",
+    "extract_columns",
+    "extract_functions",
+    "extract_tables",
+    "find_nodes",
     "fingerprint",
     "FingerprintResult",
     "normalize",

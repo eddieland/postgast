@@ -64,6 +64,9 @@ jobs:
       - name: Install all dependencies
         run: uv sync --all-extras
 
+      - name: Build native library
+        run: make build-native
+
       - name: Check formatting (mdformat)
         run: uv run mdformat --check README.md CLAUDE.md openspec/
 

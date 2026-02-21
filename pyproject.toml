@@ -209,7 +209,9 @@ python_functions = ["test_*"]
 testpaths = ["src", "tests"]
 norecursedirs = []
 filterwarnings = []
-markers = []
+markers = [
+    "stress: marks tests as stress tests — large inputs, deep nesting, high counts (deselect with '-m \"not stress\"')",
+]
 
 [tool.coverage.run]
 source = ["postgast"]

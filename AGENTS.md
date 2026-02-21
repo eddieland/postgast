@@ -53,6 +53,36 @@ names. The existing `_*.py` modules are a legacy convention that will be renamed
 - Python 3.10+ (minimum version)
 - Tests use `pytest`; integration tests are marked with `@pytest.mark.integration` and require Docker
 
+## uv Best Practices
+
+Always use `uv run` to execute commands — never activate the virtualenv manually or use bare `pip`.
+
+**Selecting dependencies for a run:**
+
+- `uv run <cmd>` — uses the project's locked environment (core deps + dev group)
+- `uv run --extra recipes <cmd>` — include an optional extra for the run
+- `uv run --with <pkg> <cmd>` — temporarily add a package for a single invocation without modifying `pyproject.toml`
+  (useful for one-off tools or debugging aids)
+- `uv run --only-group dev <cmd>` — run with only a specific dependency group, excluding core deps
+
+**Adding dependencies — put them in the right place:**
+
+- `uv add <pkg>` — core dependency (shipped to users, keep this minimal)
+- `uv add --dev <pkg>` — dev-only tooling (linters, test runners, type checkers)
+- `uv add --optional recipes <pkg>` — optional extra (for the `recipes` extra group)
+
+**Other useful commands:**
+
+- `uv tool run <pkg>` (or `uvx <pkg>`) — run a standalone CLI tool without installing it into the project
+- `uv sync --all-extras` — install everything (what `make install` does)
+- `uv sync --upgrade --all-extras --dev` — upgrade all deps to latest compatible versions
+
+**Things to avoid:**
+
+- Don't use `pip install` — it bypasses uv's lockfile and can desync the environment
+- Don't create or activate venvs manually — `uv run` and `uv sync` handle this
+- Don't add heavy packages to core `dependencies` if they're only needed for dev or optional features
+
 ## README Feature Matrix
 
 The feature matrix table in `README.md` must be kept in sync with project status. Update it at these progression points:

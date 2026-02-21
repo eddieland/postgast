@@ -10,7 +10,7 @@ This document compares postgast against other Python libraries for parsing Postg
 | **PG grammar fidelity** | 100% | 100% | High (not 100%) | 100% (old PG) | Low (non-validating) |
 | **PostgreSQL version** | 17 | 17 (v7) | N/A | ~10 | N/A |
 | **License** | BSD-2-Clause | **GPL-3.0+** | MIT | BSD-3-Clause | BSD-2-Clause |
-| **Python versions** | 3.10+ | 3.11+ | 3.9+ | 3.5 | 3.8+ |
+| **Python versions** | 3.10+ | 3.9+ | 3.9+ | 3.5 | 3.8+ |
 | **C toolchain required** | No (ctypes) | Yes (Cython) | No (pure Python) | Yes (Cython) | No (pure Python) |
 | **Core deps** | protobuf | — | — | — | — |
 | **Maintenance** | Active | Active | Very active | Dead (last release 2019) | Active |
@@ -22,10 +22,10 @@ This document compares postgast against other Python libraries for parsing Postg
 | --- | --- | --- | --- | --- | --- |
 | **Parse SQL to AST** | Yes | Yes | Yes | Yes | Tokenize only |
 | **Deparse AST to SQL** | Yes | Yes | Yes | No | No |
-| **Normalize** | Yes | No | No | No | No |
+| **Normalize** | Yes (dedicated function) | Via `RawStream` | No | No | No |
 | **Fingerprint** | Yes | Yes | No | No | No |
 | **Split statements** | Yes (parser + scanner) | Yes (parser + scanner) | No | No | Yes |
-| **Tokenize / scan** | Yes | No | Yes | No | Yes |
+| **Tokenize / scan** | Yes | Yes | Yes | No | Yes |
 | **Pretty-print SQL** | No | Yes (`pgpp` CLI) | Yes | No | Yes |
 | **Tree walking** | Yes (`walk()`) | Yes (visitors) | Yes (`.walk()`, `.find()`) | No | No |
 | **Visitor pattern** | Yes (`Visitor` class) | Yes (`Visitor` class) | Yes (`.transform()`) | No | No |
@@ -52,13 +52,9 @@ differences:
   simplifies installation, cross-compilation, and CI environments. pglast requires Cython and a C compiler, or
   pre-built wheels.
 
-- **Broader Python version support**: postgast supports Python 3.10+; pglast requires 3.11+.
-
-- **Normalize**: postgast exposes libpg_query's `pg_query_normalize` function (replaces constants with `$1`, `$2`, …
-  placeholders). pglast does not expose this.
-
-- **Scan / tokenize**: postgast exposes libpg_query's scanner, returning tokens with keyword classification. pglast does
-  not expose this.
+- **Normalize (dedicated function)**: postgast exposes libpg_query's `pg_query_normalize` directly as a one-call
+  function (replaces constants with `$1`, `$2`, … placeholders). pglast achieves normalization indirectly via
+  `RawStream`, which is more verbose for this common operation.
 
 - **Built-in AST helpers**: postgast ships convenience functions (`extract_tables`, `extract_columns`,
   `extract_functions`, `extract_function_identity`, `extract_trigger_identity`, `set_or_replace`, `ensure_or_replace`)
@@ -73,9 +69,13 @@ differences:
 - **PL/pgSQL parsing**: pglast can parse PL/pgSQL function bodies into an AST. postgast only parses SQL-level
   statements.
 
-- **Typed AST classes**: pglast wraps protobuf nodes in Python dataclass-like `pglast.ast.*` objects with attribute
-  access, making tree manipulation more Pythonic. postgast uses raw protobuf `Message` objects, which are functional but
-  less ergonomic for complex AST surgery.
+- **Typed AST classes**: pglast auto-generates concrete Python classes (`pglast.ast.*`) for every PostgreSQL node type,
+  with mutable attribute access and self-serialization. postgast uses raw protobuf `Message` objects, which are
+  functional but less ergonomic for complex AST surgery.
+
+- **Richer visitor semantics**: pglast's `Visitor` supports return values that control traversal — `Delete` (remove
+  node), `Skip` (don't descend), `Add` (insert siblings), or return a new node to replace the current one. It also
+  provides `Ancestor` tracking for full ancestry chains. postgast's `Visitor` uses a simpler override-and-recurse model.
 
 - **Maturity and ecosystem**: pglast has been maintained since 2017, has ~41K weekly PyPI downloads, 99% test coverage,
   and comprehensive documentation on ReadTheDocs. postgast is newer with a smaller user base.
@@ -84,8 +84,8 @@ differences:
 
 ### Feature parity
 
-Both libraries offer: parsing, deparsing, fingerprinting, statement splitting (parser and scanner modes), tree
-walking/visitor patterns, and AST modification with round-trip deparsing.
+Both libraries offer: parsing, deparsing, fingerprinting, statement splitting (parser and scanner modes), tokenization /
+scanning, tree walking/visitor patterns, and AST modification with round-trip deparsing.
 
 ## Detailed Comparison with sqlglot
 

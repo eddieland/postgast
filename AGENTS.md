@@ -46,3 +46,14 @@ All commands use `uv run` to execute within the project virtualenv.
 - **Markdown formatter**: mdformat
 - Python 3.10+ (minimum version)
 - Tests use `pytest`; integration tests are marked with `@pytest.mark.integration` and require Docker
+
+## README Feature Matrix
+
+The feature matrix table in `README.md` must be kept in sync with project status. Update it at these progression points:
+
+- **After finishing apply** — set status to `Available` with a link to the spec directory (e.g.,
+  `[Available](openspec/specs/feature/)`)
+- **After archiving a change** — confirm the status is `Available` and the spec link is correct; add new rows if the
+  change introduced a feature not yet listed
+
+Do not update the matrix during intermediate steps (planning, drafting specs, mid-implementation).

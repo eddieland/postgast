@@ -38,10 +38,13 @@ lint: fmt ## Format, then type-check (basedpyright)
 	uv run basedpyright --stats $(SRC_PATHS)
 
 test: $(NATIVE_LIB) ## Run tests
-	uv run pytest
+	uv run pytest -m "not fuzz"
+
+fuzz: $(NATIVE_LIB) ## Run fuzz tests (property-based, Hypothesis)
+	uv run pytest -m fuzz
 
 coverage: $(NATIVE_LIB) ## Run tests with coverage and generate HTML report
-	uv run pytest --cov --cov-report=html --cov-report=term
+	uv run pytest -m "not fuzz" --cov --cov-report=html --cov-report=term
 
 proto: ## Regenerate Python protobuf bindings from vendored pg_query.proto
 	uv run python -m grpc_tools.protoc --python_out=src/postgast --pyi_out=src/postgast --proto_path=vendor/libpg_query/protobuf pg_query.proto
@@ -79,4 +82,4 @@ help: ## Show this help
 		/^[a-zA-Z_-]+:.*?## / { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 	@echo
 
-.PHONY: all install fmt lint test coverage docs build build-native proto upgrade clean help
+.PHONY: all install fmt lint test fuzz coverage docs build build-native proto upgrade clean help

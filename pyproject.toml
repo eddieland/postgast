@@ -47,16 +47,17 @@ dev = [
     "basedpyright>=1.38.0",
     "codespell>=2.4.1",
     "grpcio-tools>=1.70",
+    "hypothesis>=6.151.9",
     "mdformat-frontmatter>=2.0.0",
     "mdformat-gfm>=1.0.0",
     "mdformat-pyproject>=0.0.2",
     "mdformat-ruff>=0.1",
     "mdformat>=1.0.0",
     "psycopg[binary]",
+    "pytest-cov>=7.0.0",
     "pytest-sugar>=1.1.1",
     "pytest>=9.0.2",
     "ruff>=0.15.1",
-    "pytest-cov>=7.0.0",
 ]
 
 [build-system]
@@ -213,6 +214,7 @@ norecursedirs = []
 filterwarnings = []
 markers = [
     "stress: marks tests as stress tests — large inputs, deep nesting, high counts (deselect with '-m \"not stress\"')",
+    "fuzz: marks tests as fuzz tests — property-based tests with Hypothesis (deselect with '-m \"not fuzz\"')",
 ]
 
 [tool.coverage.run]

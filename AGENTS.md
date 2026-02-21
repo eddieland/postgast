@@ -38,6 +38,12 @@ All commands use `uv run` to execute within the project virtualenv.
 - **`__init__.py`** is kept simple — used for clean re-exports so users get a nice public API
 - Uses the official `protobuf` library (not a lighter alternative) for reliability
 
+## Module Naming
+
+New modules in `src/postgast/` should use plain names (e.g., `split.py`, `helpers.py`) — **not** underscore-prefixed
+names. The existing `_*.py` modules are a legacy convention that will be renamed. The public API is defined by
+`__init__.py` re-exports and `__all__`, not by module name prefixes.
+
 ## Code Style & Tooling
 
 - **Formatter/Linter**: Ruff (line-length 120, Google-style docstrings)

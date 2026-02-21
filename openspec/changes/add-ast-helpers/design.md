@@ -61,11 +61,10 @@ wrap in `set()`.
 *Alternative*: Return tuples like `("schema", "table")`. More structured but less ergonomic for the common case. The
 dot-joined string matches SQL syntax.
 
-### 3. Single `_helpers.py` module
+### 3. Single `helpers.py` module
 
 All three functions go in one internal module. They share the same pattern (walk + filter + extract strings) so
-splitting would be over-engineering. Following the existing convention of underscore-prefixed internal modules
-(`_parse.py`, `_walk.py`, etc.).
+splitting would be over-engineering.
 
 ### 4. Filter by protobuf descriptor name
 

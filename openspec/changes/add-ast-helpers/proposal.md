@@ -13,7 +13,7 @@ analysis without requiring protobuf knowledge.
   schema-qualified names.
 - Add `extract_columns(tree)` — returns column references found in a parse tree (via `ColumnRef` nodes).
 - Add `extract_functions(tree)` — returns function call names found in a parse tree (via `FuncCall` nodes).
-- Add a new `_helpers.py` internal module containing the implementations.
+- Add a new `helpers.py` module containing the implementations.
 - Re-export all helpers from `__init__.py` for a clean public API.
 
 ## Capabilities
@@ -29,7 +29,7 @@ analysis without requiring protobuf knowledge.
 
 ## Impact
 
-- **New file**: `src/postgast/_helpers.py`
+- **New file**: `src/postgast/helpers.py`
 - **Modified file**: `src/postgast/__init__.py` (new re-exports)
 - **New tests**: `tests/postgast/test_helpers.py`
 - **Public API**: Four new functions added to the `postgast` namespace

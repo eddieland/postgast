@@ -1,18 +1,18 @@
 ## 1. Core Implementation
 
-- [ ] 1.1 Create `src/postgast/_helpers.py` with `find_nodes(tree, node_type)` — walk tree, yield all messages matching
+- [ ] 1.1 Create `src/postgast/helpers.py` with `find_nodes(tree, node_type)` — walk tree, yield all messages matching
   the given descriptor name; return a `Generator`
-- [ ] 1.2 Add `extract_tables()` to `_helpers.py` — use `find_nodes` to collect `RangeVar` nodes, return `list[str]`
-  with dot-joined `schemaname.relname`
-- [ ] 1.3 Add `extract_columns()` to `_helpers.py` — use `find_nodes` to collect `ColumnRef` nodes, unwrap `fields` to
+- [ ] 1.2 Add `extract_tables()` to `helpers.py` — use `find_nodes` to collect `RangeVar` nodes, return `list[str]` with
+  dot-joined `schemaname.relname`
+- [ ] 1.3 Add `extract_columns()` to `helpers.py` — use `find_nodes` to collect `ColumnRef` nodes, unwrap `fields` to
   `String.sval`, join with dots, represent `A_Star` as `"*"`
-- [ ] 1.4 Add `extract_functions()` to `_helpers.py` — use `find_nodes` to collect `FuncCall` nodes, unwrap `funcname`
-  to `String.sval`, join with dots
+- [ ] 1.4 Add `extract_functions()` to `helpers.py` — use `find_nodes` to collect `FuncCall` nodes, unwrap `funcname` to
+  `String.sval`, join with dots
 
 ## 2. Package Exports
 
 - [ ] 2.1 Update `src/postgast/__init__.py` to import and re-export `find_nodes`, `extract_tables`, `extract_columns`,
-  `extract_functions` from `_helpers`; add to `__all__`
+  `extract_functions` from `helpers`; add to `__all__`
 
 ## 3. Tests
 

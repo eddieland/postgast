@@ -35,6 +35,8 @@ All commands use `uv run` to execute within the project virtualenv.
 - **`tests/`** — Test directory (pytest discovers from both `src` and `tests` via `testpaths`)
 - Uses `uv` for dependency management and `hatchling` for building
 - Version is derived from git tags via `uv-dynamic-versioning`
+- **`__init__.py`** is kept simple — used for clean re-exports so users get a nice public API
+- Uses the official `protobuf` library (not a lighter alternative) for reliability
 
 ## Code Style & Tooling
 

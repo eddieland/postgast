@@ -19,7 +19,9 @@ class TestFindNodes:
         result = parse("SELECT * FROM users JOIN orders ON users.id = orders.user_id")
         nodes = list(find_nodes(result, "RangeVar"))
         assert len(nodes) == 2
-        relnames = [n.relname for n in nodes]  # pyright: ignore[reportUnknownMemberType,reportAttributeAccessIssue,reportUnknownVariableType]
+        from postgast._pg_query_pb2 import RangeVar
+
+        relnames = [n.relname for n in nodes if isinstance(n, RangeVar)]
         assert relnames == ["users", "orders"]
 
     def test_empty_result_for_no_matches(self):
@@ -139,7 +141,10 @@ class TestSetOrReplace:
 
         for _field, node in walk(tree):
             if type(node).DESCRIPTOR.name == "CreateFunctionStmt":
-                assert node.replace is True  # pyright: ignore[reportAttributeAccessIssue]
+                from postgast._pg_query_pb2 import CreateFunctionStmt
+
+                assert isinstance(node, CreateFunctionStmt)
+                assert node.replace is True
 
     def test_create_procedure(self):
         tree = parse("CREATE PROCEDURE do_nothing() LANGUAGE sql AS $$ SELECT 1 $$")

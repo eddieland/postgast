@@ -6,9 +6,19 @@ from collections.abc import Generator
 
 from google.protobuf.message import Message
 
+from postgast._pg_query_pb2 import (
+    A_Star,
+    ColumnRef,
+    CreateFunctionStmt,
+    CreateTrigStmt,
+    FuncCall,
+    RangeVar,
+    String,
+    ViewStmt,
+)
 from postgast._walk import walk
 
-_OR_REPLACE_TYPES = frozenset({"CreateFunctionStmt", "CreateTrigStmt", "ViewStmt"})
+_OR_REPLACE_TYPES = (CreateFunctionStmt, CreateTrigStmt, ViewStmt)
 
 
 def find_nodes(tree: Message, node_type: str) -> Generator[Message, None, None]:
@@ -46,9 +56,8 @@ def extract_tables(tree: Message) -> list[str]:
     """
     tables: list[str] = []
     for node in find_nodes(tree, "RangeVar"):
-        schema: str = node.schemaname  # pyright: ignore[reportAttributeAccessIssue,reportAssignmentType]
-        rel: str = node.relname  # pyright: ignore[reportAttributeAccessIssue,reportAssignmentType]
-        tables.append(f"{schema}.{rel}" if schema else rel)
+        assert isinstance(node, RangeVar)
+        tables.append(f"{node.schemaname}.{node.relname}" if node.schemaname else node.relname)
     return tables
 
 
@@ -68,22 +77,16 @@ def extract_columns(tree: Message) -> list[str]:
     """
     columns: list[str] = []
     for node in find_nodes(tree, "ColumnRef"):
+        assert isinstance(node, ColumnRef)
         parts: list[str] = []
-        for field_node in node.fields:  # pyright: ignore[reportAttributeAccessIssue,reportUnknownVariableType,reportUnknownMemberType]
-            descriptor_name = type(field_node).DESCRIPTOR.name
-            if descriptor_name == "Node":
-                which = field_node.WhichOneof("node")
-                if which is not None:
-                    inner = getattr(field_node, which)
-                    inner_name = type(inner).DESCRIPTOR.name
-                    if inner_name == "String":
-                        parts.append(inner.sval)
-                    elif inner_name == "A_Star":
-                        parts.append("*")
-            elif descriptor_name == "String":
-                parts.append(field_node.sval)  # pyright: ignore[reportUnknownMemberType,reportUnknownArgumentType]
-            elif descriptor_name == "A_Star":
-                parts.append("*")
+        for field_node in node.fields:
+            which = field_node.WhichOneof("node")
+            if which is not None:
+                inner = getattr(field_node, which)
+                if isinstance(inner, String):
+                    parts.append(inner.sval)
+                elif isinstance(inner, A_Star):
+                    parts.append("*")
         columns.append(".".join(parts))
     return columns
 
@@ -104,17 +107,14 @@ def extract_functions(tree: Message) -> list[str]:
     """
     functions: list[str] = []
     for node in find_nodes(tree, "FuncCall"):
+        assert isinstance(node, FuncCall)
         parts: list[str] = []
-        for name_node in node.funcname:  # pyright: ignore[reportAttributeAccessIssue,reportUnknownVariableType,reportUnknownMemberType]
-            descriptor_name = type(name_node).DESCRIPTOR.name
-            if descriptor_name == "Node":
-                which = name_node.WhichOneof("node")
-                if which is not None:
-                    inner = getattr(name_node, which)
-                    if type(inner).DESCRIPTOR.name == "String":
-                        parts.append(inner.sval)
-            elif descriptor_name == "String":
-                parts.append(name_node.sval)  # pyright: ignore[reportUnknownMemberType,reportUnknownArgumentType]
+        for name_node in node.funcname:
+            which = name_node.WhichOneof("node")
+            if which is not None:
+                inner = getattr(name_node, which)
+                if isinstance(inner, String):
+                    parts.append(inner.sval)
         functions.append(".".join(parts))
     return functions
 
@@ -134,9 +134,9 @@ def set_or_replace(tree: Message) -> int:
     """
     count = 0
     for _field_name, node in walk(tree):
-        if type(node).DESCRIPTOR.name in _OR_REPLACE_TYPES:
-            if not node.replace:  # pyright: ignore[reportAttributeAccessIssue,reportUnknownMemberType]
-                node.replace = True  # pyright: ignore[reportAttributeAccessIssue]
+        if isinstance(node, _OR_REPLACE_TYPES):
+            if not node.replace:
+                node.replace = True
                 count += 1
     return count
 

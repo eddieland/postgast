@@ -1,0 +1,5 @@
+# PEP 561 marker file. See https://peps.python.org/pep-0561/
+#
+# The presence of this file indicates that the postgast package supports
+# type checking. Type checkers will use inline type annotations and any
+# associated stub files (.pyi) shipped with the package.

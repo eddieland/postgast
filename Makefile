@@ -43,6 +43,11 @@ test: $(NATIVE_LIB) ## Run tests (unit + integration, requires Docker)
 test-unit: $(NATIVE_LIB) ## Run unit tests only (no Docker required)
 	uv run pytest -m "not integration"
 
+proto: ## Regenerate Python protobuf bindings from vendored pg_query.proto
+	uv run python -m grpc_tools.protoc --python_out=src/postgast --pyi_out=src/postgast --proto_path=vendor/libpg_query/protobuf pg_query.proto
+	mv src/postgast/pg_query_pb2.py src/postgast/_pg_query_pb2.py
+	mv src/postgast/pg_query_pb2.pyi src/postgast/_pg_query_pb2.pyi
+
 ##@ Build & Release
 
 build: ## Build package
@@ -70,4 +75,4 @@ help: ## Show this help
 		/^[a-zA-Z_-]+:.*?## / { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 	@echo
 
-.PHONY: all install fmt lint test test-unit build build-native upgrade clean help
+.PHONY: all install fmt lint test test-unit build build-native proto upgrade clean help

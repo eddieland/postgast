@@ -16,18 +16,6 @@ def _import_native():
     return importlib.import_module(mod_name)
 
 
-@pytest.fixture
-def _mock_linux():
-    with patch("platform.system", return_value="Linux"):
-        yield
-
-
-@pytest.fixture
-def _mock_no_vendored():
-    with patch.object(Path, "is_file", return_value=False):
-        yield
-
-
 class TestVendoredFirst:
     def test_loads_vendored_when_present(self):
         mock_cdll = MagicMock()

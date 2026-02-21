@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import typing
 from collections.abc import Generator
+from typing import TypeVar
 
 from google.protobuf.message import Message
 
@@ -19,6 +20,7 @@ from postgast._pg_query_pb2 import (
 )
 from postgast._walk import walk
 
+_M = TypeVar("_M", bound=Message)
 _OR_REPLACE_TYPES = (CreateFunctionStmt, CreateTrigStmt, ViewStmt)
 
 
@@ -37,21 +39,21 @@ class TriggerIdentity(typing.NamedTuple):
     table: str
 
 
-def find_nodes(tree: Message, node_type: str) -> Generator[Message, None, None]:
+def find_nodes(tree: Message, node_type: type[_M]) -> Generator[_M, None, None]:
     """Yield all protobuf messages matching *node_type* from a parse tree.
 
     Walks the tree in depth-first pre-order (same as :func:`walk`) and yields
-    every message whose protobuf descriptor name equals *node_type*.
+    every message that is an instance of *node_type*.
 
     Args:
         tree: Any protobuf ``Message`` (``ParseResult``, ``SelectStmt``, etc.).
-        node_type: Protobuf descriptor name to match (e.g., ``"RangeVar"``).
+        node_type: Protobuf message class to match (e.g., ``RangeVar``).
 
     Yields:
-        Matching ``Message`` instances in depth-first pre-order.
+        Matching instances in depth-first pre-order.
     """
     for _field_name, node in walk(tree):
-        if type(node).DESCRIPTOR.name == node_type:
+        if isinstance(node, node_type):
             yield node
 
 
@@ -71,8 +73,7 @@ def extract_tables(tree: Message) -> list[str]:
         Table names in encounter order.
     """
     tables: list[str] = []
-    for node in find_nodes(tree, "RangeVar"):
-        assert isinstance(node, RangeVar)
+    for node in find_nodes(tree, RangeVar):
         tables.append(f"{node.schemaname}.{node.relname}" if node.schemaname else node.relname)
     return tables
 
@@ -92,8 +93,7 @@ def extract_columns(tree: Message) -> list[str]:
         Column references in encounter order.
     """
     columns: list[str] = []
-    for node in find_nodes(tree, "ColumnRef"):
-        assert isinstance(node, ColumnRef)
+    for node in find_nodes(tree, ColumnRef):
         parts: list[str] = []
         for field_node in node.fields:
             which = field_node.WhichOneof("node")
@@ -122,8 +122,7 @@ def extract_functions(tree: Message) -> list[str]:
         Function names in encounter order.
     """
     functions: list[str] = []
-    for node in find_nodes(tree, "FuncCall"):
-        assert isinstance(node, FuncCall)
+    for node in find_nodes(tree, FuncCall):
         parts: list[str] = []
         for name_node in node.funcname:
             which = name_node.WhichOneof("node")
@@ -147,8 +146,7 @@ def extract_function_identity(tree: Message) -> FunctionIdentity | None:
     Returns:
         A :class:`FunctionIdentity` or ``None`` if no matching node is found.
     """
-    for node in find_nodes(tree, "CreateFunctionStmt"):
-        assert isinstance(node, CreateFunctionStmt)
+    for node in find_nodes(tree, CreateFunctionStmt):
         if node.is_procedure:
             continue
         parts: list[str] = []
@@ -177,8 +175,7 @@ def extract_trigger_identity(tree: Message) -> TriggerIdentity | None:
     Returns:
         A :class:`TriggerIdentity` or ``None`` if no matching node is found.
     """
-    for node in find_nodes(tree, "CreateTrigStmt"):
-        assert isinstance(node, CreateTrigStmt)
+    for node in find_nodes(tree, CreateTrigStmt):
         return TriggerIdentity(
             trigger=node.trigname,
             schema=node.relation.schemaname or None,

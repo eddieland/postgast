@@ -17,34 +17,34 @@ from postgast import (
     set_or_replace,
 )
 from postgast._errors import PgQueryError
+from postgast._pg_query_pb2 import ColumnRef, RangeVar
 
 
 class TestFindNodes:
     def test_finds_matching_nodes(self):
         result = parse("SELECT * FROM users JOIN orders ON users.id = orders.user_id")
-        nodes = list(find_nodes(result, "RangeVar"))
+        nodes = list(find_nodes(result, RangeVar))
         assert len(nodes) == 2
-        from postgast._pg_query_pb2 import RangeVar
 
-        relnames = [n.relname for n in nodes if isinstance(n, RangeVar)]
+        relnames = [n.relname for n in nodes]
         assert relnames == ["users", "orders"]
 
     def test_empty_result_for_no_matches(self):
         result = parse("SELECT 1")
-        nodes = list(find_nodes(result, "RangeVar"))
+        nodes = list(find_nodes(result, RangeVar))
         assert nodes == []
 
     def test_works_on_subtrees(self):
         result = parse("SELECT a, b FROM t")
         select_stmt = result.stmts[0].stmt.select_stmt
-        nodes = list(find_nodes(select_stmt, "ColumnRef"))
+        nodes = list(find_nodes(select_stmt, ColumnRef))
         assert len(nodes) == 2
 
     def test_lazy_evaluation(self):
         result = parse("SELECT a, b, c FROM t")
-        gen = find_nodes(result, "ColumnRef")
+        gen = find_nodes(result, ColumnRef)
         first = next(gen)
-        assert type(first).DESCRIPTOR.name == "ColumnRef"
+        assert isinstance(first, ColumnRef)
         # Generator is not exhausted — remaining items still available
         remaining = list(gen)
         assert len(remaining) >= 1

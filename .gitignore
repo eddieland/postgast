@@ -3,8 +3,13 @@ __pycache__/
 *.py[codz]
 *$py.class
 
-# C extensions
+# C extensions (except vendored submodule)
 *.so
+!vendor/**/*.so
+
+# Vendored native libraries placed by build hook (not checked in)
+src/postgast/libpg_query.*
+src/postgast/pg_query.dll
 
 # Distribution / packaging
 .Python

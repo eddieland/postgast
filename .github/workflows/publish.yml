@@ -6,17 +6,16 @@ on:
   workflow_dispatch: # Enable manual trigger.
 
 jobs:
-  build-and-publish:
+  lint-and-test:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write # Mandatory for OIDC.
       contents: read
     steps:
       - name: Checkout (official GitHub action)
         uses: actions/checkout@v6
         with:
-          # Important for versioning plugins:
           fetch-depth: 0
+          submodules: true
 
       - name: Install uv (official Astral action)
         uses: astral-sh/setup-uv@v7
@@ -48,11 +47,77 @@ jobs:
       - name: Run tests
         run: uv run pytest
 
-      - name: Build package
-        run: uv build
+  build-wheels:
+    name: Build wheels on ${{ matrix.os }}
+    needs: lint-and-test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+          - os: macos-13
+          - os: macos-14
+          - os: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.22
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
+
+  build-sdist:
+    name: Build source distribution
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Install uv (official Astral action)
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.10.2"
+
+      - name: Build SDist
+        run: uv build --sdist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-sdist
+          path: dist/*.tar.gz
+
+  publish:
+    needs: [build-wheels, build-sdist]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cibw-*
+          path: dist
+          merge-multiple: true
+
+      - name: Install uv (official Astral action)
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.10.2"
 
       - name: Publish to PyPI
-        run: uv publish --trusted-publishing always
-        # Although uv is newer and faster, the "official" publishing option is the one from PyPA,
-        # which uses twine. If desired, replace `uv publish` with:
-        # uses: pypa/gh-action-pypi-publish@release/v1
+        run: uv publish --trusted-publishing always dist/*

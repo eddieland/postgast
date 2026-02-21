@@ -7,29 +7,47 @@ internal module — use the public postgast API instead.
 
 import ctypes
 import ctypes.util
+import platform
 from ctypes import POINTER, Structure, c_char_p, c_int, c_size_t, c_uint64
+from pathlib import Path
+
+_VENDORED_LIB_NAMES = {
+    "Linux": "libpg_query.so",
+    "Darwin": "libpg_query.dylib",
+    "Windows": "pg_query.dll",
+}
 
 
 def _load_libpg_query() -> ctypes.CDLL:
     """Load the libpg_query shared library.
 
-    Uses ctypes.util.find_library for platform-aware resolution, respecting
-    LD_LIBRARY_PATH, DYLD_LIBRARY_PATH, etc.
+    Checks for a vendored copy bundled alongside this module first, then falls
+    back to ctypes.util.find_library for system-installed libraries.
 
     Returns:
         The loaded CDLL instance.
 
     Raises:
-        OSError: If libpg_query cannot be found on the system.
+        OSError: If libpg_query cannot be found via either method.
     """
+    # 1. Try vendored library adjacent to this file.
+    lib_name = _VENDORED_LIB_NAMES.get(platform.system())
+    if lib_name is not None:
+        vendored = Path(__file__).parent / lib_name
+        if vendored.is_file():
+            return ctypes.CDLL(str(vendored))
+
+    # 2. Fall back to system library search.
     path = ctypes.util.find_library("pg_query")
-    if path is None:
-        raise OSError(
-            "libpg_query shared library not found. "
-            "Install libpg_query and ensure it is on your library search path "
-            "(e.g. LD_LIBRARY_PATH on Linux, DYLD_LIBRARY_PATH on macOS)."
-        )
-    return ctypes.CDLL(path)
+    if path is not None:
+        return ctypes.CDLL(path)
+
+    raise OSError(
+        "libpg_query shared library not found. "
+        "Install postgast from a pre-built wheel (pip install postgast) or "
+        "install libpg_query and ensure it is on your library search path "
+        "(e.g. LD_LIBRARY_PATH on Linux, DYLD_LIBRARY_PATH on macOS)."
+    )
 
 
 # ---------------------------------------------------------------------------

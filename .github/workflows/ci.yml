@@ -42,6 +42,7 @@ jobs:
         with:
           # Important for versioning plugins:
           fetch-depth: 0
+          submodules: true
 
       - name: Install uv (official Astral action)
         uses: astral-sh/setup-uv@v7

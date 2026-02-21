@@ -1,11 +1,4 @@
-# native-library-loading Specification
-
-## Purpose
-
-Load the libpg_query shared library at import time, preferring a vendored copy bundled in the wheel and falling back to
-system-installed libraries.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Platform-aware library resolution
 

@@ -61,7 +61,10 @@ class TestSplitParser:
         assert result == []
 
     def test_invalid_sql_raises_pg_query_error(self):
-        assert_pg_query_error(lambda sql: split(sql, method="parser"), "SELECT '")
+        def split_parser(sql: str) -> list[str]:
+            return split(sql, method="parser")
+
+        assert_pg_query_error(split_parser, "SELECT '")
 
     def test_default_method_is_parser(self):
         """split() without method behaves identically to method='parser'."""
@@ -85,4 +88,4 @@ class TestSplitErrors:
 
     def test_invalid_method_raises_value_error(self):
         with pytest.raises(ValueError, match="Unknown split method"):
-            split("SELECT 1", method="invalid")  # type: ignore[arg-type]
+            split("SELECT 1", method="invalid")  # pyright: ignore[reportArgumentType]

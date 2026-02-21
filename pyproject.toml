@@ -29,11 +29,10 @@ classifiers = [
 ]
 dependencies = [
     "protobuf",
-    "pyzmq>=27.1.0",
 ]
 
 [project.optional-dependencies]
-recipes = ["marimo>=0.10"]
+recipes = ["marimo>=0.10", "pyzmq>=27.1.0"]
 
 [project.urls]
 Homepage = "https://github.com/eddieland/postgast"

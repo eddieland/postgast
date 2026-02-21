@@ -1,13 +1,25 @@
 """SQL Transforms Recipebook — interactive examples for transforming and analyzing SQL with postgast."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import marimo
+
+if TYPE_CHECKING:
+    import types
+    from collections.abc import Callable, Generator
+
+    from google.protobuf.message import Message
+
+    from postgast import FingerprintResult, ParseResult, PgQueryError
 
 __generated_with = "0.19.11"
 app = marimo.App()
 
 
 @app.cell
-def _(mo):
+def _(mo: types.ModuleType):
     mo.md("""
     # SQL Transforms Recipebook
 
@@ -44,7 +56,11 @@ def _():
 
 
 @app.cell
-def _(deparse, mo, parse):
+def _(
+    deparse: Callable[[ParseResult], str],
+    mo: types.ModuleType,
+    parse: Callable[[str], ParseResult],
+):
     # --- Recipe: Parse-deparse roundtrip ---
     _variants = [
         "select   id,name   from   users   where  active  =  true",
@@ -74,7 +90,7 @@ def _(deparse, mo, parse):
 
 
 @app.cell
-def _(mo, normalize):
+def _(mo: types.ModuleType, normalize: Callable[[str], str]):
     # --- Recipe: Normalize queries for log analysis ---
     _log_queries = [
         "SELECT * FROM users WHERE id = 42",
@@ -111,7 +127,11 @@ def _(mo, normalize):
 
 
 @app.cell
-def _(fingerprint, mo, normalize):
+def _(
+    fingerprint: Callable[[str], FingerprintResult],
+    mo: types.ModuleType,
+    normalize: Callable[[str], str],
+):
     # --- Recipe: Fingerprint for structural equivalence ---
     _queries = [
         "SELECT * FROM users WHERE id = 1",
@@ -127,11 +147,11 @@ def _(fingerprint, mo, normalize):
 
     from collections import defaultdict
 
-    _groups = defaultdict(list)
+    _groups: dict[str, list[tuple[str, str]]] = defaultdict(list)
     for _q, _fp, _norm in _results:
         _groups[_fp.hex].append((_q, _norm))
 
-    _sections = []
+    _sections: list[str] = []
     for _hex, _members in _groups.items():
         _member_rows = "\n".join(f"| `{q}` | `{n}` |" for q, n in _members)
         _sections.append(
@@ -149,29 +169,34 @@ def _(fingerprint, mo, normalize):
 
 
 @app.cell
-def _(deparse, find_nodes, mo, parse):
+def _(
+    deparse: Callable[[ParseResult], str],
+    find_nodes: Callable[[Message, str], Generator[Message, None, None]],
+    mo: types.ModuleType,
+    parse: Callable[[str], ParseResult],
+):
     # --- Recipe: Query rewriting via AST modification ---
     _sql = "SELECT id, name FROM users WHERE active = true"
 
     # Transform 1: Add schema prefix
     _tree1 = parse(_sql)
     for _rv in find_nodes(_tree1, "RangeVar"):
-        _rv.schemaname = "public"
+        _rv.schemaname = "public"  # pyright: ignore[reportAttributeAccessIssue]
     _schema_prefixed = deparse(_tree1)
 
     # Transform 2: Rename table
     _tree2 = parse(_sql)
     for _rv in find_nodes(_tree2, "RangeVar"):
-        if _rv.relname == "users":
-            _rv.relname = "app_users"
+        if _rv.relname == "users":  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
+            _rv.relname = "app_users"  # pyright: ignore[reportAttributeAccessIssue]
     _renamed = deparse(_tree2)
 
     # Transform 3: Both
     _tree3 = parse(_sql)
     for _rv in find_nodes(_tree3, "RangeVar"):
-        _rv.schemaname = "myapp"
-        if _rv.relname == "users":
-            _rv.relname = "app_users"
+        _rv.schemaname = "myapp"  # pyright: ignore[reportAttributeAccessIssue]
+        if _rv.relname == "users":  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
+            _rv.relname = "app_users"  # pyright: ignore[reportAttributeAccessIssue]
     _both = deparse(_tree3)
 
     mo.md(
@@ -195,7 +220,13 @@ def _(deparse, find_nodes, mo, parse):
 
 
 @app.cell
-def _(deparse, ensure_or_replace, mo, parse, set_or_replace):
+def _(
+    deparse: Callable[[ParseResult], str],
+    ensure_or_replace: Callable[[str], str],
+    mo: types.ModuleType,
+    parse: Callable[[str], ParseResult],
+    set_or_replace: Callable[[Message], int],
+):
     # --- Recipe: Ensure OR REPLACE ---
     _statements = [
         "CREATE FUNCTION greet(text) RETURNS text AS $$ SELECT 'hello ' || $1 $$ LANGUAGE sql",
@@ -204,7 +235,7 @@ def _(deparse, ensure_or_replace, mo, parse, set_or_replace):
         "CREATE TABLE events (id serial, name text)",
     ]
 
-    _results = []
+    _results: list[tuple[str, bool, str]] = []
     for _stmt in _statements:
         _tree = parse(_stmt)
         _count = set_or_replace(_tree)
@@ -247,7 +278,11 @@ def _(deparse, ensure_or_replace, mo, parse, set_or_replace):
 
 
 @app.cell
-def _(PgQueryError, mo, parse):
+def _(
+    PgQueryError: type[PgQueryError],
+    mo: types.ModuleType,
+    parse: Callable[[str], ParseResult],
+):
     # --- Recipe: Structured error inspection ---
     _broken_queries = [
         ("Missing table name", "SELECT * FROM"),
@@ -256,7 +291,7 @@ def _(PgQueryError, mo, parse):
         ("Bad column list", "SELECT , FROM users"),
     ]
 
-    _sections = []
+    _sections: list[str] = []
     for _label, _sql in _broken_queries:
         try:
             parse(_sql)

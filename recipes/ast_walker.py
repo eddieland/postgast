@@ -1,13 +1,25 @@
 """AST Walker Recipebook — interactive examples for postgast tree traversal."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import marimo
+
+if TYPE_CHECKING:
+    import types
+    from collections.abc import Callable, Generator
+
+    from google.protobuf.message import Message
+
+    from postgast import ParseResult, Visitor
 
 __generated_with = "0.19.11"
 app = marimo.App()
 
 
 @app.cell
-def _(mo):
+def _(mo: types.ModuleType):
     mo.md("""
     # AST Walker Recipebook
 
@@ -35,17 +47,23 @@ def _():
 
 
 @app.cell
-def _(Visitor, mo, parse):
+def _(
+    Visitor: type[Visitor],
+    mo: types.ModuleType,
+    parse: Callable[[str], ParseResult],
+):
     # --- Recipe: Extract table names ---
+    from postgast._pg_query_pb2 import RangeVar as _RangeVar
+
     _sql = "SELECT o.id, c.name FROM orders o JOIN customers c ON o.customer_id = c.id JOIN products p ON o.product_id = p.id"
     _tree = parse(_sql)
 
     class _TableCollector(Visitor):
-        def __init__(self):
+        def __init__(self) -> None:
             super().__init__()
-            self.tables = []
+            self.tables: list[str] = []
 
-        def visit_RangeVar(self, node):
+        def visit_RangeVar(self, node: _RangeVar) -> None:
             self.tables.append(node.relname)
 
     _collector = _TableCollector()
@@ -70,15 +88,19 @@ def _(Visitor, mo, parse):
 
 
 @app.cell
-def _(mo, parse, walk):
+def _(
+    mo: types.ModuleType,
+    parse: Callable[[str], ParseResult],
+    walk: Callable[[Message], Generator[tuple[str, Message], None, None]],
+):
     # --- Recipe: Collect column references ---
     _sql = "SELECT u.name, u.email, o.total FROM users u JOIN orders o ON u.id = o.user_id WHERE o.status = 'active'"
     _tree = parse(_sql)
 
-    _columns = []
+    _columns: list[str] = []
     for _field_name, _msg in walk(_tree):
         if type(_msg).__name__ == "ColumnRef":
-            _parts = [f.string.sval for f in _msg.fields if f.HasField("string")]
+            _parts: list[str] = [f.string.sval for f in _msg.fields if f.HasField("string")]  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType, reportAttributeAccessIssue]
             if _parts:
                 _columns.append(".".join(_parts))
 
@@ -101,12 +123,12 @@ def _(mo, parse, walk):
 
 
 @app.cell
-def _(mo, parse):
+def _(mo: types.ModuleType, parse: Callable[[str], ParseResult]):
     # --- Recipe: Classify statement type ---
     _sql = "SELECT 1; INSERT INTO logs (msg) VALUES ('hello'); CREATE TABLE events (id int, name text)"
     _tree = parse(_sql)
 
-    _classifications = []
+    _classifications: list[str | None] = []
     for _raw_stmt in _tree.stmts:
         _stmt_type = _raw_stmt.stmt.WhichOneof("node")
         _classifications.append(_stmt_type)
@@ -133,12 +155,16 @@ def _(mo, parse):
 
 
 @app.cell
-def _(mo, parse, walk):
+def _(
+    mo: types.ModuleType,
+    parse: Callable[[str], ParseResult],
+    walk: Callable[[Message], Generator[tuple[str, Message], None, None]],
+):
     # --- Recipe: Detect subqueries ---
     _sql = "SELECT * FROM orders WHERE customer_id IN (SELECT id FROM customers WHERE region = 'west') AND total > (SELECT AVG(total) FROM orders)"
     _tree = parse(_sql)
 
-    _subqueries = []
+    _subqueries: list[str] = []
     _first = True
     for _field_name, _msg in walk(_tree):
         if type(_msg).__name__ == "SelectStmt":
@@ -171,14 +197,18 @@ def _(mo, parse, walk):
 
 
 @app.cell
-def _(mo, parse, walk):
+def _(
+    mo: types.ModuleType,
+    parse: Callable[[str], ParseResult],
+    walk: Callable[[Message], Generator[tuple[str, Message], None, None]],
+):
     # --- Recipe: Measure query complexity ---
     _queries = {
         "simple": "SELECT 1",
         "complex": "SELECT o.id, c.name, p.title FROM orders o JOIN customers c ON o.cid = c.id JOIN products p ON o.pid = p.id WHERE o.total > 100 AND c.active = true AND p.stock > 0",
     }
 
-    def _measure_complexity(sql):
+    def _measure_complexity(sql: str) -> dict[str, int]:
         _tree = parse(sql)
         _total_nodes = 0
         _joins = 0
@@ -219,7 +249,11 @@ def _(mo, parse, walk):
 
 
 @app.cell
-def _(Visitor, mo, parse):
+def _(
+    Visitor: type[Visitor],
+    mo: types.ModuleType,
+    parse: Callable[[str], ParseResult],
+):
     # --- Recipe: Map schema dependencies ---
     _sql = """
     CREATE TABLE customers (id int, name text);
@@ -227,19 +261,21 @@ def _(Visitor, mo, parse):
     INSERT INTO orders SELECT nextval('order_seq'), id, 0 FROM customers;
     CREATE TABLE reports AS SELECT c.name, SUM(o.total) FROM customers c JOIN orders o ON c.id = o.customer_id GROUP BY c.name;
     """
+    from postgast._pg_query_pb2 import RangeVar as _RangeVar
+
     _tree = parse(_sql)
 
-    _edges = []
+    _edges: list[tuple[str, str]] = []
     for _raw_stmt in _tree.stmts:
         _stmt_type = _raw_stmt.stmt.WhichOneof("node")
         _node = getattr(_raw_stmt.stmt, _stmt_type)
 
         class _DepCollector(Visitor):
-            def __init__(self):
+            def __init__(self) -> None:
                 super().__init__()
-                self.tables = []
+                self.tables: list[str] = []
 
-            def visit_RangeVar(self, rv):
+            def visit_RangeVar(self, rv: _RangeVar) -> None:
                 self.tables.append(rv.relname)
 
         _dc = _DepCollector()
@@ -276,7 +312,14 @@ def _(Visitor, mo, parse):
 
 
 @app.cell
-def _(extract_columns, extract_functions, extract_tables, find_nodes, mo, parse):
+def _(
+    extract_columns: Callable[[Message], list[str]],
+    extract_functions: Callable[[Message], list[str]],
+    extract_tables: Callable[[Message], list[str]],
+    find_nodes: Callable[[Message, str], Generator[Message, None, None]],
+    mo: types.ModuleType,
+    parse: Callable[[str], ParseResult],
+):
     # --- Recipe: Helpers vs. manual extraction ---
     _sql = (
         "SELECT o.id, COUNT(p.name), MAX(p.price)"
@@ -315,7 +358,13 @@ def _(extract_columns, extract_functions, extract_tables, find_nodes, mo, parse)
 
 
 @app.cell
-def _(extract_columns, extract_functions, extract_tables, mo, parse):
+def _(
+    extract_columns: Callable[[Message], list[str]],
+    extract_functions: Callable[[Message], list[str]],
+    extract_tables: Callable[[Message], list[str]],
+    mo: types.ModuleType,
+    parse: Callable[[str], ParseResult],
+):
     # --- Recipe: Per-statement analysis with helpers ---
     _sql = """
     CREATE TABLE employees (id serial PRIMARY KEY, name text, dept_id int);
@@ -324,7 +373,7 @@ def _(extract_columns, extract_functions, extract_tables, mo, parse):
     """
     _tree = parse(_sql)
 
-    _rows = []
+    _rows: list[str] = []
     for _i, _raw_stmt in enumerate(_tree.stmts):
         _stmt_type = _raw_stmt.stmt.WhichOneof("node")
         _node = getattr(_raw_stmt.stmt, _stmt_type)

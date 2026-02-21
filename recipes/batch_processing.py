@@ -1,13 +1,26 @@
 """Batch Processing Recipebook — interactive examples for multi-statement and multi-query workflows with postgast."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import marimo
+
+if TYPE_CHECKING:
+    import types
+    from collections.abc import Callable, Generator
+
+    from google.protobuf.message import Message
+
+    from postgast import FingerprintResult, ParseResult, PgQueryError
+    from postgast._pg_query_pb2 import ScanResult
 
 __generated_with = "0.19.11"
 app = marimo.App()
 
 
 @app.cell
-def _(mo):
+def _(mo: types.ModuleType):
     mo.md("""
     # Batch Processing Recipebook
 
@@ -58,7 +71,12 @@ def _():
 
 
 @app.cell
-def _(extract_tables, mo, parse, split):
+def _(
+    extract_tables: Callable[[Message], list[str]],
+    mo: types.ModuleType,
+    parse: Callable[[str], ParseResult],
+    split: Callable[[str], list[str]],
+):
     # --- Recipe: Split and parse a migration file ---
     _migration = """
     CREATE TABLE departments (id serial PRIMARY KEY, name text NOT NULL);
@@ -69,7 +87,7 @@ def _(extract_tables, mo, parse, split):
 
     _statements = split(_migration)
 
-    _rows = []
+    _rows: list[str] = []
     for _i, _stmt_sql in enumerate(_statements):
         _tree = parse(_stmt_sql)
         _stmt_type = _tree.stmts[0].stmt.WhichOneof("node")
@@ -101,13 +119,17 @@ def _(extract_tables, mo, parse, split):
 
 
 @app.cell
-def _(mo, pg_query_pb2, scan):
+def _(
+    mo: types.ModuleType,
+    pg_query_pb2: types.ModuleType,
+    scan: Callable[[str], ScanResult],
+):
     # --- Recipe: SQL tokenization and keyword map ---
     _sql = "SELECT u.name, COUNT(*) AS total FROM users u WHERE u.active = true GROUP BY u.name"
     _result = scan(_sql)
     _sql_bytes = _sql.encode("utf-8")
 
-    _token_rows = []
+    _token_rows: list[str] = []
     for _tok in _result.tokens:
         _text = _sql_bytes[_tok.start : _tok.end].decode("utf-8")
         _token_name = pg_query_pb2.Token.Name(_tok.token)
@@ -147,7 +169,13 @@ def _(mo, pg_query_pb2, scan):
 
 
 @app.cell
-def _(extract_tables, fingerprint, mo, normalize, parse):
+def _(
+    extract_tables: Callable[[Message], list[str]],
+    fingerprint: Callable[[str], FingerprintResult],
+    mo: types.ModuleType,
+    normalize: Callable[[str], str],
+    parse: Callable[[str], ParseResult],
+):
     # --- Recipe: Query log deduplication pipeline ---
     _query_log = [
         "SELECT * FROM users WHERE id = 42",
@@ -199,7 +227,12 @@ def _(extract_tables, fingerprint, mo, normalize, parse):
 
 
 @app.cell
-def _(find_nodes, mo, parse, split):
+def _(
+    find_nodes: Callable[[Message, str], Generator[Message, None, None]],
+    mo: types.ModuleType,
+    parse: Callable[[str], ParseResult],
+    split: Callable[[str], list[str]],
+):
     # --- Recipe: Migration dependency graph ---
     _schema_sql = """
     CREATE TABLE departments (id serial PRIMARY KEY, name text NOT NULL);
@@ -210,18 +243,18 @@ def _(find_nodes, mo, parse, split):
 
     _statements = split(_schema_sql)
 
-    _deps = {}
+    _deps: dict[str, set[str]] = {}
     for _stmt_sql in _statements:
         _tree = parse(_stmt_sql)
         _stmt_type = _tree.stmts[0].stmt.WhichOneof("node")
         if _stmt_type != "create_stmt":
             continue
         _node = getattr(_tree.stmts[0].stmt, _stmt_type)
-        _table_name = _node.relation.relname
-        _fk_refs = set()
+        _table_name: str = _node.relation.relname  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
+        _fk_refs: set[str] = set()
         for _constraint in find_nodes(_node, "Constraint"):
-            if _constraint.HasField("pktable") and _constraint.pktable.relname:
-                _fk_refs.add(_constraint.pktable.relname)
+            if _constraint.HasField("pktable") and _constraint.pktable.relname:  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
+                _fk_refs.add(_constraint.pktable.relname)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType, reportAttributeAccessIssue]
         _deps[_table_name] = _fk_refs
 
     # Topological sort (Kahn's algorithm)
@@ -229,7 +262,7 @@ def _(find_nodes, mo, parse, split):
 
     _in_degree = {t: len(d & set(_deps)) for t, d in _deps.items()}
     _queue = deque(t for t, d in _in_degree.items() if d == 0)
-    _order = []
+    _order: list[str] = []
     while _queue:
         _t = _queue.popleft()
         _order.append(_t)
@@ -263,7 +296,11 @@ def _(find_nodes, mo, parse, split):
 
 
 @app.cell
-def _(mo, pg_query_pb2, scan):
+def _(
+    mo: types.ModuleType,
+    pg_query_pb2: types.ModuleType,
+    scan: Callable[[str], ScanResult],
+):
     # --- Recipe: Comment extraction via scanner ---
     _sql = """\
 -- Fetch active users and their order totals
@@ -282,7 +319,7 @@ GROUP BY u.name, u.email
     _result = scan(_sql)
     _sql_bytes = _sql.encode("utf-8")
 
-    _comments = []
+    _comments: list[tuple[str, int, int, str]] = []
     for _tok in _result.tokens:
         _token_name = pg_query_pb2.Token.Name(_tok.token)
         if _token_name in ("SQL_COMMENT", "C_COMMENT"):
@@ -294,7 +331,7 @@ GROUP BY u.name, u.email
     )
 
     # Reconstruct SQL without comments
-    _parts = []
+    _parts: list[bytes] = []
     _pos = 0
     for _, _start, _end, _ in _comments:
         _parts.append(_sql_bytes[_pos:_start])
@@ -331,7 +368,14 @@ GROUP BY u.name, u.email
 
 
 @app.cell
-def _(PgQueryError, extract_functions, extract_tables, mo, parse, split):
+def _(
+    PgQueryError: type[PgQueryError],
+    extract_functions: Callable[[Message], list[str]],
+    extract_tables: Callable[[Message], list[str]],
+    mo: types.ModuleType,
+    parse: Callable[[str], ParseResult],
+    split: Callable[[str], list[str]],
+):
     # --- Recipe: Safe batch execution plan ---
     _batch_sql = """
     SELECT COUNT(*) FROM users;
@@ -342,7 +386,7 @@ def _(PgQueryError, extract_functions, extract_tables, mo, parse, split):
     CREATE INDEX idx_orders_status ON orders (status);
     """
 
-    _RISK = {
+    _RISK: dict[str, str] = {
         "select_stmt": "SAFE",
         "index_stmt": "SAFE",
         "create_stmt": "SAFE",
@@ -355,12 +399,12 @@ def _(PgQueryError, extract_functions, extract_tables, mo, parse, split):
 
     _statements = split(_batch_sql)
 
-    _plan = []
+    _plan: list[dict[str, object]] = []
     for _i, _stmt_sql in enumerate(_statements):
         try:
             _tree = parse(_stmt_sql)
             _stmt_type = _tree.stmts[0].stmt.WhichOneof("node")
-            _risk = _RISK.get(_stmt_type, "CAUTION")
+            _risk = _RISK.get(_stmt_type or "", "CAUTION")
             _tables = extract_tables(_tree)
             _funcs = extract_functions(_tree)
             _plan.append({
@@ -383,9 +427,9 @@ def _(PgQueryError, extract_functions, extract_tables, mo, parse, split):
                 "error": _e.message,
             })
 
-    _rows = []
+    _rows: list[str] = []
     for _entry in _plan:
-        _tbl_str = ", ".join(f"`{t}`" for t in set(_entry["tables"])) or "---"
+        _tbl_str = ", ".join(f"`{t}`" for t in set(_entry["tables"])) or "---"  # pyright: ignore[reportUnknownVariableType, reportArgumentType]
         _rows.append(
             f"| {_entry['num']} | **{_entry['risk']}** | `{_entry['type']}` | {_tbl_str} | `{_entry['sql']}` |"
         )

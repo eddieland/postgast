@@ -29,9 +29,9 @@ def _(mo):
 def _():
     import marimo as mo
 
-    from postgast import Visitor, parse, walk
+    from postgast import Visitor, extract_columns, extract_functions, extract_tables, find_nodes, parse, walk
 
-    return Visitor, mo, parse, walk
+    return Visitor, extract_columns, extract_functions, extract_tables, find_nodes, mo, parse, walk
 
 
 @app.cell
@@ -42,6 +42,7 @@ def _(Visitor, mo, parse):
 
     class _TableCollector(Visitor):
         def __init__(self):
+            super().__init__()
             self.tables = []
 
         def visit_RangeVar(self, node):
@@ -235,6 +236,7 @@ def _(Visitor, mo, parse):
 
         class _DepCollector(Visitor):
             def __init__(self):
+                super().__init__()
                 self.tables = []
 
             def visit_RangeVar(self, rv):
@@ -268,6 +270,90 @@ def _(Visitor, mo, parse):
         | Target | Depends On |
         |--------|------------|
         {_edge_rows}
+        """
+    )
+    return
+
+
+@app.cell
+def _(extract_columns, extract_functions, extract_tables, find_nodes, mo, parse):
+    # --- Recipe: Helpers vs. manual extraction ---
+    _sql = (
+        "SELECT o.id, COUNT(p.name), MAX(p.price)"
+        " FROM orders o JOIN products p ON o.product_id = p.id"
+        " WHERE p.category = 'electronics' AND o.total > 100"
+    )
+    _tree = parse(_sql)
+
+    _tables = extract_tables(_tree)
+    _columns = extract_columns(_tree)
+    _functions = extract_functions(_tree)
+    _joins = list(find_nodes(_tree, "JoinExpr"))
+
+    mo.md(
+        f"""
+        ## Recipe 7: Helpers vs. Manual Extraction
+
+        The helper functions `extract_tables`, `extract_columns`, and
+        `extract_functions` replicate what Recipes 1 & 2 did manually — in one
+        call each.  `find_nodes` is the general-purpose search behind them all.
+
+        **SQL:**
+        ```sql
+        {_sql}
+        ```
+
+        | Helper | Result |
+        |--------|--------|
+        | `extract_tables` | {", ".join(f"`{t}`" for t in _tables)} |
+        | `extract_columns` | {", ".join(f"`{c}`" for c in _columns)} |
+        | `extract_functions` | {", ".join(f"`{fn}`" for fn in _functions)} |
+        | `find_nodes("JoinExpr")` | {len(_joins)} join(s) found |
+        """
+    )
+    return
+
+
+@app.cell
+def _(extract_columns, extract_functions, extract_tables, mo, parse):
+    # --- Recipe: Per-statement analysis with helpers ---
+    _sql = """
+    CREATE TABLE employees (id serial PRIMARY KEY, name text, dept_id int);
+    INSERT INTO employees (name, dept_id) SELECT full_name, department_id FROM temp_imports WHERE status = 'approved';
+    SELECT e.name, COUNT(*) FROM employees e GROUP BY e.name
+    """
+    _tree = parse(_sql)
+
+    _rows = []
+    for _i, _raw_stmt in enumerate(_tree.stmts):
+        _stmt_type = _raw_stmt.stmt.WhichOneof("node")
+        _node = getattr(_raw_stmt.stmt, _stmt_type)
+        _tbls = set(extract_tables(_node))
+        _cols = extract_columns(_node)
+        _funcs = extract_functions(_node)
+        _rows.append(
+            f"| {_i + 1} | `{_stmt_type}` "
+            f"| {', '.join(f'`{t}`' for t in _tbls) or '—'} "
+            f"| {', '.join(f'`{c}`' for c in _cols) or '—'} "
+            f"| {', '.join(f'`{fn}`' for fn in _funcs) or '—'} |"
+        )
+
+    _table_rows = "\n".join(_rows)
+    mo.md(
+        f"""
+        ## Recipe 8: Per-Statement Analysis with Helpers
+
+        Combines statement classification (Recipe 3) with helper functions to
+        produce a per-statement analysis report for a multi-statement migration.
+
+        **SQL:**
+        ```sql
+        {_sql.strip()}
+        ```
+
+        | # | Type | Tables | Columns | Functions |
+        |---|------|--------|---------|-----------|
+        {_table_rows}
         """
     )
     return

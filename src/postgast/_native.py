@@ -8,7 +8,7 @@ internal module — use the public postgast API instead.
 import ctypes
 import ctypes.util
 import platform
-from ctypes import POINTER, Structure, c_char_p, c_int, c_size_t, c_uint64
+from ctypes import POINTER, Structure, c_char_p, c_int, c_size_t, c_uint64, c_void_p
 from pathlib import Path
 
 _VENDORED_LIB_NAMES = {
@@ -69,11 +69,16 @@ class PgQueryError(Structure):
 
 
 class PgQueryProtobuf(Structure):
-    """Mirrors the C PgQueryProtobuf struct (len + data)."""
+    """Mirrors the C PgQueryProtobuf struct (len + data).
+
+    Uses ``c_void_p`` for ``data`` instead of ``c_char_p`` because protobuf
+    binary payloads contain embedded null bytes and ``c_char_p`` would
+    silently truncate at the first null.
+    """
 
     _fields_ = [
         ("len", c_size_t),
-        ("data", c_char_p),
+        ("data", c_void_p),
     ]
 
 

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import ctypes
+
 from postgast._errors import check_error
 from postgast._native import PgQueryProtobuf, lib
 from postgast._pg_query_pb2 import ParseResult
@@ -29,7 +31,8 @@ def deparse(tree: ParseResult) -> str:
         PgQueryError: If the parse tree cannot be deparsed.
     """
     data = tree.SerializeToString()
-    pbuf = PgQueryProtobuf(len=len(data), data=data)
+    buf = ctypes.create_string_buffer(data)
+    pbuf = PgQueryProtobuf(len=len(data), data=ctypes.cast(buf, ctypes.c_void_p).value)
     result = lib.pg_query_deparse_protobuf(pbuf)
     try:
         check_error(result)

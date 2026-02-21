@@ -3,7 +3,7 @@
 
 .DEFAULT_GOAL := help
 
-SRC_PATHS := src tests
+SRC_PATHS := src tests recipes
 DOC_PATHS := README.md AGENTS.md openspec/
 
 ifeq ($(shell uname),Darwin)

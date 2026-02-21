@@ -27,7 +27,13 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
     "Typing :: Typed",
 ]
-dependencies = ["protobuf"]
+dependencies = [
+    "protobuf",
+    "pyzmq>=27.1.0",
+]
+
+[project.optional-dependencies]
+recipes = ["marimo>=0.10"]
 
 [project.urls]
 Homepage = "https://github.com/eddieland/postgast"
@@ -134,6 +140,10 @@ convention = "google"
     "D102", # https://docs.astral.sh/ruff/rules/undocumented-public-method/
     "D103", # https://docs.astral.sh/ruff/rules/undocumented-public-function/
     "D104", # https://docs.astral.sh/ruff/rules/undocumented-public-package/
+]
+"recipes/**/*.py" = [
+    "D100", # https://docs.astral.sh/ruff/rules/undocumented-public-module/
+    "D103", # https://docs.astral.sh/ruff/rules/undocumented-public-function/
 ]
 
 [tool.basedpyright]

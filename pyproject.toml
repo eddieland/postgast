@@ -8,9 +8,11 @@ readme = "README.md"
 license = "BSD-2-Clause"
 requires-python = ">=3.10"
 dynamic = ["version"]
+keywords = ["postgresql", "sql", "parser", "ast", "libpg_query"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS",
     "Operating System :: Microsoft :: Windows",
@@ -22,12 +24,16 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Topic :: Database",
+    "Topic :: Software Development :: Libraries",
     "Typing :: Typed",
 ]
 dependencies = ["protobuf"]
 
 [project.urls]
+Homepage = "https://github.com/eddieland/postgast"
 Repository = "https://github.com/eddieland/postgast"
+Issues = "https://github.com/eddieland/postgast/issues"
+Changelog = "https://github.com/eddieland/postgast/releases"
 
 [dependency-groups]
 dev = [

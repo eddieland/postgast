@@ -15,6 +15,7 @@ from postgast.helpers import (
     extract_trigger_identity,
     find_nodes,
     set_or_replace,
+    to_drop,
 )
 from postgast.normalize import normalize
 from postgast.parse import parse
@@ -43,6 +44,7 @@ __all__ = [
     "scan",
     "set_or_replace",
     "split",
+    "to_drop",
     "TriggerIdentity",
     "Visitor",
     "walk",

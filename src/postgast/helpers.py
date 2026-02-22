@@ -9,11 +9,22 @@ from typing import TypeVar
 from google.protobuf.message import Message
 
 from postgast.pg_query_pb2 import (
+    FUNC_PARAM_DEFAULT,
+    FUNC_PARAM_IN,
+    FUNC_PARAM_INOUT,
+    FUNC_PARAM_VARIADIC,
+    OBJECT_FUNCTION,
+    OBJECT_PROCEDURE,
+    OBJECT_TRIGGER,
+    OBJECT_VIEW,
     A_Star,
     ColumnRef,
     CreateFunctionStmt,
     CreateTrigStmt,
+    DropStmt,
     FuncCall,
+    ObjectWithArgs,
+    ParseResult,
     RangeVar,
     String,
     ViewStmt,
@@ -227,3 +238,94 @@ def ensure_or_replace(sql: str) -> str:
     tree = parse(sql)
     set_or_replace(tree)
     return deparse(tree)
+
+
+_IDENTITY_MODES = frozenset({FUNC_PARAM_IN, FUNC_PARAM_INOUT, FUNC_PARAM_VARIADIC, FUNC_PARAM_DEFAULT})
+
+
+def _drop_function(stmt: CreateFunctionStmt) -> DropStmt:
+    """Build a DropStmt for a CREATE FUNCTION or CREATE PROCEDURE."""
+    drop = DropStmt()
+    drop.remove_type = OBJECT_PROCEDURE if stmt.is_procedure else OBJECT_FUNCTION
+
+    owa = ObjectWithArgs()
+    for name_node in stmt.funcname:
+        owa.objname.add().CopyFrom(name_node)
+    for param_node in stmt.parameters:
+        fp = param_node.function_parameter
+        if fp.mode not in _IDENTITY_MODES:
+            continue
+        owa.objargs.add().type_name.CopyFrom(fp.arg_type)
+
+    drop.objects.add().object_with_args.CopyFrom(owa)
+    return drop
+
+
+def _drop_trigger(stmt: CreateTrigStmt) -> DropStmt:
+    """Build a DropStmt for a CREATE TRIGGER."""
+    drop = DropStmt()
+    drop.remove_type = OBJECT_TRIGGER
+
+    lst = drop.objects.add().list
+    if stmt.relation.schemaname:
+        lst.items.add().string.sval = stmt.relation.schemaname
+    lst.items.add().string.sval = stmt.relation.relname
+    lst.items.add().string.sval = stmt.trigname
+    return drop
+
+
+def _drop_view(stmt: ViewStmt) -> DropStmt:
+    """Build a DropStmt for a CREATE VIEW."""
+    drop = DropStmt()
+    drop.remove_type = OBJECT_VIEW
+
+    lst = drop.objects.add().list
+    if stmt.view.schemaname:
+        lst.items.add().string.sval = stmt.view.schemaname
+    lst.items.add().string.sval = stmt.view.relname
+    return drop
+
+
+def to_drop(sql: str) -> str:
+    """Return the ``DROP`` statement corresponding to a ``CREATE`` statement.
+
+    Parses *sql*, builds a ``DropStmt`` protobuf from the parsed AST, and
+    deparses it back to SQL. Supports ``CREATE FUNCTION``, ``CREATE PROCEDURE``,
+    ``CREATE TRIGGER``, and ``CREATE VIEW`` (including ``OR REPLACE`` variants).
+
+    Args:
+        sql: A single CREATE statement.
+
+    Returns:
+        The corresponding DROP statement.
+
+    Raises:
+        ValueError: If *sql* contains zero or more than one statement, or if
+            the statement is not a supported CREATE type.
+        PgQueryError: If *sql* is not valid SQL.
+    """
+    from postgast.deparse import deparse
+    from postgast.parse import parse
+
+    tree = parse(sql)
+
+    if len(tree.stmts) != 1:
+        msg = f"expected exactly one statement, got {len(tree.stmts)}"
+        raise ValueError(msg)
+
+    node = tree.stmts[0].stmt
+    which = node.WhichOneof("node")
+
+    if which == "create_function_stmt":
+        drop = _drop_function(node.create_function_stmt)
+    elif which == "create_trig_stmt":
+        drop = _drop_trigger(node.create_trig_stmt)
+    elif which == "view_stmt":
+        drop = _drop_view(node.view_stmt)
+    else:
+        msg = f"unsupported statement type: {which}"
+        raise ValueError(msg)
+
+    result = ParseResult()
+    result.stmts.add().stmt.drop_stmt.CopyFrom(drop)
+    return deparse(result)

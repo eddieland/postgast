@@ -86,8 +86,9 @@ The module SHALL define a `PgQuerySplitStmt` ctypes Structure with fields `stmt_
 
 The module SHALL define ctypes Structures for all libpg_query result types: PgQueryParseResult,
 PgQueryProtobufParseResult, PgQueryNormalizeResult, PgQueryFingerprintResult, PgQueryScanResult, PgQuerySplitResult,
-PgQueryDeparseResult. The `PgQuerySplitResult.stmts` field SHALL be typed as `POINTER(POINTER(PgQuerySplitStmt))` to
-match the C struct layout where `stmts` is `PgQuerySplitStmt **`.
+PgQueryDeparseResult, PgQueryPlpgsqlParseResult. The `PgQuerySplitResult.stmts` field SHALL be typed as
+`POINTER(POINTER(PgQuerySplitStmt))` to match the C struct layout where `stmts` is `PgQuerySplitStmt **`. The
+`PgQueryPlpgsqlParseResult` struct SHALL have fields `plpgsql_funcs` (`c_char_p`) and `error` (`POINTER(PgQueryError)`).
 
 #### Scenario: Result structs match C layout
 
@@ -102,8 +103,8 @@ match the C struct layout where `stmts` is `PgQuerySplitStmt **`.
 ### Requirement: Core function signatures declared
 
 The module SHALL set argtypes and restype on all public libpg_query functions: pg_query_parse, pg_query_parse_protobuf,
-pg_query_normalize, pg_query_fingerprint, pg_query_scan, pg_query_split_with_scanner, pg_query_deparse_protobuf, and
-their corresponding pg_query_free\_\* functions.
+pg_query_normalize, pg_query_fingerprint, pg_query_scan, pg_query_split_with_scanner, pg_query_deparse_protobuf,
+pg_query_parse_plpgsql, and their corresponding pg_query_free\_\* functions.
 
 #### Scenario: Parse function signature
 

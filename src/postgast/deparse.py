@@ -7,12 +7,15 @@ from typing import TYPE_CHECKING
 
 from postgast.errors import check_error
 from postgast.native import PgQueryProtobuf, lib
+from postgast.nodes.base import AstNode
 
 if TYPE_CHECKING:
+    from google.protobuf.message import Message
+
     from postgast.pg_query_pb2 import ParseResult
 
 
-def deparse(tree: ParseResult) -> str:
+def deparse(tree: ParseResult | AstNode) -> str:
     """Convert a protobuf parse tree back into a SQL string.
 
     Calls libpg_query's ``pg_query_deparse_protobuf`` to convert a
@@ -25,7 +28,8 @@ def deparse(tree: ParseResult) -> str:
         remaining semantically equivalent.
 
     Args:
-        tree: A ``ParseResult`` protobuf message (as returned by :func:`postgast.parse`).
+        tree: A ``ParseResult`` protobuf message (as returned by
+            :func:`postgast.parse`), or a typed ``AstNode`` wrapper.
 
     Returns:
         The deparsed SQL string.
@@ -39,7 +43,8 @@ def deparse(tree: ParseResult) -> str:
         >>> deparse(tree)
         'SELECT id FROM users'
     """
-    data = tree.SerializeToString()
+    pb: Message = tree._pb if isinstance(tree, AstNode) else tree  # pyright: ignore[reportPrivateUsage]
+    data = pb.SerializeToString()
     buf = ctypes.create_string_buffer(data)
     pbuf = PgQueryProtobuf(len=len(data), data=ctypes.cast(buf, ctypes.c_void_p).value)
     result = lib.pg_query_deparse_protobuf(pbuf)

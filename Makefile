@@ -46,6 +46,25 @@ fuzz: $(NATIVE_LIB) ## Run fuzz tests (property-based, Hypothesis)
 coverage: $(NATIVE_LIB) ## Run tests with coverage and generate HTML report
 	uv run pytest -m "not fuzz" --cov --cov-report=html --cov-report=term
 
+generate-nodes: ## Regenerate typed AST wrapper classes from protobuf descriptor
+	uv run python scripts/generate_nodes.py
+
+check-nodes: ## Verify generated nodes are up to date (CI freshness check)
+	@echo "Checking nodes freshness..."
+	@tmpdir=$$(mktemp -d) && \
+	cp -r src/postgast/nodes/ "$$tmpdir/nodes_backup" && \
+	uv run python scripts/generate_nodes.py && \
+	if diff -r "$$tmpdir/nodes_backup" src/postgast/nodes/ > /dev/null 2>&1; then \
+		echo "nodes/ is up to date."; \
+	else \
+		echo "ERROR: nodes/ is out of date. Run 'make generate-nodes' and commit the result."; \
+		diff -r "$$tmpdir/nodes_backup" src/postgast/nodes/ || true; \
+		cp -r "$$tmpdir/nodes_backup/"* src/postgast/nodes/; \
+		rm -rf "$$tmpdir"; \
+		exit 1; \
+	fi; \
+	rm -rf "$$tmpdir"
+
 proto: ## Regenerate Python protobuf bindings from vendored pg_query.proto
 	uv run python -m grpc_tools.protoc --python_out=src/postgast --pyi_out=src/postgast --proto_path=vendor/libpg_query/protobuf pg_query.proto
 
@@ -82,4 +101,4 @@ help: ## Show this help
 		/^[a-zA-Z_-]+:.*?## / { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 	@echo
 
-.PHONY: all install fmt lint test fuzz coverage docs build build-native proto upgrade clean help
+.PHONY: all install fmt lint test fuzz coverage generate-nodes check-nodes docs build build-native proto upgrade clean help

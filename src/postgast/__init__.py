@@ -25,7 +25,7 @@ from postgast.pg_query_pb2 import ParseResult
 from postgast.plpgsql import parse_plpgsql
 from postgast.scan import scan
 from postgast.split import split
-from postgast.walk import Visitor, walk
+from postgast.walk import TypedVisitor, Visitor, walk, walk_typed
 
 __all__ = [
     "AstNode",
@@ -53,7 +53,9 @@ __all__ = [
     "split",
     "to_drop",
     "TriggerIdentity",
+    "TypedVisitor",
     "Visitor",
     "walk",
+    "walk_typed",
     "wrap",
 ]

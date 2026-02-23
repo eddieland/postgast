@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from postgast import ParseResult, Visitor, parse, walk
+from postgast import ParseResult, TypedVisitor, Visitor, parse, walk, walk_typed, wrap
+from postgast.nodes.base import AstNode
 
 if TYPE_CHECKING:
     from google.protobuf.message import Message
@@ -155,4 +156,123 @@ class TestVisitor:
 
         collector = TableCollector()
         collector.visit(parse("SELECT a FROM t1 JOIN t2 ON t1.id = t2.id"))
+        assert sorted(collector.tables) == ["t1", "t2"]
+
+
+class TestWalkTyped:
+    def test_yields_ast_node_instances(self):
+        """walk_typed yields AstNode instances, not raw protobuf Messages."""
+        tree = wrap(parse("SELECT 1"))
+        for _, node in walk_typed(tree):
+            assert isinstance(node, AstNode)
+
+    def test_same_order_as_walk(self):
+        """walk_typed yields the same nodes in the same order as walk."""
+        raw_tree = parse("SELECT a FROM t WHERE x = 1")
+        wrapped_tree = wrap(raw_tree)
+
+        raw_types = [type(msg).DESCRIPTOR.name for _, msg in walk(raw_tree)]
+        typed_types = [type(node).__name__ for _, node in walk_typed(wrapped_tree)]
+
+        assert raw_types == typed_types
+
+    def test_field_names_match_walk(self):
+        """walk_typed yields the same field names as walk."""
+        raw_tree = parse("SELECT a FROM t WHERE x = 1")
+        wrapped_tree = wrap(raw_tree)
+
+        raw_fields = [fn for fn, _ in walk(raw_tree)]
+        typed_fields = [fn for fn, _ in walk_typed(wrapped_tree)]
+
+        assert raw_fields == typed_fields
+
+    def test_no_node_wrappers(self):
+        """walk_typed never yields Node oneof wrappers."""
+        tree = wrap(parse("SELECT a FROM t WHERE x = 1"))
+        for _, node in walk_typed(tree):
+            assert type(node).__name__ != "Node"
+
+    def test_root_has_empty_field_name(self):
+        """walk_typed root entry has an empty field name."""
+        tree = wrap(parse("SELECT 1"))
+        nodes = list(walk_typed(tree))
+        assert nodes[0][0] == ""
+
+
+class TestTypedVisitor:
+    def test_dispatch_to_typed_handler(self):
+        """TypedVisitor dispatches to visit_SelectStmt with a typed wrapper."""
+        from postgast.nodes import SelectStmt
+
+        visited: list[AstNode] = []
+
+        class V(TypedVisitor):
+            def visit_SelectStmt(self, node: SelectStmt) -> None:
+                visited.append(node)
+
+        tree = wrap(parse("SELECT 1"))
+        V().visit(tree)
+        assert len(visited) == 1
+        assert isinstance(visited[0], SelectStmt)
+
+    def test_fallback_to_generic_visit(self):
+        """TypedVisitor falls back to generic_visit for unhandled types."""
+        visited_types: list[str] = []
+
+        class V(TypedVisitor):
+            def generic_visit(self, node: AstNode) -> None:  # pyright: ignore[reportImplicitOverride]
+                visited_types.append(type(node).__name__)
+                super().generic_visit(node)
+
+        tree = wrap(parse("SELECT 1"))
+        V().visit(tree)
+        assert "ParseResult" in visited_types
+        assert "RawStmt" in visited_types
+        assert "SelectStmt" in visited_types
+
+    def test_no_generic_visit_skips_children(self):
+        """Defining a handler without calling generic_visit skips children."""
+        visited_types: list[str] = []
+
+        class V(TypedVisitor):
+            def visit_SelectStmt(self, _node: AstNode) -> None:
+                visited_types.append("SelectStmt")
+
+            def visit_ResTarget(self, _node: AstNode) -> None:
+                visited_types.append("ResTarget")
+
+        tree = wrap(parse("SELECT a, b FROM t"))
+        V().visit(tree)
+        assert "SelectStmt" in visited_types
+        assert "ResTarget" not in visited_types
+
+    def test_generic_visit_in_handler_visits_children(self):
+        """Calling self.generic_visit(node) inside a handler visits children."""
+        visited_types: list[str] = []
+
+        class V(TypedVisitor):
+            def visit_SelectStmt(self, node: AstNode) -> None:
+                visited_types.append("SelectStmt")
+                self.generic_visit(node)
+
+            def visit_ResTarget(self, _node: AstNode) -> None:
+                visited_types.append("ResTarget")
+
+        tree = wrap(parse("SELECT a, b FROM t"))
+        V().visit(tree)
+        assert "SelectStmt" in visited_types
+        assert "ResTarget" in visited_types
+
+    def test_collect_table_names(self):
+        """TypedVisitor subclass collects table names via node.relname."""
+
+        class TableCollector(TypedVisitor):
+            def __init__(self) -> None:
+                self.tables: list[str] = []
+
+            def visit_RangeVar(self, node: AstNode) -> None:
+                self.tables.append(node.relname)  # pyright: ignore[reportAttributeAccessIssue,reportUnknownMemberType,reportUnknownArgumentType]
+
+        collector = TableCollector()
+        collector.visit(wrap(parse("SELECT * FROM t1 JOIN t2 ON t1.id = t2.id")))
         assert sorted(collector.tables) == ["t1", "t2"]

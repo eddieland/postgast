@@ -18,7 +18,7 @@ function SHALL be importable from `postgast` (re-exported via `__init__.py`).
 
 #### Scenario: Invalid SQL string
 
-- **WHEN** `format_sql("NOT VALID SQL ???")` is called with unparseable input
+- **WHEN** `format_sql("NOT VALID SQL ???")` is called with unparsable input
 - **THEN** it raises `PgQueryError` (propagated from `parse()`)
 
 ### Requirement: Semantic equivalence

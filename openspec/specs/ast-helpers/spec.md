@@ -157,11 +157,20 @@ All helper functions (`extract_tables`, `extract_columns`, `extract_functions`, 
 ### Requirement: All helpers are exported from the postgast package
 
 `find_nodes`, `extract_tables`, `extract_columns`, `extract_functions`, `extract_function_identity`,
-`extract_trigger_identity`, `FunctionIdentity`, and `TriggerIdentity` SHALL be importable directly from the `postgast`
-package (i.e., `from postgast import extract_function_identity`).
+`extract_trigger_identity`, `FunctionIdentity`, `TriggerIdentity`, and `to_drop` SHALL be importable directly from the
+`postgast` package (i.e., `from postgast import extract_function_identity`).
 
 #### Scenario: Direct import
 
 - **WHEN** a user writes
   `from postgast import extract_function_identity, extract_trigger_identity, FunctionIdentity, TriggerIdentity`
+- **THEN** the import SHALL succeed without errors
+
+### Requirement: to_drop is exported from the postgast package
+
+`to_drop` SHALL be importable directly from the `postgast` package (i.e., `from postgast import to_drop`).
+
+#### Scenario: Direct import
+
+- **WHEN** a user writes `from postgast import to_drop`
 - **THEN** the import SHALL succeed without errors

@@ -5,36 +5,45 @@ on:
     types: [published]
   workflow_dispatch: # Enable manual trigger.
 
+# Only one publish workflow at a time.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 jobs:
   lint-and-test:
+    name: Pre-flight checks
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-      - name: Checkout (official GitHub action)
+      - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
 
-      - name: Install uv (official Astral action)
+      - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
           version: "0.10.2"
           enable-cache: true
-          python-version: "3.12"
+          python-version: "3.14"
 
-      - name: Set up Python (using uv)
+      - name: Set up Python
         run: uv python install
 
       - name: Install all dependencies
         run: uv sync --all-extras
 
+      - name: Build native library
+        run: make build-native
+
       - name: Check formatting (mdformat)
-        run: uv run mdformat --check README.md CLAUDE.md openspec/
+        run: uv run mdformat --check README.md CLAUDE.md AGENTS.md openspec/
 
       - name: Check spelling (codespell)
-        run: uv run codespell src tests README.md CLAUDE.md openspec/
+        run: uv run codespell src tests README.md CLAUDE.md AGENTS.md openspec/
 
       - name: Lint (ruff)
         run: |
@@ -48,7 +57,7 @@ jobs:
         run: uv run pytest
 
   build-wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: "Build wheels (${{ matrix.os }})"
     needs: lint-and-test
     runs-on: ${{ matrix.os }}
     strategy:
@@ -59,7 +68,8 @@ jobs:
           - os: macos-14
           - os: windows-latest
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
@@ -73,7 +83,8 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload wheel artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
@@ -83,12 +94,13 @@ jobs:
     needs: lint-and-test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: true
 
-      - name: Install uv (official Astral action)
+      - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
           version: "0.10.2"
@@ -96,25 +108,28 @@ jobs:
       - name: Build SDist
         run: uv build --sdist
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload sdist artifact
+        uses: actions/upload-artifact@v4
         with:
           name: cibw-sdist
           path: dist/*.tar.gz
 
   publish:
+    name: Publish to PyPI
     needs: [build-wheels, build-sdist]
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
         with:
           pattern: cibw-*
           path: dist
           merge-multiple: true
 
-      - name: Install uv (official Astral action)
+      - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
           version: "0.10.2"

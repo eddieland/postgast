@@ -1,6 +1,6 @@
 ## Tasks
 
-### 1. Create the code generation script
+- [x] ### 1. Create the code generation script
 
 Create `scripts/generate_nodes.py` that:
 
@@ -25,11 +25,14 @@ Create `scripts/generate_nodes.py` that:
 **Acceptance criteria:**
 
 - Script runs successfully: `uv run python scripts/generate_nodes.py`
+
 - Output file passes `ruff check` and `ruff format`
+
 - Output file passes `basedpyright` type checking
+
 - All 277 message types have corresponding wrapper classes
 
-### 2. Generate the initial `nodes.py`
+- [x] ### 2. Generate the initial `nodes.py`
 
 Run the generation script and commit the output.
 
@@ -38,12 +41,16 @@ Run the generation script and commit the output.
 **Acceptance criteria:**
 
 - File is syntactically valid Python
+
 - File imports only from `__future__`, `google.protobuf.message`, and `postgast.pg_query_pb2`
+
 - Every class in `pg_query_pb2.pyi` that extends `_message.Message` has a corresponding wrapper class
+
 - The `_REGISTRY` dict has an entry for each wrapper class
+
 - `wrap()` correctly dispatches for all message types
 
-### 3. Write unit tests for wrapper classes
+- [x] ### 3. Write unit tests for wrapper classes
 
 Create `tests/postgast/test_nodes.py` with tests covering:
 
@@ -66,10 +73,12 @@ Create `tests/postgast/test_nodes.py` with tests covering:
 **Acceptance criteria:**
 
 - All tests pass with `uv run pytest tests/postgast/test_nodes.py -v`
+
 - Tests cover at least 10 different node types
+
 - Pattern matching tests included
 
-### 4. Update `__init__.py` re-exports
+- [x] ### 4. Update `__init__.py` re-exports
 
 Export the core public API:
 
@@ -83,11 +92,14 @@ Individual node classes remain importable from `postgast.nodes` (e.g., `from pos
 **Acceptance criteria:**
 
 - `from postgast import wrap, AstNode` works
+
 - `from postgast.nodes import SelectStmt` works
+
 - `__all__` is updated
+
 - No import cycles
 
-### 5. Lint and test pass
+- [x] ### 5. Lint and test pass
 
 Ensure the full project passes all checks.
 

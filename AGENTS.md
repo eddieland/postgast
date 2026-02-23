@@ -83,6 +83,22 @@ Always use `uv run` to execute commands — never activate the virtualenv manual
 - Don't create or activate venvs manually — `uv run` and `uv sync` handle this
 - Don't add heavy packages to core `dependencies` if they're only needed for dev or optional features
 
+## Scripts
+
+**`scripts/`** contains standalone helper scripts for common DevOps-type tasks any developer on the project may need
+(e.g., code generation, release prep, data migration). Create scripts sparingly — only for repeated workflows that don't
+fit neatly into a `make` target or one-liner.
+
+**Conventions:**
+
+- Start every script with a [uv script header](https://docs.astral.sh/uv/guides/scripts/#declaring-script-dependencies)
+  (`# /// script` block) declaring `requires-python` and any `dependencies`. This lets anyone run the script with
+  `uv run scripts/foo.py` without installing extras into the project.
+- Use **Typer** for CLI argument parsing — it gives you `--help` for free with minimal boilerplate.
+- Use **Rich** for pretty terminal output (tables, progress bars, coloured status messages).
+- Keep scripts focused: one script, one job. If a script grows complex, it probably belongs in the library or a Makefile
+  target instead.
+
 ## README Feature Matrix
 
 The feature matrix table in `README.md` must be kept in sync with project status. Update it at these progression points:

@@ -341,8 +341,8 @@ def main() -> None:
     for existing in OUTPUT_DIR.iterdir():
         if existing.is_file() and existing.name.endswith(".py") and existing.name not in expected_generated:
             with existing.open(encoding="utf-8") as f:
-                first_line = f.readline().rstrip("\n")
-            if first_line.strip().startswith(generated_marker):
+                first_line = f.readline()
+            if first_line.strip() == generated_marker:
                 existing.unlink()
                 print(f"Removed stale {existing}")
 

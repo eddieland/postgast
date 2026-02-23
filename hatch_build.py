@@ -81,14 +81,17 @@ class CustomBuildHook(BuildHookInterface):
             msg = f"pg_query_exports.def not found at {def_file}"
             raise RuntimeError(msg)
 
-        include_flags = [
-            f"-I{libpg_query_dir}",
-            f"-I{libpg_query_dir / 'vendor'}",
-            f"-I{libpg_query_dir / 'src' / 'postgres' / 'include'}",
-            f"-I{libpg_query_dir / 'src' / 'include'}",
-            f"-I{libpg_query_dir / 'src' / 'postgres' / 'include' / 'port' / 'win32'}",
-            f"-I{libpg_query_dir / 'src' / 'postgres' / 'include' / 'port' / 'win32_msvc'}",
+        include_dirs = [
+            libpg_query_dir,
+            libpg_query_dir / "vendor",
+            libpg_query_dir / "src" / "postgres" / "include",
+            libpg_query_dir / "src" / "include",
+            libpg_query_dir / "src" / "postgres" / "include" / "port" / "win32",
+            libpg_query_dir / "src" / "postgres" / "include" / "port" / "win32_msvc",
         ]
+        # Pass /I and path as separate list elements so subprocess quotes each
+        # independently — safe when paths contain spaces.
+        include_flags = [arg for d in include_dirs for arg in ("/I", str(d))]
 
         # Gather source files using the same globs as CI.
 
@@ -103,7 +106,7 @@ class CustomBuildHook(BuildHookInterface):
         # Compile all sources to object files in a single output directory.
         obj_dir = libpg_query_dir / "obj"
         obj_dir.mkdir(exist_ok=True)
-        compile_cmd = ["cl", *include_flags, "/c", f"/Fo{obj_dir}\\", *src_files]
+        compile_cmd = ["cl", *include_flags, "/c", f"/Fo{obj_dir}/", *src_files]
         subprocess.check_call(compile_cmd, cwd=libpg_query_dir)
 
         # Gather all .obj files and link into a DLL.

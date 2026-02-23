@@ -45,15 +45,15 @@ jobs:
         run: uv run mdformat --check README.md CLAUDE.md AGENTS.md openspec/
 
       - name: Check spelling (codespell)
-        run: uv run codespell src tests README.md CLAUDE.md AGENTS.md openspec/
+        run: uv run codespell src tests recipes README.md CLAUDE.md AGENTS.md openspec/
 
       - name: Lint (ruff)
         run: |
-          uv run ruff check src tests
-          uv run ruff format --check src tests
+          uv run ruff check src tests recipes
+          uv run ruff format --check src tests recipes
 
       - name: Type check (basedpyright)
-        run: uv run basedpyright --stats src tests
+        run: uv run basedpyright --stats src tests recipes
 
       - name: Run tests
         run: uv run pytest

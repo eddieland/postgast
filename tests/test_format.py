@@ -74,6 +74,12 @@ ROUND_TRIP_CASES = [
     "SELECT a + b FROM t",
     "SELECT * FROM t WHERE x <> 1",
     "(SELECT count(*) FROM t)",
+    "VALUES (1), (2), (3)",
+    "SELECT * FROM a NATURAL JOIN b",
+    "SELECT * FROM a NATURAL LEFT JOIN b",
+    "ALTER TABLE t ALTER COLUMN x TYPE integer",
+    "ALTER TABLE t ALTER COLUMN x TYPE integer USING x::integer",
+    "SELECT count(*) FILTER (WHERE x > 0) FROM t",
 ]
 
 
@@ -124,3 +130,34 @@ def test_fallback_mixed_statements() -> None:
 def test_format_accepts_parse_result() -> None:
     tree = parse("SELECT 1")
     assert format_sql(tree) == format_sql("SELECT 1")
+
+
+# ── WHERE clause-per-line layout ──────────────────────────────────
+
+
+def test_where_and_clause_per_line() -> None:
+    sql = "SELECT * FROM t WHERE a = 1 AND b = 2 AND c = 3"
+    result = format_sql(sql).rstrip(";")
+    lines = [line.rstrip() for line in result.splitlines()]
+    where_idx = next(i for i, line in enumerate(lines) if line.strip().startswith("WHERE"))
+    clause_lines = [lines[where_idx + i].strip() for i in range(1, 4)]
+    assert clause_lines == ["a = 1", "AND b = 2", "AND c = 3"]
+
+
+def test_where_mixed_and_or_clause_per_line() -> None:
+    sql = "SELECT * FROM t WHERE a = 1 AND b = 2 OR c = 3"
+    result = format_sql(sql).rstrip(";")
+    lines = [line.rstrip() for line in result.splitlines()]
+    where_idx = next(i for i, line in enumerate(lines) if line.strip().startswith("WHERE"))
+    clause_lines = [lines[where_idx + i].strip() for i in range(1, 4)]
+    assert clause_lines == ["a = 1", "AND b = 2", "OR c = 3"]
+
+
+# ── Top-level VALUES ─────────────────────────────────────────────
+
+
+def test_top_level_values() -> None:
+    sql = "VALUES (1), (2), (3)"
+    result = format_sql(sql)
+    assert "VALUES" in result
+    assert deparse(parse(result)) == deparse(parse(sql))

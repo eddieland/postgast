@@ -349,6 +349,37 @@ FORMAT_EXAMPLES: list[tuple[str, str, str]] = [
         "DROP TABLE IF EXISTS users CASCADE",
         "DROP TABLE IF EXISTS users CASCADE;",
     ),
+    # -- Top-level VALUES -------------------------------------------
+    (
+        "top_level_values",
+        "VALUES (1), (2), (3)",
+        dedent("""\
+            VALUES
+              (1),
+              (2),
+              (3);"""),
+    ),
+    # -- NATURAL JOIN -----------------------------------------------
+    (
+        "natural_join",
+        "SELECT * FROM a NATURAL JOIN b",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              a
+              NATURAL JOIN b;"""),
+    ),
+    # -- FILTER clause ----------------------------------------------
+    (
+        "agg_filter",
+        "SELECT count(*) FILTER (WHERE x > 0) FROM t",
+        dedent("""\
+            SELECT
+              count(*) FILTER (WHERE x > 0)
+            FROM
+              t;"""),
+    ),
     # -- Multiple statements -----------------------------------------
     (
         "multi_statement",
@@ -368,6 +399,6 @@ FORMAT_EXAMPLES: list[tuple[str, str, str]] = [
     FORMAT_EXAMPLES,
     ids=[e[0] for e in FORMAT_EXAMPLES],
 )
-def test_format_output(label: str, input_sql: str, expected: str) -> None:
+def test_format_output(label: str, input_sql: str, expected: str) -> None:  # pyright: ignore[reportUnusedParameter]
     """format_sql(input_sql) produces exactly the expected output."""
     assert format_sql(input_sql) == expected

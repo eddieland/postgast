@@ -171,29 +171,31 @@ def _(
 @app.cell
 def _(
     deparse: Callable[[ParseResult], str],
-    find_nodes: Callable[[Message, str], Generator[Message, None, None]],
+    find_nodes: Callable[[Message, type[Message]], Generator[Message, None, None]],
     mo: types.ModuleType,
     parse: Callable[[str], ParseResult],
 ):
     # --- Recipe: Query rewriting via AST modification ---
+    from postgast.pg_query_pb2 import RangeVar as _RangeVar
+
     _sql = "SELECT id, name FROM users WHERE active = true"
 
     # Transform 1: Add schema prefix
     _tree1 = parse(_sql)
-    for _rv in find_nodes(_tree1, "RangeVar"):
+    for _rv in find_nodes(_tree1, _RangeVar):
         _rv.schemaname = "public"  # pyright: ignore[reportAttributeAccessIssue]
     _schema_prefixed = deparse(_tree1)
 
     # Transform 2: Rename table
     _tree2 = parse(_sql)
-    for _rv in find_nodes(_tree2, "RangeVar"):
+    for _rv in find_nodes(_tree2, _RangeVar):
         if _rv.relname == "users":  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
             _rv.relname = "app_users"  # pyright: ignore[reportAttributeAccessIssue]
     _renamed = deparse(_tree2)
 
     # Transform 3: Both
     _tree3 = parse(_sql)
-    for _rv in find_nodes(_tree3, "RangeVar"):
+    for _rv in find_nodes(_tree3, _RangeVar):
         _rv.schemaname = "myapp"  # pyright: ignore[reportAttributeAccessIssue]
         if _rv.relname == "users":  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
             _rv.relname = "app_users"  # pyright: ignore[reportAttributeAccessIssue]

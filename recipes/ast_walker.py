@@ -281,11 +281,7 @@ def _(
         _dc = _DepCollector()
         _dc.visit(_node)
 
-        if _stmt_type == "insert_stmt" and len(_dc.tables) >= 2:
-            _target = _dc.tables[0]
-            for _source in _dc.tables[1:]:
-                _edges.append((_target, _source))
-        elif _stmt_type == "create_stmt" and len(_dc.tables) >= 2:
+        if _stmt_type == "insert_stmt" and len(_dc.tables) >= 2 or _stmt_type == "create_stmt" and len(_dc.tables) >= 2:
             _target = _dc.tables[0]
             for _source in _dc.tables[1:]:
                 _edges.append((_target, _source))
@@ -316,11 +312,13 @@ def _(
     extract_columns: Callable[[Message], list[str]],
     extract_functions: Callable[[Message], list[str]],
     extract_tables: Callable[[Message], list[str]],
-    find_nodes: Callable[[Message, str], Generator[Message, None, None]],
+    find_nodes: Callable[[Message, type[Message]], Generator[Message, None, None]],
     mo: types.ModuleType,
     parse: Callable[[str], ParseResult],
 ):
     # --- Recipe: Helpers vs. manual extraction ---
+    from postgast.pg_query_pb2 import JoinExpr as _JoinExpr
+
     _sql = (
         "SELECT o.id, COUNT(p.name), MAX(p.price)"
         " FROM orders o JOIN products p ON o.product_id = p.id"
@@ -331,7 +329,7 @@ def _(
     _tables = extract_tables(_tree)
     _columns = extract_columns(_tree)
     _functions = extract_functions(_tree)
-    _joins = list(find_nodes(_tree, "JoinExpr"))
+    _joins = list(find_nodes(_tree, _JoinExpr))
 
     mo.md(
         f"""
@@ -351,7 +349,7 @@ def _(
         | `extract_tables` | {", ".join(f"`{t}`" for t in _tables)} |
         | `extract_columns` | {", ".join(f"`{c}`" for c in _columns)} |
         | `extract_functions` | {", ".join(f"`{fn}`" for fn in _functions)} |
-        | `find_nodes("JoinExpr")` | {len(_joins)} join(s) found |
+        | `find_nodes(JoinExpr)` | {len(_joins)} join(s) found |
         """
     )
     return

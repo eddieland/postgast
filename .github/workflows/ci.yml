@@ -6,10 +6,10 @@ on:
   pull_request:
     branches: ["main", "master"]
 
-# Cancel in-progress runs for the same branch/PR.
+# Cancel in-progress runs for the same PR; let every main/master push run to completion.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read

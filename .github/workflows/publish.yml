@@ -71,10 +71,8 @@ jobs:
             cibw_archs: "aarch64"
           - os: macos-latest
             cibw_archs: "arm64"
-          # Windows disabled: libpg_query's Makefile.msvc only builds a static
-          # .lib — no shared DLL target exists yet. Re-enable when upstream adds
-          # build_shared support or we add our own DLL build step.
-          # - os: windows-latest
+          - os: windows-latest
+            cibw_archs: "AMD64"
     steps:
       - name: Checkout
         uses: actions/checkout@v6

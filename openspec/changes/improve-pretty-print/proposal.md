@@ -2,7 +2,7 @@
 
 `format_sql()` has semantic correctness bugs where formatted output parses to a different query than the input. Nested
 boolean expressions lose required parentheses, window frame clauses are silently dropped, several AST node types produce
-garbled output, and reserved-word identifiers lose their quoting — producing unparseable SQL. These violate the existing
+garbled output, and reserved-word identifiers lose their quoting — producing unparsable SQL. These violate the existing
 spec's round-trip equivalence requirement.
 
 ## What Changes

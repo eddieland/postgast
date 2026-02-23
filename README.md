@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/pypi/l/postgast)](https://github.com/eddieland/postgast/blob/main/LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/eddieland/postgast/ci.yml?label=CI)](https://github.com/eddieland/postgast/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/eddieland/postgast/graph/badge.svg)](https://codecov.io/gh/eddieland/postgast)
+[![Docs](https://readthedocs.org/projects/postgast/badge/?version=latest)](https://postgast.readthedocs.io)
 [![Downloads](https://img.shields.io/pypi/dm/postgast)](https://pypi.org/project/postgast/)
 
 BSD-licensed Python bindings to [libpg_query](https://github.com/pganalyze/libpg_query), the PostgreSQL parser extracted

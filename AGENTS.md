@@ -90,6 +90,11 @@ The feature matrix table in `README.md` must be kept in sync with project status
 - **After finishing apply** — set status to `Available` with a link to the spec directory (e.g.,
   `[Available](openspec/specs/feature/)`)
 - **After archiving a change** — confirm the status is `Available` and the spec link is correct; add new rows if the
-  change introduced a feature not yet listed
+  change introduced a major feature not yet listed
+
+**Only add rows for major library pillars** — top-level capabilities a user would evaluate when choosing the library
+(e.g., parse, deparse, normalize, split). Do not add rows for minor helpers, internal utilities, or small convenience
+functions. If a change enhances an existing feature rather than introducing a new pillar, update the existing row
+instead of adding a new one.
 
 Do not update the matrix during intermediate steps (planning, drafting specs, mid-implementation).

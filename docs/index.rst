@@ -42,4 +42,5 @@ Installation
 
    guide
    api
+   upgrade-policy
    contributing

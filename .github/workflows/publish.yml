@@ -67,7 +67,10 @@ jobs:
         include:
           - os: ubuntu-latest
           - os: macos-latest
-          - os: windows-latest
+          # Windows disabled: libpg_query's Makefile.msvc only builds a static
+          # .lib — no shared DLL target exists yet. Re-enable when upstream adds
+          # build_shared support or we add our own DLL build step.
+          # - os: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6

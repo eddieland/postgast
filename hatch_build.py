@@ -5,6 +5,7 @@ from __future__ import annotations
 import glob
 import os
 import platform
+import shutil
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -99,12 +100,14 @@ class CustomBuildHook(BuildHookInterface):
             + [str(libpg_query_dir / "protobuf" / "pg_query.pb-c.c")]
         )
 
-        # Compile all sources to object files.
-        compile_cmd = ["cl", *include_flags, "/c", *src_files]
+        # Compile all sources to object files in a single output directory.
+        obj_dir = libpg_query_dir / "obj"
+        obj_dir.mkdir(exist_ok=True)
+        compile_cmd = ["cl", *include_flags, "/c", f"/Fo{obj_dir}\\", *src_files]
         subprocess.check_call(compile_cmd, cwd=libpg_query_dir)
 
         # Gather all .obj files and link into a DLL.
-        obj_files = glob.glob(str(libpg_query_dir / "*.obj"))
+        obj_files = glob.glob(str(obj_dir / "*.obj"))
         link_cmd = ["link", "/DLL", f"/DEF:{def_file}", "/OUT:pg_query.dll", *obj_files]
         subprocess.check_call(link_cmd, cwd=libpg_query_dir)
 
@@ -114,3 +117,6 @@ class CustomBuildHook(BuildHookInterface):
         libpg_query_dir = root / "vendor" / "libpg_query"
         if libpg_query_dir.exists():
             subprocess.call(["make", "clean"], cwd=libpg_query_dir)
+            obj_dir = libpg_query_dir / "obj"
+            if obj_dir.exists():
+                shutil.rmtree(obj_dir)

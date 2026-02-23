@@ -26,9 +26,10 @@ class CustomBuildHook(BuildHookInterface):
         root = Path(self.root)
         libpg_query_dir = root / "vendor" / "libpg_query"
 
-        if not libpg_query_dir.exists():
+        makefile = libpg_query_dir / "Makefile"
+        if not makefile.exists():
             self.app.display_warning(
-                "vendor/libpg_query not found — skipping native library build. "
+                "vendor/libpg_query/Makefile not found — skipping native library build. "
                 "Run 'git submodule update --init' to fetch the source."
             )
             return

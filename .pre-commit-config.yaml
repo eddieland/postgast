@@ -24,7 +24,9 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
-        additional_dependencies: []
+        args: [--toml, pyproject.toml]
+        additional_dependencies:
+          - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.1

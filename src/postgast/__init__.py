@@ -17,6 +17,7 @@ from postgast.helpers import (
     set_or_replace,
     to_drop,
 )
+from postgast.nodes import AstNode, wrap
 from postgast.normalize import normalize
 from postgast.parse import parse
 from postgast.pg_query_pb2 import ParseResult
@@ -26,6 +27,7 @@ from postgast.split import split
 from postgast.walk import Visitor, walk
 
 __all__ = [
+    "AstNode",
     "deparse",
     "ensure_or_replace",
     "extract_columns",
@@ -51,4 +53,5 @@ __all__ = [
     "TriggerIdentity",
     "Visitor",
     "walk",
+    "wrap",
 ]

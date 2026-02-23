@@ -80,10 +80,13 @@ bump = true
 [tool.hatch.build.hooks.custom]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/postgast", "vendor/libpg_query", "hatch_build.py"]
+include = ["src/postgast", "vendor/libpg_query", "hatch_build.py", "THIRD-PARTY-LICENSES"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/postgast"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"THIRD-PARTY-LICENSES" = "postgast/THIRD-PARTY-LICENSES"
 
 [tool.ruff]
 line-length = 120

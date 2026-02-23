@@ -10,6 +10,8 @@ import os
 import random
 
 import pytest
+
+hypothesis = pytest.importorskip("hypothesis")
 from hypothesis import given, settings
 from hypothesis import strategies as st
 

@@ -91,6 +91,12 @@ jobs:
       - name: Set up Python
         run: uv python install
 
+      # MSVC must be configured before uv sync because the hatch build hook
+      # compiles libpg_query (via nmake) during the editable install.
+      - name: Set up MSVC developer environment (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
       - name: Install all dependencies
         run: uv sync --all-extras
 
@@ -98,17 +104,10 @@ jobs:
         if: runner.os != 'Windows'
         run: make build-native
 
-      - name: Set up MSVC developer environment (Windows)
-        if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Build native library (Windows)
+      - name: Copy native library into package (Windows)
         if: runner.os == 'Windows'
         shell: cmd
-        run: |
-          cd vendor\libpg_query
-          nmake /F Makefile.msvc
-          copy pg_query.dll ..\..\src\postgast\pg_query.dll
+        run: copy vendor\libpg_query\pg_query.dll src\postgast\pg_query.dll
 
       - name: Run tests with coverage
         run: uv run pytest --cov --cov-report=xml

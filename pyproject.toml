@@ -210,7 +210,6 @@ python_files = ["*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 testpaths = ["src", "tests"]
-norecursedirs = []
 filterwarnings = []
 markers = [
     "stress: marks tests as stress tests — large inputs, deep nesting, high counts (deselect with '-m \"not stress\"')",

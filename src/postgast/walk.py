@@ -11,6 +11,8 @@ if TYPE_CHECKING:
 
     from google.protobuf.message import Message
 
+    from postgast.nodes.base import AstNode
+
 _NODE_ONEOF = "node"
 
 
@@ -74,6 +76,36 @@ def walk(node: Message) -> Generator[tuple[str, Message], None, None]:
         stack.extend(reversed(list(_iter_children(child))))
 
 
+def walk_typed(node: AstNode) -> Generator[tuple[str, AstNode], None, None]:
+    """Depth-first pre-order traversal of a typed AST wrapper tree.
+
+    Like :func:`walk` but accepts and yields typed :class:`AstNode` wrappers
+    instead of raw protobuf ``Message`` objects. Delegates to :func:`walk`
+    internally.
+
+    Args:
+        node: A typed ``AstNode`` wrapper (e.g. from :func:`postgast.wrap`).
+
+    Yields:
+        ``(field_name, wrapper)`` tuples in depth-first pre-order.
+
+    Example:
+        >>> from postgast import parse, wrap, walk_typed
+        >>> tree = wrap(parse("SELECT 1"))
+        >>> for field_name, node in walk_typed(tree):
+        ...     if field_name:
+        ...         print(f"{field_name}: {type(node).__name__}")
+        stmts: RawStmt
+        stmt: SelectStmt
+        target_list: ResTarget
+        val: A_Const
+    """
+    from postgast.nodes.base import _wrap  # pyright: ignore[reportPrivateUsage]
+
+    for field_name, message in walk(node._pb):  # pyright: ignore[reportPrivateUsage]
+        yield field_name, _wrap(message)
+
+
 class Visitor:
     """Base class for protobuf parse tree visitors.
 
@@ -123,3 +155,43 @@ class Visitor:
         """
         for _field_name, child in _iter_children(node):
             self.visit(child)
+
+
+class TypedVisitor:
+    """Base class for typed AST wrapper visitors.
+
+    Like :class:`Visitor` but dispatches to handlers that receive typed
+    :class:`AstNode` wrappers instead of raw protobuf ``Message`` objects.
+
+    Subclass and override ``visit_<TypeName>`` methods to handle specific
+    node types with full type safety::
+
+        class TableCollector(TypedVisitor):
+            def __init__(self):
+                self.tables = []
+
+            def visit_RangeVar(self, node):
+                self.tables.append(node.relname)
+
+
+        collector = TableCollector()
+        collector.visit(wrap(parse_result))
+    """
+
+    def visit(self, node: AstNode) -> None:
+        """Dispatch *node* to ``visit_<TypeName>`` or :meth:`generic_visit`."""
+        method_name = f"visit_{type(node).__name__}"
+        visitor = getattr(self, method_name, self.generic_visit)
+        visitor(node)
+
+    def generic_visit(self, node: AstNode) -> None:
+        """Visit all child nodes of *node*.
+
+        Override this method to customize the default traversal behavior.
+        Call ``super().generic_visit(node)`` from a ``visit_*`` handler to
+        continue recursion into a node's children after custom processing.
+        """
+        from postgast.nodes.base import _wrap  # pyright: ignore[reportPrivateUsage]
+
+        for _field_name, child in _iter_children(node._pb):  # pyright: ignore[reportPrivateUsage]
+            self.visit(_wrap(child))

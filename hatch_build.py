@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import platform
 import subprocess
 from pathlib import Path
@@ -22,7 +23,15 @@ class CustomBuildHook(BuildHookInterface):
     PLUGIN_NAME = "custom"
 
     def initialize(self, version: str, build_data: dict[str, Any]) -> None:
-        """Compile libpg_query and inject the shared library into the wheel."""
+        """Compile libpg_query and inject the shared library into the wheel.
+
+        Set ``POSTGAST_SKIP_NATIVE_BUILD=1`` to skip compilation (useful in CI
+        where the native library is built in a separate step).
+        """
+        if os.environ.get("POSTGAST_SKIP_NATIVE_BUILD"):
+            self.app.display_warning("POSTGAST_SKIP_NATIVE_BUILD is set — skipping native library build.")
+            return
+
         root = Path(self.root)
         libpg_query_dir = root / "vendor" / "libpg_query"
 

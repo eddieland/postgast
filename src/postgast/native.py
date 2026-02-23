@@ -161,6 +161,15 @@ class PgQueryDeparseResult(Structure):
     ]
 
 
+class PgQueryPlpgsqlParseResult(Structure):
+    """Result from pg_query_parse_plpgsql (JSON PL/pgSQL parse tree)."""
+
+    _fields_ = [
+        ("plpgsql_funcs", c_char_p),
+        ("error", POINTER(PgQueryError)),
+    ]
+
+
 # ---------------------------------------------------------------------------
 # Load library and declare function signatures
 # ---------------------------------------------------------------------------
@@ -193,6 +202,9 @@ lib.pg_query_split_with_parser.restype = PgQuerySplitResult
 lib.pg_query_deparse_protobuf.argtypes = [PgQueryProtobuf]
 lib.pg_query_deparse_protobuf.restype = PgQueryDeparseResult
 
+lib.pg_query_parse_plpgsql.argtypes = [c_char_p]
+lib.pg_query_parse_plpgsql.restype = PgQueryPlpgsqlParseResult
+
 # -- Free functions --
 
 lib.pg_query_free_parse_result.argtypes = [PgQueryParseResult]
@@ -215,3 +227,6 @@ lib.pg_query_free_split_result.restype = None
 
 lib.pg_query_free_deparse_result.argtypes = [PgQueryDeparseResult]
 lib.pg_query_free_deparse_result.restype = None
+
+lib.pg_query_free_plpgsql_parse_result.argtypes = [PgQueryPlpgsqlParseResult]
+lib.pg_query_free_plpgsql_parse_result.restype = None

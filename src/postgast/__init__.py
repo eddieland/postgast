@@ -20,6 +20,7 @@ from postgast.helpers import (
 from postgast.normalize import normalize
 from postgast.parse import parse
 from postgast.pg_query_pb2 import ParseResult
+from postgast.plpgsql import parse_plpgsql
 from postgast.scan import scan
 from postgast.split import split
 from postgast.walk import Visitor, walk
@@ -37,7 +38,9 @@ __all__ = [
     "FingerprintResult",
     "FunctionIdentity",
     "normalize",
+    "parse_plpgsql",
     "parse",
+    "parse_plpgsql",
     "ParseResult",
     "pg_query_pb2",
     "PgQueryError",

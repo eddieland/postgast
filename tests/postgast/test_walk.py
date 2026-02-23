@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from google.protobuf.message import Message
+from typing import TYPE_CHECKING
 
 from postgast import ParseResult, Visitor, parse, walk
+
+if TYPE_CHECKING:
+    from google.protobuf.message import Message
 
 
 class TestWalk:

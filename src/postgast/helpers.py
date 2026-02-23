@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import typing
-from collections.abc import Generator
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 from google.protobuf.message import Message
 
@@ -30,6 +29,9 @@ from postgast.pg_query_pb2 import (
     ViewStmt,
 )
 from postgast.walk import walk
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 _M = TypeVar("_M", bound=Message)
 _OR_REPLACE_TYPES = (CreateFunctionStmt, CreateTrigStmt, ViewStmt)
@@ -107,10 +109,9 @@ def extract_tables(tree: Message) -> list[str]:
         >>> extract_tables(tree)
         ['public.users', 'orders']
     """
-    tables: list[str] = []
-    for node in find_nodes(tree, RangeVar):
-        tables.append(f"{node.schemaname}.{node.relname}" if node.schemaname else node.relname)
-    return tables
+    return [
+        f"{node.schemaname}.{node.relname}" if node.schemaname else node.relname for node in find_nodes(tree, RangeVar)
+    ]
 
 
 def extract_columns(tree: Message) -> list[str]:
@@ -268,10 +269,9 @@ def set_or_replace(tree: Message) -> int:
     """
     count = 0
     for _field_name, node in walk(tree):
-        if isinstance(node, _OR_REPLACE_TYPES):
-            if not node.replace:
-                node.replace = True
-                count += 1
+        if isinstance(node, _OR_REPLACE_TYPES) and not node.replace:
+            node.replace = True
+            count += 1
     return count
 
 

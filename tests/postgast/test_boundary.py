@@ -5,12 +5,15 @@ These tests are fast (small inputs) and should always run — no special marker.
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Any
+import contextlib
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
 from postgast import PgQueryError, fingerprint, normalize, parse, scan, split
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # ---------------------------------------------------------------------------
 # 3.1  Null-byte tests
@@ -29,24 +32,18 @@ class TestNullBytes:
     @pytest.mark.parametrize("name", _OPS)
     def test_embedded_null_byte(self, name: str) -> None:
         """Operation handles an embedded null byte without crashing."""
-        try:
+        with contextlib.suppress(PgQueryError):
             _OPS[name]("SELECT\x001")
-        except PgQueryError:
-            pass  # error is fine, crash is not
 
     @pytest.mark.parametrize("name", _OPS)
     def test_leading_null_byte(self, name: str) -> None:
-        try:
+        with contextlib.suppress(PgQueryError):
             _OPS[name]("\x00SELECT 1")
-        except PgQueryError:
-            pass
 
     @pytest.mark.parametrize("name", _OPS)
     def test_trailing_null_byte(self, name: str) -> None:
-        try:
+        with contextlib.suppress(PgQueryError):
             _OPS[name]("SELECT 1\x00")
-        except PgQueryError:
-            pass
 
 
 # ---------------------------------------------------------------------------
@@ -65,17 +62,13 @@ _CONTROL_CHARS: list[tuple[str, str]] = [
 class TestControlCharacters:
     @pytest.mark.parametrize("char", [c for _, c in _CONTROL_CHARS], ids=[n for n, _ in _CONTROL_CHARS])
     def test_parse_with_control_char(self, char: str) -> None:
-        try:
+        with contextlib.suppress(PgQueryError):
             parse(f"SELECT{char}1")
-        except PgQueryError:
-            pass
 
     @pytest.mark.parametrize("char", [c for _, c in _CONTROL_CHARS], ids=[n for n, _ in _CONTROL_CHARS])
     def test_scan_with_control_char(self, char: str) -> None:
-        try:
+        with contextlib.suppress(PgQueryError):
             scan(f"SELECT{char}1")
-        except PgQueryError:
-            pass
 
 
 # ---------------------------------------------------------------------------
@@ -164,10 +157,8 @@ class TestMalformedSQL:
 
     def test_scan_garbage_bytes(self) -> None:
         garbage = bytes(range(128, 256)).decode("latin-1")
-        try:
+        with contextlib.suppress(PgQueryError):
             scan(garbage)
-        except PgQueryError:
-            pass  # error is fine, crash is not
 
 
 # ---------------------------------------------------------------------------

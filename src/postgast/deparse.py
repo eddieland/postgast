@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import ctypes
+from typing import TYPE_CHECKING
 
 from postgast.errors import check_error
 from postgast.native import PgQueryProtobuf, lib
-from postgast.pg_query_pb2 import ParseResult
+
+if TYPE_CHECKING:
+    from postgast.pg_query_pb2 import ParseResult
 
 
 def deparse(tree: ParseResult) -> str:

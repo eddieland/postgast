@@ -52,6 +52,6 @@ class TestLoadFailure:
             patch("platform.system", return_value="Linux"),
             patch.object(Path, "is_file", return_value=False),
             patch.object(ctypes.util, "find_library", return_value=None),
+            pytest.raises(OSError, match="libpg_query shared library not found"),
         ):
-            with pytest.raises(OSError, match="libpg_query shared library not found"):
-                _import_native()
+            _import_native()

@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Generator
+from typing import TYPE_CHECKING
 
 from google.protobuf.descriptor import FieldDescriptor
-from google.protobuf.message import Message
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from google.protobuf.message import Message
 
 _NODE_ONEOF = "node"
 

@@ -45,8 +45,7 @@ def _nested_subqueries(depth: int) -> str:
 def _many_joins(n: int) -> str:
     """``SELECT * FROM t0 JOIN t1 ON … JOIN t2 ON … ``."""
     parts = ["SELECT * FROM t0"]
-    for i in range(1, n):
-        parts.append(f"JOIN t{i} ON t{i}.id = t0.id")
+    parts.extend(f"JOIN t{i} ON t{i}.id = t0.id" for i in range(1, n))
     return " ".join(parts)
 
 

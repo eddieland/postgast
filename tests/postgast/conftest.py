@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
 from postgast import ParseResult, PgQueryError, deparse, parse
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # -- Parse-result fixtures (function scope for independent protobuf instances) --
 

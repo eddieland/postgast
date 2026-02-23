@@ -1,11 +1,14 @@
-# ctypes-bindings Specification
+# bindings Specification
 
 ## Purpose
 
-Define the ctypes interface to libpg_query: load the shared library at import time, declare C struct bindings for all
-result types, and set function signatures (argtypes/restype) on all public C functions.
+Low-level infrastructure for interfacing Python with libpg_query: ctypes bindings to load and call the C shared library,
+generated protobuf Python module for AST types, and structured error handling to translate C errors into Python
+exceptions.
 
-## Requirements
+______________________________________________________________________
+
+## ctypes Interface
 
 ### Requirement: Platform-aware library resolution
 
@@ -111,3 +114,100 @@ their corresponding pg_query_free\_\* functions.
 
 - **WHEN** a pg_query_free\_\* function is called with its corresponding result struct
 - **THEN** it completes without error and the result memory is released
+
+______________________________________________________________________
+
+## Protobuf Bindings
+
+### Requirement: Generated protobuf module
+
+The package SHALL include a generated Python protobuf module (`pg_query_pb2.py`) produced by running `protoc` against
+the vendored `vendor/libpg_query/protobuf/pg_query.proto`. The generated file SHALL be committed to the repository so
+that users installing from source do not need `protoc`.
+
+#### Scenario: Module is importable
+
+- **WHEN** the package is installed
+- **THEN** `from postgast.pg_query_pb2 import ParseResult` succeeds without error
+
+#### Scenario: ParseResult message structure
+
+- **WHEN** the `ParseResult` message is inspected
+- **THEN** it has an `int32 version` field and a `repeated RawStmt stmts` field matching the proto schema
+
+### Requirement: Protobuf runtime dependency
+
+The package SHALL declare `protobuf>=5.29` as a runtime dependency in `pyproject.toml` `dependencies`. This is the
+official Google protobuf library.
+
+#### Scenario: Dependency is installed automatically
+
+- **WHEN** a user runs `pip install postgast`
+- **THEN** the `protobuf` package is installed as a dependency
+
+### Requirement: Makefile regeneration target
+
+The project SHALL provide a `make proto` target that regenerates `pg_query_pb2.py` from the vendored proto file. This
+target is used by maintainers when the vendored `pg_query.proto` is updated.
+
+#### Scenario: Regeneration produces identical output
+
+- **WHEN** `make proto` is run without modifying the vendored proto file
+- **THEN** the generated `pg_query_pb2.py` is byte-identical to the committed version
+
+#### Scenario: Regeneration reflects proto changes
+
+- **WHEN** the vendored `pg_query.proto` is updated and `make proto` is run
+- **THEN** the generated `pg_query_pb2.py` reflects the updated proto definitions
+
+### Requirement: Protobuf module re-export
+
+The generated protobuf module SHALL be re-exported from the `postgast` package as `postgast.pg_query_pb2` so users can
+access AST node types (e.g., `from postgast.pg_query_pb2 import ParseResult, Node, SelectStmt`).
+
+#### Scenario: Public re-export access
+
+- **WHEN** user code runs `from postgast import pg_query_pb2`
+- **THEN** the module is accessible and contains protobuf message classes
+
+______________________________________________________________________
+
+## Error Handling
+
+### Requirement: PgQueryError exception class
+
+The module SHALL provide a `PgQueryError` exception class that inherits from `Exception` and exposes structured fields
+from the C `PgQueryError` struct: `message` (str), `cursorpos` (int), `context` (str | None), `funcname` (str | None),
+`filename` (str | None), `lineno` (int).
+
+#### Scenario: Exception has structured attributes
+
+- **WHEN** a `PgQueryError` is raised due to invalid SQL
+- **THEN** the exception's `message` attribute contains the error description, `cursorpos` contains the 1-based position
+  in the SQL string where the error was detected, and `str(exception)` returns the message
+
+#### Scenario: Exception is catchable
+
+- **WHEN** user code wraps a postgast call in `try/except PgQueryError`
+- **THEN** the exception is caught and its structured fields are accessible
+
+#### Scenario: Optional fields are None when absent
+
+- **WHEN** the C error struct has NULL values for context, funcname, or filename
+- **THEN** the corresponding Python attributes SHALL be `None`
+
+### Requirement: Error checking helper
+
+The module SHALL provide an internal helper that inspects a C result struct's error pointer. If the error pointer is
+non-null, the helper SHALL extract the error fields and raise `PgQueryError`. The caller is responsible for freeing the
+C result (typically via a `finally` block).
+
+#### Scenario: Non-null error pointer raises exception
+
+- **WHEN** a C function returns a result with a non-null error pointer
+- **THEN** the helper raises `PgQueryError` with the error fields populated
+
+#### Scenario: Null error pointer does not raise
+
+- **WHEN** a C function returns a result with a null error pointer
+- **THEN** the helper returns without raising and the result remains available for value extraction

@@ -16,16 +16,16 @@ footprint — just `protobuf` and the vendored C library.
 
 ## Features
 
-| Feature          | Status                                    | Description                                                                |
-| ---------------- | ----------------------------------------- | -------------------------------------------------------------------------- |
-| **Parse**        | [Available](openspec/specs/parse/)        | SQL text to protobuf AST                                                   |
-| **Deparse**      | [Available](openspec/specs/deparse/)      | AST back to SQL text                                                       |
-| **Normalize**    | [Available](openspec/specs/normalize/)    | Replace constants with parameter placeholders                              |
-| **Fingerprint**  | [Available](openspec/specs/fingerprint/)  | Identify structurally equivalent statements                                |
-| **Split**        | [Available](openspec/specs/split/)        | Split multi-statement strings (respects strings, comments, dollar-quoting) |
-| **Scan**         | [Available](openspec/specs/scan/)         | Tokenize SQL with keyword classification                                   |
-| **Tree Walking** | [Available](openspec/specs/tree-walking/) | Walk/visit AST nodes with depth-first traversal and visitor pattern        |
-| **AST Helpers**  | [Available](openspec/specs/ast-helpers/)  | Extract tables, columns, functions; generate DROP from CREATE DDL          |
+| Feature          | Status                                      | Description                                                                |
+| ---------------- | ------------------------------------------- | -------------------------------------------------------------------------- |
+| **Parse**        | [Available](openspec/specs/operations/)     | SQL text to protobuf AST                                                   |
+| **Deparse**      | [Available](openspec/specs/operations/)     | AST back to SQL text                                                       |
+| **Normalize**    | [Available](openspec/specs/operations/)     | Replace constants with parameter placeholders                              |
+| **Fingerprint**  | [Available](openspec/specs/operations/)     | Identify structurally equivalent statements                                |
+| **Split**        | [Available](openspec/specs/operations/)     | Split multi-statement strings (respects strings, comments, dollar-quoting) |
+| **Scan**         | [Available](openspec/specs/operations/)     | Tokenize SQL with keyword classification                                   |
+| **Tree Walking** | [Available](openspec/specs/ast-navigation/) | Walk/visit AST nodes with depth-first traversal and visitor pattern        |
+| **AST Helpers**  | [Available](openspec/specs/ast-navigation/) | Extract tables, columns, functions; generate DROP from CREATE DDL          |
 
 Built on `libpg_query` 17-latest (PostgreSQL 17 parser).
 

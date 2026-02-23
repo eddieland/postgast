@@ -44,22 +44,6 @@ One class per protobuf message type. Each has:
 | Repeated message (concrete type) | `list[WrapperClass]`                 |
 | Repeated message (`Node` oneof)  | `list[AstNode]` (each unwrapped)     |
 
-#### `postgast.walk_typed(node: AstNode) -> Generator[tuple[str, AstNode], None, None]`
-
-Like `walk()` but accepts and yields typed wrappers. Depth-first pre-order traversal.
-
-#### `postgast.TypedVisitor`
-
-Like `Visitor` but dispatches to handlers that receive typed wrappers:
-
-```python
-class MyVisitor(TypedVisitor):
-    def visit_SelectStmt(self, node: nodes.SelectStmt) -> None:
-        # `node` is typed, IDE autocomplete works
-        for target in node.target_list:
-            self.visit(target)
-```
-
 ### Behavioral Requirements
 
 1. `wrap()` **never returns a `Node` oneof wrapper** — it always unwraps to the concrete inner type
@@ -68,7 +52,6 @@ class MyVisitor(TypedVisitor):
 1. Scalar fields return the same values as the underlying protobuf message
 1. `wrap()` is idempotent — wrapping an already-wrapped object returns it unchanged
 1. The underlying protobuf message is always accessible via `._pb` for interop
-1. `deparse()` accepts both raw protobuf `ParseResult` and wrapped `nodes.ParseResult`
 1. Wrapper classes are read-only (no `__setattr__` or property setters)
 
 ### Pattern Matching Examples

@@ -69,71 +69,25 @@ Create `tests/postgast/test_nodes.py` with tests covering:
 - Tests cover at least 10 different node types
 - Pattern matching tests included
 
-### 4. Add `walk_typed()` and `TypedVisitor`
+### 4. Update `__init__.py` re-exports
 
-Add typed walking/visiting that works with wrapper nodes.
-
-- `walk_typed(node)` accepts `AstNode`, yields `tuple[str, AstNode]`
-- `TypedVisitor` dispatches to `visit_SelectStmt(self, node: SelectStmt)` etc. with properly typed parameters
-- Both unwrap `Node` oneof wrappers transparently (reuse logic from existing `walk.py`)
-
-**Files:** `src/postgast/walk.py` (modified — add new functions/classes alongside existing ones)
-
-**Acceptance criteria:**
-
-- `walk_typed()` yields the same nodes as `walk()` but as typed wrappers
-- `TypedVisitor` dispatches correctly to type-specific handlers
-- Existing `walk()` and `Visitor` are unchanged (backward compatible)
-- Tests in `tests/postgast/test_walk.py` updated to cover `walk_typed` and `TypedVisitor`
-
-### 5. Update `__init__.py` re-exports
-
-Export the new public API surface:
+Export the core public API:
 
 - `wrap` function
 - `AstNode` base class
-- `walk_typed` function
-- `TypedVisitor` class
-- Key wrapper classes that users frequently reference: `SelectStmt`, `InsertStmt`, `UpdateStmt`, `DeleteStmt`,
-  `CreateStmt`, `RangeVar`, `ColumnRef`, `ResTarget`, `A_Expr`, `FuncCall`, `JoinExpr`, `SortBy`, `WithClause`,
-  `BoolExpr`, `SubLink`, `TypeCast`, `TypeName`, `Alias`, `RawStmt` (from `nodes` module, aliased to avoid collision
-  with `pg_query_pb2` names)
+
+Individual node classes remain importable from `postgast.nodes` (e.g., `from postgast.nodes import SelectStmt`).
 
 **Files:** `src/postgast/__init__.py` (modified)
 
 **Acceptance criteria:**
 
-- `from postgast import wrap, AstNode, walk_typed, TypedVisitor` works
+- `from postgast import wrap, AstNode` works
 - `from postgast.nodes import SelectStmt` works
 - `__all__` is updated
 - No import cycles
 
-### 6. Add deparse support for wrapped types
-
-Update `deparse()` to accept both raw `ParseResult` protobuf and the typed `ParseResult` wrapper.
-
-**Files:** `src/postgast/deparse.py` (modified)
-
-**Acceptance criteria:**
-
-- `deparse(parse("SELECT 1"))` works (existing behavior)
-- `deparse(wrap(parse("SELECT 1")))` works (new behavior)
-- Type signature accepts both types
-
-### 7. Add generation freshness CI check
-
-Add a Makefile target or CI step that re-runs the generation script and verifies the output matches the committed
-`nodes.py`. This catches cases where the protobuf schema is updated but the wrapper isn't regenerated.
-
-**Files:** `Makefile` (modified)
-
-**Acceptance criteria:**
-
-- `make generate-nodes` runs the script
-- `make check-nodes` re-generates and diffs, failing if different
-- CI can call `make check-nodes` to verify freshness
-
-### 8. Lint and test pass
+### 5. Lint and test pass
 
 Ensure the full project passes all checks.
 

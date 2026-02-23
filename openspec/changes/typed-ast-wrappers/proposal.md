@@ -29,8 +29,10 @@ Add a typed AST wrapper layer that:
 - Automatically unwraps `Node` oneof wrappers so users never see them
 - Converts `RepeatedCompositeFieldContainer` to standard Python lists
 - Supports `match`/`case` pattern matching (Python 3.10+)
-- Integrates with the existing `walk`, `Visitor`, and helper APIs
 - Is generated from the protobuf schema (not hand-written for 277 message types)
+
+Integration with `walk`/`Visitor`, `deparse()`, and CI freshness checks are deferred to a follow-up change
+(`typed-ast-integration`).
 
 ## Capabilities
 
@@ -39,18 +41,9 @@ Add a typed AST wrapper layer that:
 - `typed-ast-wrappers`: Typed Python wrapper classes for all 277 protobuf AST node types, with automatic `Node` oneof
   unwrapping, Pythonic attribute access, and structural pattern matching support
 
-### Modified Capabilities
-
-- `parse`: Returns typed wrapper instead of raw protobuf (or provides an opt-in wrapper function)
-- `tree-walking`: Walk and Visitor yield/accept typed wrappers instead of raw `Message` objects
-- `ast-helpers`: Simplified implementations using typed wrappers internally
-
 ## Impact
 
 - `src/postgast/nodes.py` (new) — Generated typed wrapper classes
-- `src/postgast/parse.py` — Potentially updated to return wrapped types
-- `src/postgast/walk.py` — Updated to yield typed wrappers
-- `src/postgast/helpers.py` — Simplified using typed field access
-- `src/postgast/__init__.py` — New re-exports
+- `src/postgast/__init__.py` — New re-exports (`wrap`, `AstNode`)
 - `tests/postgast/test_nodes.py` (new) — Tests for wrapper classes
-- `scripts/generate_nodes.py` or `codegen/` (new) — Code generation script
+- `scripts/generate_nodes.py` (new) — Code generation script

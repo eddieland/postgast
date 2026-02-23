@@ -235,29 +235,13 @@ targets Python 3.10+.
 For `__match_args__`, the generator includes all non-location, non-internal fields. Users can match on any field by
 name.
 
-### Decision 8: Integration with walk/Visitor
+### Deferred: Integration with walk/Visitor, deparse, CI check
 
-**Decision:** Add `walk_typed()` and a `TypedVisitor` that work with wrappers. The existing `walk()` and `Visitor`
-remain unchanged for backward compatibility.
+The following are deferred to a follow-up change (`typed-ast-integration`):
 
-```python
-def walk_typed(node: AstNode) -> Generator[tuple[str, AstNode], None, None]:
-    """Like walk(), but yields typed wrappers."""
-    ...
-
-
-class TypedVisitor:
-    """Like Visitor, but handlers receive typed wrappers."""
-
-    def visit_SelectStmt(self, node: SelectStmt) -> None: ...
-    def visit_RangeVar(self, node: RangeVar) -> None: ...
-```
-
-**Rationale:** Keeps the untyped API stable. Users who want typed access opt in to the new functions. The TypedVisitor
-handlers receive the concrete wrapper type, enabling IDE autocomplete inside handlers.
-
-**Alternative considered:** Modify existing `walk()`/`Visitor` to return/accept wrappers. Rejected — this is a breaking
-change. Can be done in a major version bump later.
+- `walk_typed()` and `TypedVisitor` — typed alternatives to existing walk/Visitor
+- `deparse()` accepting wrapped types — users can use `deparse(node._pb)` as a workaround
+- CI freshness check (`make check-nodes`) — manual responsibility to re-run generator for now
 
 ## Risks / Trade-offs
 
@@ -272,5 +256,5 @@ issues, we can add caching or a "fast path" that operates on raw protobuf.
 generation script must be re-run. Mitigated by adding a CI check that verifies `nodes.py` matches the current protobuf
 descriptor, similar to how protobuf stubs are verified.
 
-**Deparse compatibility** — `deparse()` currently accepts `ParseResult` (protobuf). It must also accept the typed
-wrapper. Solved by checking for `._pb` attribute or accepting `AstNode` in the type signature.
+**Deparse compatibility** — `deparse()` currently accepts `ParseResult` (protobuf). Users can pass `node._pb` to
+`deparse()` as a workaround. Native wrapper support is deferred to `typed-ast-integration`.

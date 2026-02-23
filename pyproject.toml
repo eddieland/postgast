@@ -184,7 +184,7 @@ reportUnknownVariableType = "error"
 
 [tool.cibuildwheel]
 build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
-skip = ["pp*", "cp3??t-*"]
+skip = ["cp3??t-*"]
 test-requires = "pytest"
 test-command = "pytest {project}/tests -x"
 
@@ -192,7 +192,7 @@ test-command = "pytest {project}/tests -x"
 archs = ["x86_64", "aarch64"]
 
 [tool.cibuildwheel.macos]
-archs = ["x86_64", "arm64"]
+archs = ["arm64"]
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]

@@ -2983,7 +2983,7 @@ class Alias(_message.Message):
     def __init__(self, aliasname: _Optional[str] = ..., colnames: _Optional[_Iterable[_Union[Node, _Mapping]]] = ...) -> None: ...
 
 class RangeVar(_message.Message):
-    __slots__ = ("catalogname", "schemaname", "relname", "in", "relpersistence", "alias", "location")
+    __slots__ = ("catalogname", "schemaname", "relname", "inh", "relpersistence", "alias", "location")
     CATALOGNAME_FIELD_NUMBER: _ClassVar[int]
     SCHEMANAME_FIELD_NUMBER: _ClassVar[int]
     RELNAME_FIELD_NUMBER: _ClassVar[int]
@@ -2994,11 +2994,11 @@ class RangeVar(_message.Message):
     catalogname: str
     schemaname: str
     relname: str
-    in: bool
+    inh: bool
     relpersistence: str
     alias: Alias
     location: int
-    def __init__(self, catalogname: _Optional[str] = ..., schemaname: _Optional[str] = ..., relname: _Optional[str] = ..., in: bool = ..., relpersistence: _Optional[str] = ..., alias: _Optional[_Union[Alias, _Mapping]] = ..., location: _Optional[int] = ...) -> None: ...
+    def __init__(self, catalogname: _Optional[str] = ..., schemaname: _Optional[str] = ..., relname: _Optional[str] = ..., inh: bool = ..., relpersistence: _Optional[str] = ..., alias: _Optional[_Union[Alias, _Mapping]] = ..., location: _Optional[int] = ...) -> None: ...
 
 class TableFunc(_message.Message):
     __slots__ = ("functype", "ns_uris", "ns_names", "docexpr", "rowexpr", "colnames", "coltypes", "coltypmods", "colcollations", "colexprs", "coldefexprs", "colvalexprs", "passingvalexprs", "notnulls", "plan", "ordinalitycol", "location")
@@ -3995,7 +3995,7 @@ class RangeTblRef(_message.Message):
     def __init__(self, rtindex: _Optional[int] = ...) -> None: ...
 
 class JoinExpr(_message.Message):
-    __slots__ = ("jointype", "is_natural", "large", "rarg", "using_clause", "join_using_alias", "quals", "alias", "rtindex")
+    __slots__ = ("jointype", "is_natural", "larg", "rarg", "using_clause", "join_using_alias", "quals", "alias", "rtindex")
     JOINTYPE_FIELD_NUMBER: _ClassVar[int]
     IS_NATURAL_FIELD_NUMBER: _ClassVar[int]
     LARG_FIELD_NUMBER: _ClassVar[int]
@@ -4007,14 +4007,14 @@ class JoinExpr(_message.Message):
     RTINDEX_FIELD_NUMBER: _ClassVar[int]
     jointype: JoinType
     is_natural: bool
-    large: Node
+    larg: Node
     rarg: Node
     using_clause: _containers.RepeatedCompositeFieldContainer[Node]
     join_using_alias: Alias
     quals: Node
     alias: Alias
     rtindex: int
-    def __init__(self, jointype: _Optional[_Union[JoinType, str]] = ..., is_natural: bool = ..., large: _Optional[_Union[Node, _Mapping]] = ..., rarg: _Optional[_Union[Node, _Mapping]] = ..., using_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., join_using_alias: _Optional[_Union[Alias, _Mapping]] = ..., quals: _Optional[_Union[Node, _Mapping]] = ..., alias: _Optional[_Union[Alias, _Mapping]] = ..., rtindex: _Optional[int] = ...) -> None: ...
+    def __init__(self, jointype: _Optional[_Union[JoinType, str]] = ..., is_natural: bool = ..., larg: _Optional[_Union[Node, _Mapping]] = ..., rarg: _Optional[_Union[Node, _Mapping]] = ..., using_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., join_using_alias: _Optional[_Union[Alias, _Mapping]] = ..., quals: _Optional[_Union[Node, _Mapping]] = ..., alias: _Optional[_Union[Alias, _Mapping]] = ..., rtindex: _Optional[int] = ...) -> None: ...
 
 class FromExpr(_message.Message):
     __slots__ = ("fromlist", "quals")
@@ -4579,7 +4579,7 @@ class PartitionCmd(_message.Message):
     def __init__(self, name: _Optional[_Union[RangeVar, _Mapping]] = ..., bound: _Optional[_Union[PartitionBoundSpec, _Mapping]] = ..., concurrent: bool = ...) -> None: ...
 
 class RangeTblEntry(_message.Message):
-    __slots__ = ("alias", "eref", "rtekind", "relid", "in", "relkind", "rellockmode", "perminfoindex", "tablesample", "subquery", "security_barrier", "jointype", "joinmergedcols", "joinaliasvars", "joinleftcols", "joinrightcols", "join_using_alias", "functions", "funcordinality", "tablefunc", "values_lists", "ctename", "ctelevelsup", "self_reference", "coltypes", "coltypmods", "colcollations", "enrname", "enrtuples", "lateral", "in_from_cl", "security_quals")
+    __slots__ = ("alias", "eref", "rtekind", "relid", "inh", "relkind", "rellockmode", "perminfoindex", "tablesample", "subquery", "security_barrier", "jointype", "joinmergedcols", "joinaliasvars", "joinleftcols", "joinrightcols", "join_using_alias", "functions", "funcordinality", "tablefunc", "values_lists", "ctename", "ctelevelsup", "self_reference", "coltypes", "coltypmods", "colcollations", "enrname", "enrtuples", "lateral", "in_from_cl", "security_quals")
     ALIAS_FIELD_NUMBER: _ClassVar[int]
     EREF_FIELD_NUMBER: _ClassVar[int]
     RTEKIND_FIELD_NUMBER: _ClassVar[int]
@@ -4616,7 +4616,7 @@ class RangeTblEntry(_message.Message):
     eref: Alias
     rtekind: RTEKind
     relid: int
-    in: bool
+    inh: bool
     relkind: str
     rellockmode: int
     perminfoindex: int
@@ -4644,10 +4644,10 @@ class RangeTblEntry(_message.Message):
     lateral: bool
     in_from_cl: bool
     security_quals: _containers.RepeatedCompositeFieldContainer[Node]
-    def __init__(self, alias: _Optional[_Union[Alias, _Mapping]] = ..., eref: _Optional[_Union[Alias, _Mapping]] = ..., rtekind: _Optional[_Union[RTEKind, str]] = ..., relid: _Optional[int] = ..., in: bool = ..., relkind: _Optional[str] = ..., rellockmode: _Optional[int] = ..., perminfoindex: _Optional[int] = ..., tablesample: _Optional[_Union[TableSampleClause, _Mapping]] = ..., subquery: _Optional[_Union[Query, _Mapping]] = ..., security_barrier: bool = ..., jointype: _Optional[_Union[JoinType, str]] = ..., joinmergedcols: _Optional[int] = ..., joinaliasvars: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., joinleftcols: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., joinrightcols: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., join_using_alias: _Optional[_Union[Alias, _Mapping]] = ..., functions: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., funcordinality: bool = ..., tablefunc: _Optional[_Union[TableFunc, _Mapping]] = ..., values_lists: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., ctename: _Optional[str] = ..., ctelevelsup: _Optional[int] = ..., self_reference: bool = ..., coltypes: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., coltypmods: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., colcollations: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., enrname: _Optional[str] = ..., enrtuples: _Optional[float] = ..., lateral: bool = ..., in_from_cl: bool = ..., security_quals: _Optional[_Iterable[_Union[Node, _Mapping]]] = ...) -> None: ...
+    def __init__(self, alias: _Optional[_Union[Alias, _Mapping]] = ..., eref: _Optional[_Union[Alias, _Mapping]] = ..., rtekind: _Optional[_Union[RTEKind, str]] = ..., relid: _Optional[int] = ..., inh: bool = ..., relkind: _Optional[str] = ..., rellockmode: _Optional[int] = ..., perminfoindex: _Optional[int] = ..., tablesample: _Optional[_Union[TableSampleClause, _Mapping]] = ..., subquery: _Optional[_Union[Query, _Mapping]] = ..., security_barrier: bool = ..., jointype: _Optional[_Union[JoinType, str]] = ..., joinmergedcols: _Optional[int] = ..., joinaliasvars: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., joinleftcols: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., joinrightcols: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., join_using_alias: _Optional[_Union[Alias, _Mapping]] = ..., functions: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., funcordinality: bool = ..., tablefunc: _Optional[_Union[TableFunc, _Mapping]] = ..., values_lists: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., ctename: _Optional[str] = ..., ctelevelsup: _Optional[int] = ..., self_reference: bool = ..., coltypes: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., coltypmods: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., colcollations: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., enrname: _Optional[str] = ..., enrtuples: _Optional[float] = ..., lateral: bool = ..., in_from_cl: bool = ..., security_quals: _Optional[_Iterable[_Union[Node, _Mapping]]] = ...) -> None: ...
 
 class RTEPermissionInfo(_message.Message):
-    __slots__ = ("relid", "in", "required_perms", "check_as_user", "selected_cols", "inserted_cols", "updated_cols")
+    __slots__ = ("relid", "inh", "required_perms", "check_as_user", "selected_cols", "inserted_cols", "updated_cols")
     RELID_FIELD_NUMBER: _ClassVar[int]
     INH_FIELD_NUMBER: _ClassVar[int]
     REQUIRED_PERMS_FIELD_NUMBER: _ClassVar[int]
@@ -4656,13 +4656,13 @@ class RTEPermissionInfo(_message.Message):
     INSERTED_COLS_FIELD_NUMBER: _ClassVar[int]
     UPDATED_COLS_FIELD_NUMBER: _ClassVar[int]
     relid: int
-    in: bool
+    inh: bool
     required_perms: int
     check_as_user: int
     selected_cols: _containers.RepeatedScalarFieldContainer[int]
     inserted_cols: _containers.RepeatedScalarFieldContainer[int]
     updated_cols: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, relid: _Optional[int] = ..., in: bool = ..., required_perms: _Optional[int] = ..., check_as_user: _Optional[int] = ..., selected_cols: _Optional[_Iterable[int]] = ..., inserted_cols: _Optional[_Iterable[int]] = ..., updated_cols: _Optional[_Iterable[int]] = ...) -> None: ...
+    def __init__(self, relid: _Optional[int] = ..., inh: bool = ..., required_perms: _Optional[int] = ..., check_as_user: _Optional[int] = ..., selected_cols: _Optional[_Iterable[int]] = ..., inserted_cols: _Optional[_Iterable[int]] = ..., updated_cols: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class RangeTblFunction(_message.Message):
     __slots__ = ("funcexpr", "funccolcount", "funccolnames", "funccoltypes", "funccoltypmods", "funccolcollations", "funcparams")
@@ -5193,7 +5193,7 @@ class MergeStmt(_message.Message):
     def __init__(self, relation: _Optional[_Union[RangeVar, _Mapping]] = ..., source_relation: _Optional[_Union[Node, _Mapping]] = ..., join_condition: _Optional[_Union[Node, _Mapping]] = ..., merge_when_clauses: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., returning_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., with_clause: _Optional[_Union[WithClause, _Mapping]] = ...) -> None: ...
 
 class SelectStmt(_message.Message):
-    __slots__ = ("distinct_clause", "into_clause", "target_list", "from_clause", "where_clause", "group_clause", "group_distinct", "having_clause", "window_clause", "values_lists", "sort_clause", "limit_offset", "limit_count", "limit_option", "locking_clause", "with_clause", "op", "all", "large", "rarg")
+    __slots__ = ("distinct_clause", "into_clause", "target_list", "from_clause", "where_clause", "group_clause", "group_distinct", "having_clause", "window_clause", "values_lists", "sort_clause", "limit_offset", "limit_count", "limit_option", "locking_clause", "with_clause", "op", "all", "larg", "rarg")
     DISTINCT_CLAUSE_FIELD_NUMBER: _ClassVar[int]
     INTO_CLAUSE_FIELD_NUMBER: _ClassVar[int]
     TARGET_LIST_FIELD_NUMBER: _ClassVar[int]
@@ -5232,12 +5232,12 @@ class SelectStmt(_message.Message):
     with_clause: WithClause
     op: SetOperation
     all: bool
-    large: SelectStmt
+    larg: SelectStmt
     rarg: SelectStmt
-    def __init__(self, distinct_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., into_clause: _Optional[_Union[IntoClause, _Mapping]] = ..., target_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., from_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., where_clause: _Optional[_Union[Node, _Mapping]] = ..., group_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., group_distinct: bool = ..., having_clause: _Optional[_Union[Node, _Mapping]] = ..., window_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., values_lists: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., sort_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., limit_offset: _Optional[_Union[Node, _Mapping]] = ..., limit_count: _Optional[_Union[Node, _Mapping]] = ..., limit_option: _Optional[_Union[LimitOption, str]] = ..., locking_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., with_clause: _Optional[_Union[WithClause, _Mapping]] = ..., op: _Optional[_Union[SetOperation, str]] = ..., all: bool = ..., large: _Optional[_Union[SelectStmt, _Mapping]] = ..., rarg: _Optional[_Union[SelectStmt, _Mapping]] = ...) -> None: ...
+    def __init__(self, distinct_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., into_clause: _Optional[_Union[IntoClause, _Mapping]] = ..., target_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., from_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., where_clause: _Optional[_Union[Node, _Mapping]] = ..., group_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., group_distinct: bool = ..., having_clause: _Optional[_Union[Node, _Mapping]] = ..., window_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., values_lists: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., sort_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., limit_offset: _Optional[_Union[Node, _Mapping]] = ..., limit_count: _Optional[_Union[Node, _Mapping]] = ..., limit_option: _Optional[_Union[LimitOption, str]] = ..., locking_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., with_clause: _Optional[_Union[WithClause, _Mapping]] = ..., op: _Optional[_Union[SetOperation, str]] = ..., all: bool = ..., larg: _Optional[_Union[SelectStmt, _Mapping]] = ..., rarg: _Optional[_Union[SelectStmt, _Mapping]] = ...) -> None: ...
 
 class SetOperationStmt(_message.Message):
-    __slots__ = ("op", "all", "large", "rarg", "col_types", "col_typmods", "col_collations", "group_clauses")
+    __slots__ = ("op", "all", "larg", "rarg", "col_types", "col_typmods", "col_collations", "group_clauses")
     OP_FIELD_NUMBER: _ClassVar[int]
     ALL_FIELD_NUMBER: _ClassVar[int]
     LARG_FIELD_NUMBER: _ClassVar[int]
@@ -5248,13 +5248,13 @@ class SetOperationStmt(_message.Message):
     GROUP_CLAUSES_FIELD_NUMBER: _ClassVar[int]
     op: SetOperation
     all: bool
-    large: Node
+    larg: Node
     rarg: Node
     col_types: _containers.RepeatedCompositeFieldContainer[Node]
     col_typmods: _containers.RepeatedCompositeFieldContainer[Node]
     col_collations: _containers.RepeatedCompositeFieldContainer[Node]
     group_clauses: _containers.RepeatedCompositeFieldContainer[Node]
-    def __init__(self, op: _Optional[_Union[SetOperation, str]] = ..., all: bool = ..., large: _Optional[_Union[Node, _Mapping]] = ..., rarg: _Optional[_Union[Node, _Mapping]] = ..., col_types: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., col_typmods: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., col_collations: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., group_clauses: _Optional[_Iterable[_Union[Node, _Mapping]]] = ...) -> None: ...
+    def __init__(self, op: _Optional[_Union[SetOperation, str]] = ..., all: bool = ..., larg: _Optional[_Union[Node, _Mapping]] = ..., rarg: _Optional[_Union[Node, _Mapping]] = ..., col_types: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., col_typmods: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., col_collations: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., group_clauses: _Optional[_Iterable[_Union[Node, _Mapping]]] = ...) -> None: ...
 
 class ReturnStmt(_message.Message):
     __slots__ = ("returnval",)

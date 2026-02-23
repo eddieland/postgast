@@ -215,7 +215,7 @@ wrap = 120
 end_of_line = "lf"
 
 [tool.codespell]
-ignore-words-list = "inout"
+ignore-words-list = "inout,larg"
 skip = "src/postgast/pg_query_pb2.py,src/postgast/pg_query_pb2.pyi,src/postgast/nodes"
 
 [tool.pytest.ini_options]

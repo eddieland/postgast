@@ -4,6 +4,7 @@ from postgast import pg_query_pb2
 from postgast.deparse import deparse
 from postgast.errors import PgQueryError
 from postgast.fingerprint import FingerprintResult, fingerprint
+from postgast.format import format_sql
 from postgast.helpers import (
     FunctionIdentity,
     TriggerIdentity,
@@ -38,6 +39,7 @@ __all__ = [
     "find_nodes",
     "fingerprint",
     "FingerprintResult",
+    "format_sql",
     "FunctionIdentity",
     "normalize",
     "parse_plpgsql",

@@ -20,8 +20,10 @@ all: install lint test ## Install, lint, and test (full check)
 install: ## Install dependencies
 	uv sync --all-extras
 
+NPROC := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)
+
 build-native: ## Build libpg_query and copy into src for local dev
-	$(MAKE) -C vendor/libpg_query build_shared
+	$(MAKE) -j$(NPROC) -C vendor/libpg_query build_shared
 	cp vendor/libpg_query/$(NATIVE_LIB_NAME) $(NATIVE_LIB)
 
 # File target: auto-build native lib when missing (used by test targets).

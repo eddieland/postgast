@@ -74,6 +74,11 @@ bump = true
 
 [tool.hatch.build.targets.sdist]
 include = ["src/postgast", "vendor/libpg_query", "hatch_build.py"]
+exclude = [
+    "vendor/libpg_query/.git",
+    "vendor/libpg_query/test/**",
+    "vendor/libpg_query/tmp/**",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/postgast"]

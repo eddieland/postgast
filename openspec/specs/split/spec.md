@@ -2,16 +2,22 @@
 
 ## Purpose
 
-Public function to split a multi-statement SQL string into individual statements using libpg_query's scanner-based
-splitter.
+Public function to split a multi-statement SQL string into individual statements using libpg_query's splitter (scanner
+or parser-based).
 
 ## Requirements
 
 ### Requirement: Split function
 
-The module SHALL provide a `split(sql: str) -> list[str]` function that splits a multi-statement SQL string into
-individual statement strings by calling libpg_query's `pg_query_split_with_scanner` C function. The function SHALL use
-byte offsets from the C result to slice the UTF-8 encoded input and decode each slice back to a Python string.
+The module SHALL provide a `split(sql: str, *, method: Literal["scanner", "parser"] = "parser") -> list[str]` function
+that splits a multi-statement SQL string into individual statement strings. The `method` parameter SHALL select which
+libpg_query C function to call:
+
+- `"parser"` (default) → `pg_query_split_with_parser`
+- `"scanner"` → `pg_query_split_with_scanner`
+
+The function SHALL use byte offsets from the C result to slice the UTF-8 encoded input and decode each slice back to a
+Python string.
 
 #### Scenario: Single statement
 
@@ -50,6 +56,31 @@ byte offsets from the C result to slice the UTF-8 encoded input and decode each 
 - **WHEN** `split` is called with SQL that causes a scanner error
 - **THEN** it raises `PgQueryError` with a descriptive `message`
 
+#### Scenario: Default method is parser
+
+- **WHEN** `split` is called without a `method` argument
+- **THEN** it behaves identically to `split(sql, method="parser")`
+
+#### Scenario: Parser method splits valid SQL
+
+- **WHEN** `split` is called with `"SELECT 1; SELECT 2"` and `method="parser"`
+- **THEN** it returns a list of two strings, one for each statement
+
+#### Scenario: Parser method with multi-byte characters
+
+- **WHEN** `split` is called with `"SELECT '日本語'; SELECT 1"` and `method="parser"`
+- **THEN** both statements are correctly extracted without corruption or offset errors
+
+#### Scenario: Parser method rejects invalid SQL
+
+- **WHEN** `split` is called with SQL that contains a parse error and `method="parser"`
+- **THEN** it raises `PgQueryError` with a descriptive `message`
+
+#### Scenario: Invalid method raises ValueError
+
+- **WHEN** `split` is called with a `method` value that is not `"scanner"` or `"parser"`
+- **THEN** it raises `ValueError`
+
 ### Requirement: Byte-based slicing for multi-byte characters
 
 The function SHALL encode the input as UTF-8 bytes, use the C result's byte offsets (`stmt_location`, `stmt_len`) to
@@ -63,8 +94,9 @@ multi-byte UTF-8 characters.
 
 ### Requirement: Result memory is always freed
 
-The C result struct returned by `pg_query_split_with_scanner` SHALL always be freed via `pg_query_free_split_result`,
-regardless of whether the call succeeded or raised an error.
+The C result struct returned by the selected split function (`pg_query_split_with_scanner` or
+`pg_query_split_with_parser`) SHALL always be freed via `pg_query_free_split_result`, regardless of whether the call
+succeeded or raised an error.
 
 #### Scenario: Memory freed on success
 
@@ -73,8 +105,19 @@ regardless of whether the call succeeded or raised an error.
 
 #### Scenario: Memory freed on error
 
-- **WHEN** `split` is called with SQL that causes a scanner error and raises `PgQueryError`
+- **WHEN** `split` is called with SQL that causes an error and raises `PgQueryError`
 - **THEN** the C result struct is freed before the exception propagates
+
+### Requirement: Native binding for pg_query_split_with_parser
+
+The native bindings module SHALL declare `pg_query_split_with_parser` with argtypes `[c_char_p]` and restype
+`PgQuerySplitResult`, matching the existing `pg_query_split_with_scanner` declaration. The result SHALL be freed with
+the same `pg_query_free_split_result` function.
+
+#### Scenario: Parser split binding is callable
+
+- **WHEN** `lib.pg_query_split_with_parser` is called with a valid UTF-8 encoded SQL byte string
+- **THEN** it returns a `PgQuerySplitResult` struct with statement locations and lengths
 
 ### Requirement: Public API export
 

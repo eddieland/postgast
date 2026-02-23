@@ -228,12 +228,14 @@ def _(
 
 @app.cell
 def _(
-    find_nodes: Callable[[Message, str], Generator[Message, None, None]],
+    find_nodes: Callable[[Message, type[Message]], Generator[Message, None, None]],
     mo: types.ModuleType,
     parse: Callable[[str], ParseResult],
     split: Callable[[str], list[str]],
 ):
     # --- Recipe: Migration dependency graph ---
+    from postgast.pg_query_pb2 import Constraint as _Constraint
+
     _schema_sql = """
     CREATE TABLE departments (id serial PRIMARY KEY, name text NOT NULL);
     CREATE TABLE employees (id serial PRIMARY KEY, name text, dept_id int REFERENCES departments(id));
@@ -252,7 +254,7 @@ def _(
         _node = getattr(_tree.stmts[0].stmt, _stmt_type)
         _table_name: str = _node.relation.relname  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
         _fk_refs: set[str] = set()
-        for _constraint in find_nodes(_node, "Constraint"):
+        for _constraint in find_nodes(_node, _Constraint):
             if _constraint.HasField("pktable") and _constraint.pktable.relname:  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
                 _fk_refs.add(_constraint.pktable.relname)  # pyright: ignore[reportUnknownMemberType, reportUnknownArgumentType, reportAttributeAccessIssue]
         _deps[_table_name] = _fk_refs

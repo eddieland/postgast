@@ -152,8 +152,11 @@ convention = "google"
     "D104", # https://docs.astral.sh/ruff/rules/undocumented-public-package/
 ]
 "recipes/**/*.py" = [
-    "D100", # https://docs.astral.sh/ruff/rules/undocumented-public-module/
-    "D103", # https://docs.astral.sh/ruff/rules/undocumented-public-function/
+    "D100",    # https://docs.astral.sh/ruff/rules/undocumented-public-module/
+    "D103",    # https://docs.astral.sh/ruff/rules/undocumented-public-function/
+    "PERF203", # https://docs.astral.sh/ruff/rules/try-except-in-loop/ — recipes demo error handling in loops
+    "PERF401", # https://docs.astral.sh/ruff/rules/manual-list-comprehension/ — readability over micro-opt
+    "TC001",   # https://docs.astral.sh/ruff/rules/typing-only-first-party-import/ — marimo cells can't use TYPE_CHECKING blocks
 ]
 
 [tool.basedpyright]

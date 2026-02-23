@@ -26,6 +26,13 @@ def scan(sql: str) -> ScanResult:
     Raises:
         PgQueryError: If the input contains a scan error (e.g., unterminated
             string literal).
+
+    Example:
+        >>> result = scan("SELECT 1")
+        >>> len(result.tokens)
+        2
+        >>> result.tokens[0].start, result.tokens[0].end
+        (0, 6)
     """
     result = lib.pg_query_scan(sql.encode("utf-8"))
     try:

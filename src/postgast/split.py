@@ -34,6 +34,12 @@ def split(sql: str, *, method: Literal["scanner", "parser"] = "parser") -> list[
     Raises:
         PgQueryError: If the SQL causes a parse/scanner error.
         ValueError: If *method* is not ``"scanner"`` or ``"parser"``.
+
+    Example:
+        >>> split("SELECT 1; SELECT 2")
+        ['SELECT 1', ' SELECT 2']
+        >>> split("SELECT 'hello;world'")
+        ["SELECT 'hello;world'"]
     """
     split_fn = _SPLIT_METHODS.get(method)
     if split_fn is None:

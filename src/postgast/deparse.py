@@ -29,6 +29,12 @@ def deparse(tree: ParseResult) -> str:
 
     Raises:
         PgQueryError: If the parse tree cannot be deparsed.
+
+    Example:
+        >>> from postgast import parse, deparse
+        >>> tree = parse("SELECT id FROM users")
+        >>> deparse(tree)
+        'SELECT id FROM users'
     """
     data = tree.SerializeToString()
     buf = ctypes.create_string_buffer(data)

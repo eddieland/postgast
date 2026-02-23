@@ -35,6 +35,8 @@ jobs:
 
       - name: Install all dependencies
         run: uv sync --all-extras
+        env:
+          POSTGAST_SKIP_NATIVE_BUILD: "1"
 
       - name: Build native library
         run: make build-native

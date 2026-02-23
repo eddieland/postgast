@@ -35,8 +35,11 @@ jobs:
       - name: Set up Python
         run: uv python install
 
+      # Skip native build — lint job doesn't need the compiled library.
       - name: Install all dependencies
         run: uv sync --all-extras
+        env:
+          POSTGAST_SKIP_NATIVE_BUILD: "1"
 
       - name: Check formatting (mdformat)
         run: uv run mdformat --check README.md CLAUDE.md AGENTS.md openspec/
@@ -91,23 +94,29 @@ jobs:
       - name: Set up Python
         run: uv python install
 
-      # MSVC must be configured before uv sync because the hatch build hook
-      # compiles libpg_query (via nmake) during the editable install.
+      # Skip native build during uv sync — build isolation prevents the hatch
+      # hook from accessing platform build tools (nmake on Windows). The native
+      # library is built explicitly in the next steps instead.
+      - name: Install all dependencies
+        run: uv sync --all-extras
+        env:
+          POSTGAST_SKIP_NATIVE_BUILD: "1"
+
       - name: Set up MSVC developer environment (Windows)
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Install all dependencies
-        run: uv sync --all-extras
 
       - name: Build native library (Linux/macOS)
         if: runner.os != 'Windows'
         run: make build-native
 
-      - name: Copy native library into package (Windows)
+      - name: Build native library (Windows)
         if: runner.os == 'Windows'
         shell: cmd
-        run: copy vendor\libpg_query\pg_query.dll src\postgast\pg_query.dll
+        run: |
+          cd vendor\libpg_query
+          nmake /F Makefile.msvc
+          copy pg_query.dll ..\..\src\postgast\pg_query.dll
 
       - name: Run tests with coverage
         run: uv run pytest --cov --cov-report=xml

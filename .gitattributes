@@ -3,7 +3,8 @@ src/postgast/pg_query_pb2.py linguist-generated=true
 src/postgast/pg_query_pb2.pyi linguist-generated=true
 
 # Generated AST wrapper classes (scripts/generate_nodes.py)
-src/postgast/nodes.py linguist-generated=true
+src/postgast/nodes/_generated.py linguist-generated=true
+src/postgast/nodes/__init__.py linguist-generated=true
 
 # Dependency lock file
 uv.lock linguist-generated=true

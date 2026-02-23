@@ -101,8 +101,15 @@ class SelectStmt(AstNode):
 
 ### Decision 1: Generated code vs. runtime metaprogramming
 
-**Decision:** Generate wrapper classes as a Python source file (`src/postgast/nodes.py`) from the protobuf descriptor at
-development time.
+**Decision:** Generate wrapper classes into a `src/postgast/nodes/` package from the protobuf descriptor at development
+time. The generator (`scripts/generate_nodes.py`) writes only two files:
+
+- `_generated.py` — all 276+ wrapper classes and the `_REGISTRY.update()` call
+- `__init__.py` — re-exports `AstNode`, `wrap`, and all wrapper class names
+
+Helper infrastructure (`AstNode` base class, `_REGISTRY`, `wrap()`, `_wrap_node_optional()`, `_wrap_list()`) lives in
+the hand-written `base.py`, which the generator never touches. This separation means the generator focuses purely on
+mechanical protobuf-driven output, while authored code can evolve independently alongside it.
 
 **Rationale:**
 
@@ -111,6 +118,7 @@ development time.
 - Generated code can include `__match_args__` for pattern matching
 - Easier to review, debug, and understand than metaclass magic
 - Follows the same pattern as `pg_query_pb2.py` / `pg_query_pb2.pyi` (generated, checked in)
+- Separating hand-written from generated code makes diffs cleaner and avoids re-generating stable infrastructure
 
 **Alternative considered:** Runtime wrapper creation via metaclass or `__init_subclass__`. Rejected because it defeats
 the purpose of typed access — type checkers can't see attributes defined at runtime.
@@ -202,20 +210,23 @@ raw = postgast.parse_raw("SELECT 1")  # Returns raw protobuf if needed
 ### Decision 6: Code generation approach
 
 **Decision:** A generation script (`scripts/generate_nodes.py`) introspects the protobuf descriptor at import time and
-emits `src/postgast/nodes.py`. It runs with `uv run python scripts/generate_nodes.py` and the output is checked into
-version control.
+writes two files into `src/postgast/nodes/`. It runs with `uv run python scripts/generate_nodes.py` and the output is
+checked into version control.
 
-The script:
+The script generates:
 
-1. Imports `pg_query_pb2` and iterates over `DESCRIPTOR.message_types_by_name`
-1. For each message type, inspects fields via the `FieldDescriptor`
-1. Classifies each field: scalar (passthrough), message (wrap), repeated message (wrap list), Node oneof (unwrap+wrap)
-1. Emits a class with `__slots__`, `__match_args__`, and typed `@property` accessors
-1. Emits the `_REGISTRY` dict
-1. Emits `wrap()`, `wrap_optional()`, and `wrap_list()` helper functions
+- **`_generated.py`** — For each message type: a wrapper class with `__slots__`, `__match_args__`, typed `@property`
+  accessors, and a `_REGISTRY.update()` call at the bottom mapping descriptor names to classes.
+- **`__init__.py`** — Re-exports `AstNode` and `wrap` from `base.py`, plus all wrapper class names from `_generated.py`,
+  with a complete `__all__`.
+
+The script does **not** generate `base.py`. The `AstNode` base class, `_REGISTRY` dict, `wrap()`,
+`_wrap_node_optional()`, and `_wrap_list()` helpers are hand-written in `base.py` so they can be maintained and extended
+independently.
 
 **Rationale:** Using protobuf's own descriptor ensures the generated code stays in sync with the `.proto` schema. The
-script is simple Python (string templating), not a complex AST manipulation framework.
+script is simple Python (string templating), not a complex AST manipulation framework. Keeping infrastructure in a
+hand-written file means the generator is simpler and helper logic can evolve without re-running generation.
 
 ### Decision 7: Pattern matching support
 
@@ -245,16 +256,17 @@ The following are deferred to a follow-up change (`typed-ast-integration`):
 
 ## Risks / Trade-offs
 
-**Generated file size** — With 277 message types averaging ~15 fields each, `nodes.py` will be ~5,000–8,000 lines. This
-is comparable to `pg_query_pb2.py` (~7,000 lines) and is acceptable for generated code.
+**Generated file size** — With 276+ message types averaging ~15 fields each, `_generated.py` is ~9,000 lines. This is
+comparable to `pg_query_pb2.py` (~7,000 lines) and is acceptable for generated code. The `__init__.py` re-exports add
+~570 lines. Hand-written `base.py` is ~100 lines.
 
 **Property overhead** — Each field access creates wrapper objects. For hot loops over large trees, this adds allocation
 overhead. Mitigated by keeping the base `AstNode` lightweight (`__slots__` with single `_pb` field). If profiling shows
 issues, we can add caching or a "fast path" that operates on raw protobuf.
 
 **Keeping generated code in sync** — When `libpg_query` updates its `.proto` schema (PostgreSQL version bumps), the
-generation script must be re-run. Mitigated by adding a CI check that verifies `nodes.py` matches the current protobuf
-descriptor, similar to how protobuf stubs are verified.
+generation script must be re-run. Mitigated by adding a CI check that verifies `_generated.py` and `__init__.py` match
+the current protobuf descriptor, similar to how protobuf stubs are verified.
 
 **Deparse compatibility** — `deparse()` currently accepts `ParseResult` (protobuf). Users can pass `node._pb` to
 `deparse()` as a workaround. Native wrapper support is deferred to `typed-ast-integration`.

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import re
 from typing import TYPE_CHECKING, Any, cast
 
@@ -23,6 +24,7 @@ if TYPE_CHECKING:
 _SIMPLE_IDENT_RE = re.compile(r"^[a-z_][a-z0-9_]*$")
 
 
+@functools.lru_cache(maxsize=256)
 def _needs_quoting(name: str) -> bool:
     if not _SIMPLE_IDENT_RE.match(name):
         return True
@@ -331,7 +333,7 @@ class _SqlFormatter(Visitor):
 
     def visit_FuncCall(self, node: pb.FuncCall) -> None:
         name_parts = [cast("pb.String", _unwrap_node(n)).sval for n in node.funcname]
-        display_parts = [p for p in name_parts if p != "pg_catalog"]
+        display_parts = name_parts[1:] if len(name_parts) > 1 and name_parts[0] == "pg_catalog" else name_parts
         self._emit(".".join(display_parts))
         self._emit("(")
         if node.agg_star:

@@ -84,15 +84,22 @@ ROUND_TRIP_CASES = [
     'SELECT "order" FROM t',
     'SELECT * FROM "user"',
     'SELECT "MyColumn" FROM t',
+    'SELECT "weird""name" FROM t',
+    'SELECT * FROM "MySchema"."user" AS "MyAlias"',
     # ── Boolean parenthesization ──
     "SELECT * FROM t WHERE (a = 1 OR b = 2) AND (c = 3 OR d = 4)",
     "SELECT * FROM t WHERE a = 1 AND (b = 2 OR c = 3)",
     "SELECT * FROM t WHERE NOT (a = 1 AND b = 2)",
+    "SELECT * FROM t WHERE a = 1 AND b = 2 OR c = 3",
+    "SELECT * FROM t WHERE a = 1 OR (b = 2 AND (c = 3 OR d = 4))",
     # ── Window frames ──
     "SELECT sum(x) OVER (ORDER BY y ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM t",
     "SELECT sum(x) OVER (ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) FROM t",
     "SELECT sum(x) OVER (ORDER BY y GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM t",
     "SELECT sum(x) OVER (ORDER BY y ROWS UNBOUNDED PRECEDING) FROM t",
+    "SELECT sum(x) OVER (ORDER BY y ROWS BETWEEN 5 PRECEDING AND CURRENT ROW) FROM t",
+    "SELECT sum(x) OVER (ORDER BY y RANGE BETWEEN CURRENT ROW AND 10 FOLLOWING) FROM t",
+    "SELECT sum(x) OVER (ORDER BY y GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES) FROM t",
     # ── DISTINCT ON ──
     "SELECT DISTINCT ON (a) a, b FROM t ORDER BY a, b",
     "SELECT DISTINCT ON (a, b) a, b, c FROM t ORDER BY a, b",
@@ -101,6 +108,10 @@ ROUND_TRIP_CASES = [
     "SELECT * FROM t FOR SHARE SKIP LOCKED",
     "SELECT * FROM t1, t2 FOR UPDATE OF t1 NOWAIT",
     "SELECT * FROM t FOR NO KEY UPDATE",
+    "SELECT * FROM t FOR KEY SHARE",
+    "SELECT * FROM t FOR KEY SHARE OF t",
+    "SELECT * FROM t FOR SHARE NOWAIT",
+    "SELECT * FROM t1, t2 FOR UPDATE OF t1, t2",
     # ── Grouping sets ──
     "SELECT a, b, count(*) FROM t GROUP BY ROLLUP (a, b)",
     "SELECT a, b, count(*) FROM t GROUP BY CUBE (a, b)",
@@ -114,6 +125,7 @@ ROUND_TRIP_CASES = [
     # ── Subquery column aliases ──
     "SELECT * FROM (VALUES (1, 2), (3, 4)) AS t(a, b)",
     "SELECT * FROM generate_series(1, 10) AS g(n)",
+    'SELECT * FROM (VALUES (1)) AS t("Order", "MyCol")',
 ]
 
 

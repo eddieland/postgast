@@ -428,6 +428,24 @@ FORMAT_EXAMPLES: list[tuple[str, str, str]] = [
             FROM
               users;"""),
     ),
+    (
+        "ident_embedded_quote",
+        'SELECT "weird""name" FROM t',
+        dedent("""\
+            SELECT
+              "weird""name"
+            FROM
+              t;"""),
+    ),
+    (
+        "ident_schema_table_alias",
+        'SELECT * FROM "MySchema"."user" AS "MyAlias"',
+        dedent("""\
+            SELECT
+              *
+            FROM
+              "MySchema"."user" "MyAlias";"""),
+    ),
     # -- Boolean parenthesization ------------------------------------
     (
         "bool_or_inside_and",
@@ -451,6 +469,32 @@ FORMAT_EXAMPLES: list[tuple[str, str, str]] = [
               t
             WHERE
               NOT (a = 1 AND b = 2);"""),
+    ),
+    (
+        "bool_and_then_or",
+        "SELECT * FROM t WHERE a = 1 AND b = 2 OR c = 3",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t
+            WHERE
+              a = 1
+              AND b = 2
+              OR c = 3;"""),
+    ),
+    (
+        "bool_nested_or_and_or",
+        "SELECT * FROM t WHERE a = 1 OR (b = 2 AND (c = 3 OR d = 4))",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t
+            WHERE
+              a = 1
+              OR b = 2
+              AND (c = 3 OR d = 4);"""),
     ),
     # -- Window frame ------------------------------------------------
     (
@@ -486,6 +530,33 @@ FORMAT_EXAMPLES: list[tuple[str, str, str]] = [
         dedent("""\
             SELECT
               sum(x) OVER (ORDER BY y ROWS UNBOUNDED PRECEDING)
+            FROM
+              t;"""),
+    ),
+    (
+        "window_preceding_current",
+        "SELECT sum(x) OVER (ORDER BY y ROWS BETWEEN 5 PRECEDING AND CURRENT ROW) FROM t",
+        dedent("""\
+            SELECT
+              sum(x) OVER (ORDER BY y ROWS BETWEEN 5 PRECEDING AND CURRENT ROW)
+            FROM
+              t;"""),
+    ),
+    (
+        "window_current_following",
+        "SELECT sum(x) OVER (ORDER BY y RANGE BETWEEN CURRENT ROW AND 10 FOLLOWING) FROM t",
+        dedent("""\
+            SELECT
+              sum(x) OVER (ORDER BY y RANGE BETWEEN CURRENT ROW AND 10 FOLLOWING)
+            FROM
+              t;"""),
+    ),
+    (
+        "window_exclude_ties",
+        "SELECT sum(x) OVER (ORDER BY y GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES) FROM t",
+        dedent("""\
+            SELECT
+              sum(x) OVER (ORDER BY y GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES)
             FROM
               t;"""),
     ),
@@ -560,6 +631,47 @@ FORMAT_EXAMPLES: list[tuple[str, str, str]] = [
             FROM
               t
             FOR NO KEY UPDATE;"""),
+    ),
+    (
+        "for_key_share",
+        "SELECT * FROM t FOR KEY SHARE",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t
+            FOR KEY SHARE;"""),
+    ),
+    (
+        "for_key_share_of",
+        "SELECT * FROM t FOR KEY SHARE OF t",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t
+            FOR KEY SHARE OF t;"""),
+    ),
+    (
+        "for_share_nowait",
+        "SELECT * FROM t FOR SHARE NOWAIT",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t
+            FOR SHARE NOWAIT;"""),
+    ),
+    (
+        "for_update_multi_rels",
+        "SELECT * FROM t1, t2 FOR UPDATE OF t1, t2",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t1,
+              t2
+            FOR UPDATE OF t1, t2;"""),
     ),
     # -- Grouping sets -----------------------------------------------
     (
@@ -659,6 +771,18 @@ FORMAT_EXAMPLES: list[tuple[str, str, str]] = [
                 SELECT
                   1
               ) AS sub;"""),
+    ),
+    (
+        "subquery_quoted_colnames",
+        'SELECT * FROM (VALUES (1)) AS t("Order", "MyCol")',
+        dedent("""\
+            SELECT
+              *
+            FROM
+              (
+                VALUES
+                  (1)
+              ) AS t("Order", "MyCol");"""),
     ),
     # -- Function pg_catalog stripping -------------------------------
     (

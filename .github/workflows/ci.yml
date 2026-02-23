@@ -115,7 +115,8 @@ jobs:
         shell: cmd
         run: |
           cd vendor\libpg_query
-          nmake /F Makefile.msvc
+          nmake /F Makefile.msvc build
+          link /DLL /DEF:..\..\pg_query_exports.def /OUT:pg_query.dll pg_query.lib
           copy pg_query.dll ..\..\src\postgast\pg_query.dll
 
       - name: Run tests with coverage

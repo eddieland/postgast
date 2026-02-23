@@ -168,7 +168,7 @@ convention = "google"
 # https://marketplace.visualstudio.com/items?itemName=detachhead.basedpyright
 # https://docs.basedpyright.com/latest/configuration/config-files/#sample-pyprojecttoml-file
 include = ["src", "tests"]
-exclude = ["src/postgast/pg_query_pb2.py", "src/postgast/pg_query_pb2.pyi", "src/postgast/nodes.py", "tests/postgast/test_nodes.py"]
+exclude = ["src/postgast/pg_query_pb2.py", "src/postgast/pg_query_pb2.pyi", "src/postgast/nodes/", "tests/postgast/test_nodes.py"]
 # By default BasedPyright is very strict, so you almost certainly want to disable
 # some of the rules.
 # First, these turn off warnings about (yes) how you ignore warnings:
@@ -216,7 +216,7 @@ end_of_line = "lf"
 
 [tool.codespell]
 ignore-words-list = "inout"
-skip = "src/postgast/pg_query_pb2.py,src/postgast/pg_query_pb2.pyi,src/postgast/nodes.py"
+skip = "src/postgast/pg_query_pb2.py,src/postgast/pg_query_pb2.pyi,src/postgast/nodes"
 
 [tool.pytest.ini_options]
 python_files = ["*.py"]

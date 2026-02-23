@@ -21,6 +21,10 @@ def normalize(query: str) -> str:
 
     Raises:
         PgQueryError: If the query cannot be parsed.
+
+    Example:
+        >>> normalize("SELECT * FROM users WHERE id = 42 AND name = 'Alice'")
+        'SELECT * FROM users WHERE id = $1 AND name = $2'
     """
     result = lib.pg_query_normalize(query.encode("utf-8"))
     try:

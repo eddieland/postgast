@@ -36,14 +36,25 @@ _OR_REPLACE_TYPES = (CreateFunctionStmt, CreateTrigStmt, ViewStmt)
 
 
 class FunctionIdentity(typing.NamedTuple):
-    """Identity parts of a ``CREATE FUNCTION`` statement."""
+    """Identity parts of a ``CREATE FUNCTION`` statement.
+
+    Attributes:
+        schema: Schema name, or ``None`` for unqualified functions.
+        name: Function name.
+    """
 
     schema: str | None
     name: str
 
 
 class TriggerIdentity(typing.NamedTuple):
-    """Identity parts of a ``CREATE TRIGGER`` statement."""
+    """Identity parts of a ``CREATE TRIGGER`` statement.
+
+    Attributes:
+        trigger: Trigger name.
+        schema: Schema qualifying the target table, or ``None``.
+        table: Target table name.
+    """
 
     trigger: str
     schema: str | None
@@ -62,6 +73,13 @@ def find_nodes(tree: Message, node_type: type[_M]) -> Generator[_M, None, None]:
 
     Yields:
         Matching instances in depth-first pre-order.
+
+    Example:
+        >>> from postgast import find_nodes, parse
+        >>> from postgast.pg_query_pb2 import RangeVar
+        >>> tree = parse("SELECT * FROM users JOIN orders ON users.id = orders.uid")
+        >>> [n.relname for n in find_nodes(tree, RangeVar)]
+        ['users', 'orders']
     """
     for _field_name, node in walk(tree):
         if isinstance(node, node_type):
@@ -82,6 +100,12 @@ def extract_tables(tree: Message) -> list[str]:
 
     Returns:
         Table names in encounter order.
+
+    Example:
+        >>> from postgast import extract_tables, parse
+        >>> tree = parse("SELECT * FROM public.users JOIN orders ON true")
+        >>> extract_tables(tree)
+        ['public.users', 'orders']
     """
     tables: list[str] = []
     for node in find_nodes(tree, RangeVar):
@@ -102,6 +126,12 @@ def extract_columns(tree: Message) -> list[str]:
 
     Returns:
         Column references in encounter order.
+
+    Example:
+        >>> from postgast import extract_columns, parse
+        >>> tree = parse("SELECT u.name, age FROM users u WHERE age > 18")
+        >>> extract_columns(tree)
+        ['u.name', 'age', 'age']
     """
     columns: list[str] = []
     for node in find_nodes(tree, ColumnRef):
@@ -131,6 +161,12 @@ def extract_functions(tree: Message) -> list[str]:
 
     Returns:
         Function names in encounter order.
+
+    Example:
+        >>> from postgast import extract_functions, parse
+        >>> tree = parse("SELECT lower(name), count(*) FROM users")
+        >>> extract_functions(tree)
+        ['lower', 'count']
     """
     functions: list[str] = []
     for node in find_nodes(tree, FuncCall):
@@ -156,6 +192,13 @@ def extract_function_identity(tree: Message) -> FunctionIdentity | None:
 
     Returns:
         A :class:`FunctionIdentity` or ``None`` if no matching node is found.
+
+    Example:
+        >>> from postgast import extract_function_identity, parse
+        >>> sql = "CREATE FUNCTION public.add(a int, b int) RETURNS int LANGUAGE sql AS $$ SELECT a + b $$"
+        >>> identity = extract_function_identity(parse(sql))
+        >>> identity.schema, identity.name
+        ('public', 'add')
     """
     for node in find_nodes(tree, CreateFunctionStmt):
         if node.is_procedure:
@@ -185,6 +228,13 @@ def extract_trigger_identity(tree: Message) -> TriggerIdentity | None:
 
     Returns:
         A :class:`TriggerIdentity` or ``None`` if no matching node is found.
+
+    Example:
+        >>> from postgast import extract_trigger_identity, parse
+        >>> sql = "CREATE TRIGGER my_trg AFTER INSERT ON orders FOR EACH ROW EXECUTE FUNCTION notify()"
+        >>> identity = extract_trigger_identity(parse(sql))
+        >>> identity.trigger, identity.table
+        ('my_trg', 'orders')
     """
     for node in find_nodes(tree, CreateTrigStmt):
         return TriggerIdentity(
@@ -207,6 +257,14 @@ def set_or_replace(tree: Message) -> int:
 
     Returns:
         Number of nodes that were modified.
+
+    Example:
+        >>> from postgast import set_or_replace, parse, deparse
+        >>> tree = parse("CREATE VIEW v AS SELECT 1")
+        >>> set_or_replace(tree)
+        1
+        >>> "OR REPLACE" in deparse(tree)
+        True
     """
     count = 0
     for _field_name, node in walk(tree):
@@ -231,6 +289,11 @@ def ensure_or_replace(sql: str) -> str:
 
     Raises:
         PgQueryError: If *sql* cannot be parsed.
+
+    Example:
+        >>> from postgast import ensure_or_replace
+        >>> ensure_or_replace("CREATE VIEW v AS SELECT 1")
+        'CREATE OR REPLACE VIEW v AS SELECT 1'
     """
     from postgast.deparse import deparse
     from postgast.parse import parse
@@ -303,6 +366,11 @@ def to_drop(sql: str) -> str:
         ValueError: If *sql* contains zero or more than one statement, or if
             the statement is not a supported CREATE type.
         PgQueryError: If *sql* is not valid SQL.
+
+    Example:
+        >>> from postgast import to_drop
+        >>> to_drop("CREATE VIEW public.v AS SELECT 1")
+        'DROP VIEW public.v'
     """
     from postgast.deparse import deparse
     from postgast.parse import parse

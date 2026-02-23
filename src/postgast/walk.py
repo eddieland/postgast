@@ -49,6 +49,17 @@ def walk(node: Message) -> Generator[tuple[str, Message], None, None]:
 
     Yields:
         ``(field_name, message)`` tuples in depth-first pre-order.
+
+    Example:
+        >>> from postgast import parse, walk
+        >>> tree = parse("SELECT 1")
+        >>> for field_name, node in walk(tree):
+        ...     if field_name:
+        ...         print(f"{field_name}: {type(node).__name__}")
+        stmts: RawStmt
+        stmt: SelectStmt
+        target_list: ResTarget
+        val: A_Const
     """
     node = _unwrap_node(node)
     yield "", node
@@ -82,13 +93,29 @@ class Visitor:
     """
 
     def visit(self, node: Message) -> None:
-        """Dispatch *node* to ``visit_<TypeName>`` or :meth:`generic_visit`."""
+        """Dispatch *node* to ``visit_<TypeName>`` or :meth:`generic_visit`.
+
+        Looks up a method named ``visit_<TypeName>`` (where ``<TypeName>``
+        matches the protobuf descriptor name, e.g. ``visit_SelectStmt``).
+        Falls back to :meth:`generic_visit` if no specific handler exists.
+
+        Args:
+            node: Any protobuf ``Message`` instance.
+        """
         node = _unwrap_node(node)
         type_name = type(node).DESCRIPTOR.name
         handler = getattr(self, f"visit_{type_name}", self.generic_visit)
         handler(node)
 
     def generic_visit(self, node: Message) -> None:
-        """Visit all message-typed children of *node*."""
+        """Visit all message-typed children of *node*.
+
+        Override this method to customize the default traversal behavior.
+        Call ``super().generic_visit(node)`` from a ``visit_*`` handler to
+        continue recursion into a node's children after custom processing.
+
+        Args:
+            node: Any protobuf ``Message`` instance.
+        """
         for _field_name, child in _iter_children(node):
             self.visit(child)

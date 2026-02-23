@@ -25,6 +25,13 @@ def parse(query: str) -> ParseResult:
 
     Raises:
         PgQueryError: If the query contains a syntax error.
+
+    Example:
+        >>> tree = parse("SELECT id, name FROM users WHERE active = true")
+        >>> len(tree.stmts)
+        1
+        >>> tree.stmts[0].stmt.HasField("select_stmt")
+        True
     """
     result = lib.pg_query_parse_protobuf(query.encode("utf-8"))
     try:

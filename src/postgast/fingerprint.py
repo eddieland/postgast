@@ -35,6 +35,13 @@ def fingerprint(query: str) -> FingerprintResult:
 
     Raises:
         PgQueryError: If the query cannot be parsed.
+
+    Example:
+        >>> result = fingerprint("SELECT * FROM users WHERE id = 1")
+        >>> result.hex  # doctest: +SKIP
+        '0ca858a0484f5826'
+        >>> result == fingerprint("SELECT * FROM users WHERE id = 2")
+        True
     """
     result = lib.pg_query_fingerprint(query.encode("utf-8"))
     try:

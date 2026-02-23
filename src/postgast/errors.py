@@ -23,6 +23,14 @@ class PgQueryError(Exception):
         funcname: Internal C function name where the error originated, or None.
         filename: Internal C source file, or None.
         lineno: Line number in the C source file.
+
+    Example:
+        >>> from postgast import parse, PgQueryError
+        >>> try:
+        ...     parse("SELECT FROM")
+        ... except PgQueryError as e:
+        ...     print(e.cursorpos)
+        8
     """
 
     def __init__(

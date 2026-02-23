@@ -46,6 +46,9 @@ coverage: $(NATIVE_LIB) ## Run tests with coverage and generate HTML report
 proto: ## Regenerate Python protobuf bindings from vendored pg_query.proto
 	uv run python -m grpc_tools.protoc --python_out=src/postgast --pyi_out=src/postgast --proto_path=vendor/libpg_query/protobuf pg_query.proto
 
+docs: ## Build Sphinx documentation
+	uv run --extra docs sphinx-build -b html docs docs/_build/html
+
 ##@ Build & Release
 
 build: ## Build package
@@ -62,6 +65,7 @@ clean: ## Remove build artifacts, caches, .venv
 	-rm -rf .pytest_cache/
 	-rm -rf .mypy_cache/
 	-rm -rf htmlcov/
+	-rm -rf docs/_build/
 	-rm -f .coverage
 	-rm -rf .venv/
 	-rm -f $(NATIVE_LIB)
@@ -75,4 +79,4 @@ help: ## Show this help
 		/^[a-zA-Z_-]+:.*?## / { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 	@echo
 
-.PHONY: all install fmt lint test coverage build build-native proto upgrade clean help
+.PHONY: all install fmt lint test coverage docs build build-native proto upgrade clean help

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import glob
 import os
 import platform
 import subprocess
@@ -51,7 +52,7 @@ class CustomBuildHook(BuildHookInterface):
 
         # Compile the shared library.
         if system == "Windows":
-            subprocess.check_call(["nmake", "/F", "Makefile.msvc"], cwd=libpg_query_dir)
+            self._build_windows_dll(root, libpg_query_dir)
         else:
             subprocess.check_call(["make", "build_shared"], cwd=libpg_query_dir)
 
@@ -66,6 +67,46 @@ class CustomBuildHook(BuildHookInterface):
         # Mark as platform-specific wheel (not pure Python).
         build_data["infer_tag"] = True
         build_data["pure_python"] = False
+
+    def _build_windows_dll(self, root: Path, libpg_query_dir: Path) -> None:
+        """Build a shared DLL on Windows using cl.exe and link.exe with the .def file.
+
+        Upstream libpg_query's Makefile.msvc only produces a static .lib. This
+        method compiles all sources and links them into a DLL using the project's
+        pg_query_exports.def file.
+        """
+        def_file = root / "pg_query_exports.def"
+        if not def_file.exists():
+            msg = f"pg_query_exports.def not found at {def_file}"
+            raise RuntimeError(msg)
+
+        include_flags = [
+            f"-I{libpg_query_dir}",
+            f"-I{libpg_query_dir / 'vendor'}",
+            f"-I{libpg_query_dir / 'src' / 'postgres' / 'include'}",
+            f"-I{libpg_query_dir / 'src' / 'include'}",
+            f"-I{libpg_query_dir / 'src' / 'postgres' / 'include' / 'port' / 'win32'}",
+            f"-I{libpg_query_dir / 'src' / 'postgres' / 'include' / 'port' / 'win32_msvc'}",
+        ]
+
+        # Gather source files using the same globs as CI.
+
+        src_files = (
+            glob.glob(str(libpg_query_dir / "src" / "*.c"))
+            + glob.glob(str(libpg_query_dir / "src" / "postgres" / "*.c"))
+            + [str(libpg_query_dir / "vendor" / "protobuf-c" / "protobuf-c.c")]
+            + [str(libpg_query_dir / "vendor" / "xxhash" / "xxhash.c")]
+            + [str(libpg_query_dir / "protobuf" / "pg_query.pb-c.c")]
+        )
+
+        # Compile all sources to object files.
+        compile_cmd = ["cl", *include_flags, "/c", *src_files]
+        subprocess.check_call(compile_cmd, cwd=libpg_query_dir)
+
+        # Gather all .obj files and link into a DLL.
+        obj_files = glob.glob(str(libpg_query_dir / "*.obj"))
+        link_cmd = ["link", "/DLL", f"/DEF:{def_file}", "/OUT:pg_query.dll", *obj_files]
+        subprocess.check_call(link_cmd, cwd=libpg_query_dir)
 
     def clean(self, versions: list[str]) -> None:
         """Remove compiled artifacts from the vendor directory."""

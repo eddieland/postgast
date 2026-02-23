@@ -112,12 +112,12 @@ jobs:
 
       - name: Build native library (Windows)
         if: runner.os == 'Windows'
-        shell: cmd
+        shell: pwsh
         run: |
-          cd vendor\libpg_query
-          nmake /F Makefile.msvc build
-          link /DLL /DEF:..\..\pg_query_exports.def /OUT:pg_query.dll pg_query.lib
-          copy pg_query.dll ..\..\src\postgast\pg_query.dll
+          cd vendor/libpg_query
+          cl -I. -I./vendor -I./src/postgres/include -I./src/include -I./src/postgres/include/port/win32 -I./src/postgres/include/port/win32_msvc /c src/*.c src/postgres/*.c vendor/protobuf-c/protobuf-c.c vendor/xxhash/xxhash.c protobuf/pg_query.pb-c.c
+          link /DLL /DEF:../../pg_query_exports.def /OUT:pg_query.dll *.obj
+          Copy-Item pg_query.dll ../../src/postgast/pg_query.dll
 
       - name: Run tests with coverage
         run: uv run pytest --cov --cov-report=xml

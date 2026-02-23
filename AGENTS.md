@@ -94,7 +94,7 @@ The feature matrix table in `README.md` must be kept in sync with project status
 
 **Only add rows for major library pillars** — top-level capabilities a user would evaluate when choosing the library
 (e.g., parse, deparse, normalize, split). Do not add rows for minor helpers, internal utilities, or small convenience
-functions. If a change enhances an existing feature rather than introducing a new pillar, update the existing row instead
-of adding a new one.
+functions. If a change enhances an existing feature rather than introducing a new pillar, update the existing row
+instead of adding a new one.
 
 Do not update the matrix during intermediate steps (planning, drafting specs, mid-implementation).

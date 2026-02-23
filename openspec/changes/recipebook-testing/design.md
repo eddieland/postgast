@@ -1,76 +1,60 @@
 ## Context
 
 The three recipebooks (`ast_walker.py`, `batch_processing.py`, `sql_transforms.py`) are marimo notebooks that
-demonstrate postgast API usage patterns. They have no automated test coverage. The existing test suite lives in
-`tests/postgast/` with shared fixtures in `conftest.py`. marimo is an optional dependency under the `recipes` extra but
-is not in the dev dependency group.
+demonstrate postgast API usage. They have no automated test coverage. Marimo's `App.run()` method executes all cells
+synchronously in script mode (no server, no UI) and returns `(outputs, defs)`. If any cell raises, `App.run()` raises.
+This makes it a natural fit for CI smoke testing.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- Validate that every recipe's core logic (parse, walk, visit, extract, normalize, fingerprint, split, scan, deparse,
-  rewrite) produces correct results
-- Catch regressions when postgast APIs change
-- Run in CI without requiring marimo or a browser
+- Catch API drift — when postgast functions are renamed, removed, or change signature, recipe tests fail
+- Run in CI automatically on every push
+- Keep the test trivially simple — no duplicated logic, no hand-written assertions per recipe
 
 **Non-Goals:**
 
 - Testing marimo's rendering/UI behavior
-- Testing marimo cell reactivity or dependency injection
-- Modifying the recipe notebooks themselves
-- Achieving line-level coverage of recipe files (they're marimo apps, not library code)
+- Asserting specific output values from recipe cells (the recipes demonstrate patterns, not produce fixed outputs)
+- Achieving line-level coverage of recipe files
 
 ## Decisions
 
-### Decision 1: Test recipe logic directly, not via marimo runtime
+### Decision 1: Run recipes via `app.run()`, not replicate logic in tests
 
-Test the postgast API patterns each recipe demonstrates as standalone pytest functions. Do not import or execute marimo
-apps programmatically.
+Import each recipe module and call its `app.run()` method. This executes every cell in topological order. If any cell
+fails (import error, TypeError, AttributeError, etc.), the test fails.
 
-**Why over marimo cell execution:** Marimo's `App.run()` starts a server and reactive runtime — it's designed for
-interactive use, not headless testing. Importing recipe modules requires marimo installed, and executing cells requires
-marimo's dependency injection to wire parameters. Testing the logic directly is simpler, faster, more reliable, and
-doesn't require marimo in the test environment.
+**Why over replicating logic:** The previous approach would have written ~19 test methods that duplicate recipe logic
+with hand-written assertions. That creates a maintenance burden and doesn't actually test the recipes — it tests
+reimplementations. Running the real recipes catches the exact drift we care about (API changes, signature changes) with
+zero duplication.
 
-**Trade-off:** We won't detect if a recipe's marimo-specific code (cell decorators, `mo.md()` formatting) breaks. This
-is acceptable because marimo formatting is cosmetic and marimo itself is well-tested upstream.
+**Trade-off:** We don't assert specific output values. A recipe cell could silently produce wrong results without
+failing. This is acceptable — the recipes are demonstrations, not production code. The important thing is that they
+*run*.
 
-### Decision 2: One test file — `tests/postgast/test_recipes.py`
+### Decision 2: Parametrize over recipe modules
 
-All recipe tests go in a single file organized by test classes matching the recipebooks:
+A single parametrized test function discovers and runs each recipe. Adding a new recipe file only requires adding it to
+the parameter list.
 
-- `TestAstWalkerRecipes` — table extraction, column collection, statement classification, subquery detection, complexity
-  measurement, dependency mapping, helpers usage, per-statement analysis
-- `TestBatchProcessingRecipes` — split+parse migration, tokenization, query dedup, dependency graph, comment extraction,
-  batch execution plan
-- `TestSqlTransformsRecipes` — roundtrip normalization, normalize for logs, fingerprint equivalence, AST rewriting,
-  ensure_or_replace, error inspection
+### Decision 3: `pytest.importorskip("marimo")` for graceful skip
 
-**Why one file:** The recipes are a single feature area. One file keeps the test surface discoverable and avoids
-scattering recipe tests across multiple modules.
+The test file uses `pytest.importorskip("marimo")` at module level. When marimo is not installed (e.g., a contributor
+runs `make test` without `--extra recipes`), the entire test file is skipped rather than failing.
 
-### Decision 3: No new conftest fixtures for recipes
+### Decision 4: Install `recipes` extra in CI
 
-Recipe tests will call postgast APIs inline with their own SQL strings, matching how the recipes themselves work (each
-cell defines its own SQL). The existing conftest fixtures (`select1_tree`, `users_tree`, etc.) are for the core library
-tests and use different SQL strings.
-
-**Why:** Recipe tests validate specific API usage patterns with specific SQL. Sharing fixtures would obscure what each
-test actually validates and couple recipe tests to unrelated fixture definitions.
-
-### Decision 4: No marimo dependency in dev group
-
-marimo stays in the `recipes` optional extra only. Tests do not import marimo or recipe modules.
-
-**Why:** Keeping marimo out of dev dependencies avoids bloating the dev environment (marimo pulls in many transitive
-deps). Since we test the logic patterns rather than the notebooks, marimo is not needed.
+The CI test job installs with `--extra recipes` so that marimo is available and recipe tests run. This is a small
+addition to the existing `uv sync` step.
 
 ## Risks / Trade-offs
 
-- **[Recipe drift]** Recipe code and tests could diverge over time if recipes add new patterns not covered by tests. →
-  Mitigate by organizing tests to mirror recipe structure so gaps are visible.
-- **[Duplicate logic]** Tests reimplement recipe logic rather than importing it. → Acceptable because the tests are
-  validating postgast API behavior, not recipe code reuse. The duplication is intentional — tests should be independent.
-- **[No import smoke test]** We don't verify that recipe modules import successfully. → Low risk since recipes are
-  validated by `marimo run` during development and recipe files are not imported by the library.
+- **[Marimo version sensitivity]** A marimo upgrade could change `App.run()` behavior. → Low risk; `app.run()` is
+  marimo's documented programmatic API. Pin `marimo>=0.10` in the `recipes` extra.
+- **[Silent wrong results]** Recipes could produce incorrect output without raising. → Acceptable; recipes are demos.
+  Core API correctness is covered by the existing unit test suite.
+- **[Recipe bugs block CI]** Existing recipes have bugs (e.g., passing strings to `find_nodes` instead of types) that
+  must be fixed before these tests pass. → Fix as part of this change.

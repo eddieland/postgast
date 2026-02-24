@@ -391,6 +391,416 @@ FORMAT_EXAMPLES: list[tuple[str, str, str]] = [
             SELECT
               2;"""),
     ),
+    # -- Identifier quoting ------------------------------------------
+    (
+        "ident_reserved_column",
+        'SELECT "order" FROM t',
+        dedent("""\
+            SELECT
+              "order"
+            FROM
+              t;"""),
+    ),
+    (
+        "ident_reserved_table",
+        'SELECT * FROM "user"',
+        dedent("""\
+            SELECT
+              *
+            FROM
+              "user";"""),
+    ),
+    (
+        "ident_mixed_case",
+        'SELECT "MyColumn" FROM t',
+        dedent("""\
+            SELECT
+              "MyColumn"
+            FROM
+              t;"""),
+    ),
+    (
+        "ident_plain_no_quotes",
+        "SELECT name FROM users",
+        dedent("""\
+            SELECT
+              name
+            FROM
+              users;"""),
+    ),
+    (
+        "ident_embedded_quote",
+        'SELECT "weird""name" FROM t',
+        dedent("""\
+            SELECT
+              "weird""name"
+            FROM
+              t;"""),
+    ),
+    (
+        "ident_schema_table_alias",
+        'SELECT * FROM "MySchema"."user" AS "MyAlias"',
+        dedent("""\
+            SELECT
+              *
+            FROM
+              "MySchema"."user" "MyAlias";"""),
+    ),
+    # -- Boolean parenthesization ------------------------------------
+    (
+        "bool_or_inside_and",
+        "SELECT * FROM t WHERE (a = 1 OR b = 2) AND (c = 3 OR d = 4)",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t
+            WHERE
+              (a = 1 OR b = 2)
+              AND (c = 3 OR d = 4);"""),
+    ),
+    (
+        "bool_not_compound",
+        "SELECT * FROM t WHERE NOT (a = 1 AND b = 2)",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t
+            WHERE
+              NOT (a = 1 AND b = 2);"""),
+    ),
+    (
+        "bool_and_then_or",
+        "SELECT * FROM t WHERE a = 1 AND b = 2 OR c = 3",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t
+            WHERE
+              a = 1
+              AND b = 2
+              OR c = 3;"""),
+    ),
+    (
+        "bool_nested_or_and_or",
+        "SELECT * FROM t WHERE a = 1 OR (b = 2 AND (c = 3 OR d = 4))",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t
+            WHERE
+              a = 1
+              OR b = 2
+              AND (c = 3 OR d = 4);"""),
+    ),
+    # -- Window frame ------------------------------------------------
+    (
+        "window_rows_between",
+        "SELECT sum(x) OVER (ORDER BY y ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM t",
+        dedent("""\
+            SELECT
+              sum(x) OVER (ORDER BY y ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)
+            FROM
+              t;"""),
+    ),
+    (
+        "window_range_unbounded",
+        "SELECT sum(x) OVER (ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) FROM t",
+        dedent("""\
+            SELECT
+              sum(x) OVER (ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)
+            FROM
+              t;"""),
+    ),
+    (
+        "window_groups",
+        "SELECT sum(x) OVER (ORDER BY y GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM t",
+        dedent("""\
+            SELECT
+              sum(x) OVER (ORDER BY y GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING)
+            FROM
+              t;"""),
+    ),
+    (
+        "window_no_between",
+        "SELECT sum(x) OVER (ORDER BY y ROWS UNBOUNDED PRECEDING) FROM t",
+        dedent("""\
+            SELECT
+              sum(x) OVER (ORDER BY y ROWS UNBOUNDED PRECEDING)
+            FROM
+              t;"""),
+    ),
+    (
+        "window_preceding_current",
+        "SELECT sum(x) OVER (ORDER BY y ROWS BETWEEN 5 PRECEDING AND CURRENT ROW) FROM t",
+        dedent("""\
+            SELECT
+              sum(x) OVER (ORDER BY y ROWS BETWEEN 5 PRECEDING AND CURRENT ROW)
+            FROM
+              t;"""),
+    ),
+    (
+        "window_current_following",
+        "SELECT sum(x) OVER (ORDER BY y RANGE BETWEEN CURRENT ROW AND 10 FOLLOWING) FROM t",
+        dedent("""\
+            SELECT
+              sum(x) OVER (ORDER BY y RANGE BETWEEN CURRENT ROW AND 10 FOLLOWING)
+            FROM
+              t;"""),
+    ),
+    (
+        "window_exclude_ties",
+        "SELECT sum(x) OVER (ORDER BY y GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES) FROM t",
+        dedent("""\
+            SELECT
+              sum(x) OVER (ORDER BY y GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES)
+            FROM
+              t;"""),
+    ),
+    # -- DISTINCT ON -------------------------------------------------
+    (
+        "distinct_on_single",
+        "SELECT DISTINCT ON (a) a, b FROM t ORDER BY a, b",
+        dedent("""\
+            SELECT DISTINCT ON (a)
+              a,
+              b
+            FROM
+              t
+            ORDER BY
+              a,
+              b;"""),
+    ),
+    (
+        "distinct_on_multi",
+        "SELECT DISTINCT ON (a, b) a, b, c FROM t ORDER BY a, b",
+        dedent("""\
+            SELECT DISTINCT ON (a, b)
+              a,
+              b,
+              c
+            FROM
+              t
+            ORDER BY
+              a,
+              b;"""),
+    ),
+    # -- Locking clauses ---------------------------------------------
+    (
+        "for_update",
+        "SELECT * FROM t WHERE id = 1 FOR UPDATE",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t
+            WHERE
+              id = 1
+            FOR UPDATE;"""),
+    ),
+    (
+        "for_share_skip_locked",
+        "SELECT * FROM t FOR SHARE SKIP LOCKED",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t
+            FOR SHARE SKIP LOCKED;"""),
+    ),
+    (
+        "for_update_of_nowait",
+        "SELECT * FROM t1, t2 FOR UPDATE OF t1 NOWAIT",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t1,
+              t2
+            FOR UPDATE OF t1 NOWAIT;"""),
+    ),
+    (
+        "for_no_key_update",
+        "SELECT * FROM t FOR NO KEY UPDATE",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t
+            FOR NO KEY UPDATE;"""),
+    ),
+    (
+        "for_key_share",
+        "SELECT * FROM t FOR KEY SHARE",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t
+            FOR KEY SHARE;"""),
+    ),
+    (
+        "for_key_share_of",
+        "SELECT * FROM t FOR KEY SHARE OF t",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t
+            FOR KEY SHARE OF t;"""),
+    ),
+    (
+        "for_share_nowait",
+        "SELECT * FROM t FOR SHARE NOWAIT",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t
+            FOR SHARE NOWAIT;"""),
+    ),
+    (
+        "for_update_multi_rels",
+        "SELECT * FROM t1, t2 FOR UPDATE OF t1, t2",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t1,
+              t2
+            FOR UPDATE OF t1, t2;"""),
+    ),
+    # -- Grouping sets -----------------------------------------------
+    (
+        "rollup",
+        "SELECT a, b, count(*) FROM t GROUP BY ROLLUP (a, b)",
+        dedent("""\
+            SELECT
+              a,
+              b,
+              count(*)
+            FROM
+              t
+            GROUP BY
+              ROLLUP(a, b);"""),
+    ),
+    (
+        "cube",
+        "SELECT a, b, count(*) FROM t GROUP BY CUBE (a, b)",
+        dedent("""\
+            SELECT
+              a,
+              b,
+              count(*)
+            FROM
+              t
+            GROUP BY
+              CUBE(a, b);"""),
+    ),
+    (
+        "grouping_sets",
+        "SELECT a, count(*) FROM t GROUP BY GROUPING SETS ((a), ())",
+        dedent("""\
+            SELECT
+              a,
+              count(*)
+            FROM
+              t
+            GROUP BY
+              GROUPING SETS (a, ());"""),
+    ),
+    # -- TABLESAMPLE -------------------------------------------------
+    (
+        "tablesample_bernoulli",
+        "SELECT * FROM t TABLESAMPLE BERNOULLI(10)",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t TABLESAMPLE bernoulli(10);"""),
+    ),
+    (
+        "tablesample_repeatable",
+        "SELECT * FROM t TABLESAMPLE SYSTEM(50) REPEATABLE(42)",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              t TABLESAMPLE system(50) REPEATABLE(42);"""),
+    ),
+    # -- ROW constructor ---------------------------------------------
+    (
+        "row_explicit",
+        "SELECT ROW(1, 2, 3)",
+        dedent("""\
+            SELECT
+              ROW(1, 2, 3);"""),
+    ),
+    (
+        "row_implicit",
+        "SELECT (1, 2, 3)",
+        dedent("""\
+            SELECT
+              (1, 2, 3);"""),
+    ),
+    # -- Subquery column aliases -------------------------------------
+    (
+        "subquery_colnames",
+        "SELECT * FROM (VALUES (1, 2), (3, 4)) AS t(a, b)",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              (
+                VALUES
+                  (1, 2),
+                  (3, 4)
+              ) AS t(a, b);"""),
+    ),
+    (
+        "subquery_no_colnames",
+        "SELECT * FROM (SELECT 1) AS sub",
+        dedent("""\
+            SELECT
+              *
+            FROM
+              (
+                SELECT
+                  1
+              ) AS sub;"""),
+    ),
+    (
+        "subquery_quoted_colnames",
+        'SELECT * FROM (VALUES (1)) AS t("Order", "MyCol")',
+        dedent("""\
+            SELECT
+              *
+            FROM
+              (
+                VALUES
+                  (1)
+              ) AS t("Order", "MyCol");"""),
+    ),
+    # -- Function pg_catalog stripping -------------------------------
+    (
+        "pg_catalog_stripped",
+        "SELECT pg_catalog.btrim(name) FROM t",
+        dedent("""\
+            SELECT
+              btrim(name)
+            FROM
+              t;"""),
+    ),
+    (
+        "schema_func_preserved",
+        "SELECT myschema.myfunc(1)",
+        dedent("""\
+            SELECT
+              myschema.myfunc(1);"""),
+    ),
 ]
 
 

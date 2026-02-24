@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import functools
+import re
 from typing import TYPE_CHECKING, Any, cast
 
 import postgast.pg_query_pb2 as pb
 from postgast.deparse import deparse
 from postgast.parse import parse
+from postgast.scan import scan as _scan
 from postgast.walk import Visitor, _unwrap_node  # pyright: ignore[reportPrivateUsage]
 
 if TYPE_CHECKING:
@@ -15,6 +18,62 @@ if TYPE_CHECKING:
     from google.protobuf.message import Message
 
     from postgast.pg_query_pb2 import ParseResult
+
+# ── Identifier quoting helpers ─────────────────────────────────────
+
+_SIMPLE_IDENT_RE = re.compile(r"^[a-z_][a-z0-9_]*$")
+
+
+@functools.lru_cache(maxsize=256)
+def _needs_quoting(name: str) -> bool:
+    if not _SIMPLE_IDENT_RE.match(name):
+        return True
+    result = _scan(f"SELECT {name}")
+    tokens = list(result.tokens)
+    return len(tokens) >= 2 and tokens[1].keyword_kind == pb.RESERVED_KEYWORD
+
+
+def _quote_ident(name: str) -> str:
+    if _needs_quoting(name):
+        escaped = name.replace('"', '""')
+        return f'"{escaped}"'
+    return name
+
+
+# ── BoolExpr parenthesization helper ──────────────────────────────
+
+
+def _needs_bool_parens(parent_op: int, child_node: Message) -> bool:
+    inner = _unwrap_node(child_node)
+    if not isinstance(inner, pb.BoolExpr):
+        return False
+    if parent_op == pb.AND_EXPR:
+        return inner.boolop == pb.OR_EXPR
+    if parent_op == pb.NOT_EXPR:
+        return inner.boolop in (pb.AND_EXPR, pb.OR_EXPR)
+    return False
+
+
+# ── Window frame bitmask constants (PostgreSQL parsenodes.h) ──────
+
+_FRAMEOPTION_NONDEFAULT = 0x00001
+_FRAMEOPTION_RANGE = 0x00002
+_FRAMEOPTION_ROWS = 0x00004
+_FRAMEOPTION_GROUPS = 0x00008
+_FRAMEOPTION_BETWEEN = 0x00010
+_FRAMEOPTION_START_UNBOUNDED_PRECEDING = 0x00020
+_FRAMEOPTION_END_UNBOUNDED_PRECEDING = 0x00040
+_FRAMEOPTION_START_UNBOUNDED_FOLLOWING = 0x00080
+_FRAMEOPTION_END_UNBOUNDED_FOLLOWING = 0x00100
+_FRAMEOPTION_START_CURRENT_ROW = 0x00200
+_FRAMEOPTION_END_CURRENT_ROW = 0x00400
+_FRAMEOPTION_START_OFFSET_PRECEDING = 0x00800
+_FRAMEOPTION_END_OFFSET_PRECEDING = 0x01000
+_FRAMEOPTION_START_OFFSET_FOLLOWING = 0x02000
+_FRAMEOPTION_END_OFFSET_FOLLOWING = 0x04000
+_FRAMEOPTION_EXCLUDE_CURRENT_ROW = 0x08000
+_FRAMEOPTION_EXCLUDE_GROUP = 0x10000
+_FRAMEOPTION_EXCLUDE_TIES = 0x20000
 
 
 def format_sql(sql: str | ParseResult) -> str:
@@ -143,7 +202,7 @@ class _SqlFormatter(Visitor):
         for field_node in node.fields:
             inner = _unwrap_node(field_node)
             if isinstance(inner, pb.String):
-                parts.append(inner.sval)
+                parts.append(_quote_ident(inner.sval))
             elif isinstance(inner, pb.A_Star):
                 parts.append("*")
         self._emit(".".join(parts))
@@ -234,7 +293,16 @@ class _SqlFormatter(Visitor):
     def visit_BoolExpr(self, node: pb.BoolExpr) -> None:
         if node.boolop == pb.NOT_EXPR:
             self._emit("NOT ")
-            self._visit_node(node.args[0])
+            child = node.args[0]
+            if _needs_bool_parens(pb.NOT_EXPR, child):
+                self._emit("(")
+                prev = self._in_clause_context
+                self._in_clause_context = False
+                self._visit_node(child)
+                self._in_clause_context = prev
+                self._emit(")")
+            else:
+                self._visit_node(child)
             return
 
         op = "AND" if node.boolop == pb.AND_EXPR else "OR"
@@ -243,16 +311,30 @@ class _SqlFormatter(Visitor):
                 if i > 0:
                     self._newline()
                     self._emit(f"{op} ")
-                self._visit_node(arg)
+                if _needs_bool_parens(node.boolop, arg):
+                    self._emit("(")
+                    prev = self._in_clause_context
+                    self._in_clause_context = False
+                    self._visit_node(arg)
+                    self._in_clause_context = prev
+                    self._emit(")")
+                else:
+                    self._visit_node(arg)
         else:
             for i, arg in enumerate(node.args):
                 if i > 0:
                     self._emit(f" {op} ")
-                self._visit_node(arg)
+                if _needs_bool_parens(node.boolop, arg):
+                    self._emit("(")
+                    self._visit_node(arg)
+                    self._emit(")")
+                else:
+                    self._visit_node(arg)
 
     def visit_FuncCall(self, node: pb.FuncCall) -> None:
         name_parts = [cast("pb.String", _unwrap_node(n)).sval for n in node.funcname]
-        self._emit(".".join(name_parts))
+        display_parts = name_parts[1:] if len(name_parts) > 1 and name_parts[0] == "pg_catalog" else name_parts
+        self._emit(".".join(display_parts))
         self._emit("(")
         if node.agg_star:
             self._emit("*")
@@ -302,7 +384,64 @@ class _SqlFormatter(Visitor):
                 if i > 0:
                     self._emit(", ")
                 self._visit_node(item)
+            parts_emitted = True
+        if wdef.frame_options & _FRAMEOPTION_NONDEFAULT:
+            if parts_emitted:
+                self._emit(" ")
+            self._visit_window_frame(wdef)
         self._emit(")")
+
+    def _visit_window_frame(self, wdef: pb.WindowDef) -> None:
+        fopts = wdef.frame_options
+        # Mode
+        if fopts & _FRAMEOPTION_ROWS:
+            self._emit("ROWS")
+        elif fopts & _FRAMEOPTION_GROUPS:
+            self._emit("GROUPS")
+        else:
+            self._emit("RANGE")
+
+        has_between = bool(fopts & _FRAMEOPTION_BETWEEN)
+        if has_between:
+            self._emit(" BETWEEN ")
+        else:
+            self._emit(" ")
+
+        # Start bound
+        if fopts & _FRAMEOPTION_START_UNBOUNDED_PRECEDING:
+            self._emit("UNBOUNDED PRECEDING")
+        elif fopts & _FRAMEOPTION_START_CURRENT_ROW:
+            self._emit("CURRENT ROW")
+        elif fopts & _FRAMEOPTION_START_OFFSET_PRECEDING:
+            self._visit_node(wdef.start_offset)
+            self._emit(" PRECEDING")
+        elif fopts & _FRAMEOPTION_START_OFFSET_FOLLOWING:
+            self._visit_node(wdef.start_offset)
+            self._emit(" FOLLOWING")
+
+        if has_between:
+            self._emit(" AND ")
+            # End bound
+            if fopts & _FRAMEOPTION_END_UNBOUNDED_FOLLOWING:
+                self._emit("UNBOUNDED FOLLOWING")
+            elif fopts & _FRAMEOPTION_END_CURRENT_ROW:
+                self._emit("CURRENT ROW")
+            elif fopts & _FRAMEOPTION_END_OFFSET_PRECEDING:
+                self._visit_node(wdef.end_offset)
+                self._emit(" PRECEDING")
+            elif fopts & _FRAMEOPTION_END_OFFSET_FOLLOWING:
+                self._visit_node(wdef.end_offset)
+                self._emit(" FOLLOWING")
+            elif fopts & _FRAMEOPTION_END_UNBOUNDED_PRECEDING:
+                self._emit("UNBOUNDED PRECEDING")
+
+        # EXCLUDE options
+        if fopts & _FRAMEOPTION_EXCLUDE_CURRENT_ROW:
+            self._emit(" EXCLUDE CURRENT ROW")
+        elif fopts & _FRAMEOPTION_EXCLUDE_GROUP:
+            self._emit(" EXCLUDE GROUP")
+        elif fopts & _FRAMEOPTION_EXCLUDE_TIES:
+            self._emit(" EXCLUDE TIES")
 
     def visit_TypeCast(self, node: pb.TypeCast) -> None:
         self._visit_node(node.arg)
@@ -535,10 +674,19 @@ class _SqlFormatter(Visitor):
         if node.HasField("with_clause"):
             self._visit_with_clause(node.with_clause)
 
-        # SELECT [DISTINCT]
+        # SELECT [DISTINCT [ON (...)]]
         self._emit("SELECT")
         if node.distinct_clause:
-            self._emit(" DISTINCT")
+            first = node.distinct_clause[0]
+            if first.WhichOneof("node") is None:
+                self._emit(" DISTINCT")
+            else:
+                self._emit(" DISTINCT ON (")
+                for i, item in enumerate(node.distinct_clause):
+                    if i > 0:
+                        self._emit(", ")
+                    self._visit_node(item)
+                self._emit(")")
         self._newline()
 
         # Target list
@@ -621,12 +769,27 @@ class _SqlFormatter(Visitor):
             self._visit_node(node.limit_offset)
             self._dedent()
 
-        # Locking (FOR UPDATE/SHARE)
+        # Locking (FOR UPDATE/SHARE/NO KEY UPDATE/KEY SHARE)
         for lock in node.locking_clause:
-            inner = _unwrap_node(lock)
-            text = self._deparse_node(inner)
+            lc = cast("pb.LockingClause", _unwrap_node(lock))
             self._newline()
-            self._emit(text)
+            strength_map = {
+                pb.LCS_FORKEYSHARE: "FOR KEY SHARE",
+                pb.LCS_FORSHARE: "FOR SHARE",
+                pb.LCS_FORNOKEYUPDATE: "FOR NO KEY UPDATE",
+                pb.LCS_FORUPDATE: "FOR UPDATE",
+            }
+            self._emit(strength_map.get(lc.strength, "FOR UPDATE"))
+            if lc.locked_rels:
+                self._emit(" OF ")
+                for i, rel in enumerate(lc.locked_rels):
+                    if i > 0:
+                        self._emit(", ")
+                    self._visit_node(rel)
+            if lc.wait_policy == pb.LockWaitError:
+                self._emit(" NOWAIT")
+            elif lc.wait_policy == pb.LockWaitSkip:
+                self._emit(" SKIP LOCKED")
 
     def _visit_res_target(self, node: Message) -> None:
         rt = cast("pb.ResTarget", node)
@@ -650,11 +813,11 @@ class _SqlFormatter(Visitor):
     def visit_RangeVar(self, node: pb.RangeVar) -> None:
         parts: list[str] = []
         if node.schemaname:
-            parts.append(node.schemaname)
-        parts.append(node.relname)
+            parts.append(_quote_ident(node.schemaname))
+        parts.append(_quote_ident(node.relname))
         self._emit(".".join(parts))
         if node.HasField("alias"):
-            self._emit(f" {node.alias.aliasname}")
+            self._emit(f" {_quote_ident(node.alias.aliasname)}")
 
     def visit_RangeSubselect(self, node: pb.RangeSubselect) -> None:
         if node.lateral:
@@ -667,7 +830,18 @@ class _SqlFormatter(Visitor):
         self._dedent()
         self._emit(")")
         if node.HasField("alias"):
-            self._emit(f" AS {node.alias.aliasname}")
+            self._emit(f" AS {_quote_ident(node.alias.aliasname)}")
+            if node.alias.colnames:
+                self._emit("(")
+                for i, cn in enumerate(node.alias.colnames):
+                    if i > 0:
+                        self._emit(", ")
+                    col = _unwrap_node(cn)
+                    if isinstance(col, pb.String):
+                        self._emit(_quote_ident(col.sval))
+                    else:
+                        self._visit_node(cn)
+                self._emit(")")
 
     def visit_JoinExpr(self, node: pb.JoinExpr) -> None:
         self._visit_node(node.larg)
@@ -1268,7 +1442,7 @@ class _SqlFormatter(Visitor):
             else:
                 self._visit_node(func_item)
         if node.HasField("alias"):
-            self._emit(f" AS {node.alias.aliasname}")
+            self._emit(f" AS {_quote_ident(node.alias.aliasname)}")
             if node.alias.colnames:
                 self._emit("(")
                 for i, cn in enumerate(node.alias.colnames):
@@ -1276,10 +1450,74 @@ class _SqlFormatter(Visitor):
                         self._emit(", ")
                     col = _unwrap_node(cn)
                     if isinstance(col, pb.String):
-                        self._emit(col.sval)
+                        self._emit(_quote_ident(col.sval))
                     else:
                         self._visit_node(cn)
                 self._emit(")")
 
     def visit_ColumnDef(self, node: pb.ColumnDef) -> None:
         self._visit_column_def(node)
+
+    # ── GroupingSet ───────────────────────────────────────────────
+
+    def visit_GroupingSet(self, node: pb.GroupingSet) -> None:
+        kind = node.kind
+        if kind == pb.GROUPING_SET_EMPTY:
+            self._emit("()")
+        elif kind == pb.GROUPING_SET_SIMPLE:
+            for i, item in enumerate(node.content):
+                if i > 0:
+                    self._emit(", ")
+                self._visit_node(item)
+        elif kind == pb.GROUPING_SET_ROLLUP:
+            self._emit("ROLLUP(")
+            for i, item in enumerate(node.content):
+                if i > 0:
+                    self._emit(", ")
+                self._visit_node(item)
+            self._emit(")")
+        elif kind == pb.GROUPING_SET_CUBE:
+            self._emit("CUBE(")
+            for i, item in enumerate(node.content):
+                if i > 0:
+                    self._emit(", ")
+                self._visit_node(item)
+            self._emit(")")
+        elif kind == pb.GROUPING_SET_SETS:
+            self._emit("GROUPING SETS (")
+            for i, item in enumerate(node.content):
+                if i > 0:
+                    self._emit(", ")
+                self._visit_node(item)
+            self._emit(")")
+
+    # ── RangeTableSample ─────────────────────────────────────────
+
+    def visit_RangeTableSample(self, node: pb.RangeTableSample) -> None:
+        self._visit_node(node.relation)
+        self._emit(" TABLESAMPLE ")
+        method_parts = [cast("pb.String", _unwrap_node(m)).sval for m in node.method]
+        self._emit(".".join(method_parts))
+        self._emit("(")
+        for i, arg in enumerate(node.args):
+            if i > 0:
+                self._emit(", ")
+            self._visit_node(arg)
+        self._emit(")")
+        if node.HasField("repeatable"):
+            self._emit(" REPEATABLE(")
+            self._visit_node(node.repeatable)
+            self._emit(")")
+
+    # ── RowExpr ──────────────────────────────────────────────────
+
+    def visit_RowExpr(self, node: pb.RowExpr) -> None:
+        if node.row_format == pb.COERCE_EXPLICIT_CALL:
+            self._emit("ROW(")
+        else:
+            self._emit("(")
+        for i, arg in enumerate(node.args):
+            if i > 0:
+                self._emit(", ")
+            self._visit_node(arg)
+        self._emit(")")

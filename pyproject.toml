@@ -210,6 +210,10 @@ archs = ["arm64"]
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
 
+[[tool.cibuildwheel.overrides]]
+select = "*-musllinux_*"
+before-all = "apk add --no-cache make gcc musl-dev"
+
 [tool.mdformat]
 wrap = 120
 end_of_line = "lf"

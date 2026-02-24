@@ -19,21 +19,6 @@ if TYPE_CHECKING:
 
     from postgast.pg_query_pb2 import ParseResult
 
-
-# ── BoolExpr parenthesization helper ──────────────────────────────
-
-
-def _needs_bool_parens(parent_op: int, child_node: Message) -> bool:
-    inner = _unwrap_node(child_node)
-    if not isinstance(inner, pb.BoolExpr):
-        return False
-    if parent_op == pb.AND_EXPR:
-        return inner.boolop == pb.OR_EXPR
-    if parent_op == pb.NOT_EXPR:
-        return inner.boolop in (pb.AND_EXPR, pb.OR_EXPR)
-    return False
-
-
 # ── Window frame bitmask constants (PostgreSQL parsenodes.h) ──────
 
 _FRAMEOPTION_NONDEFAULT: Final = 0x00001
@@ -55,7 +40,8 @@ _FRAMEOPTION_EXCLUDE_CURRENT_ROW: Final = 0x08000
 _FRAMEOPTION_EXCLUDE_GROUP: Final = 0x10000
 _FRAMEOPTION_EXCLUDE_TIES: Final = 0x20000
 
-
+#: A mapping of built-in type names to their canonical SQL representations for formatting. Types not in this map are
+#: emitted as-is.
 _TYPE_MAP: Final[Mapping[str, str]] = {
     "int4": "INTEGER",
     "int8": "BIGINT",
@@ -78,6 +64,12 @@ _TYPE_MAP: Final[Mapping[str, str]] = {
     "jsonb": "JSONB",
     "bytea": "BYTEA",
     "xml": "XML",
+}
+
+_GROUPING_SET_KW: Final[Mapping[int, str]] = {
+    pb.GROUPING_SET_ROLLUP: "ROLLUP(",
+    pb.GROUPING_SET_CUBE: "CUBE(",
+    pb.GROUPING_SET_SETS: "GROUPING SETS (",
 }
 
 
@@ -1285,20 +1277,14 @@ class _SqlFormatter(Visitor):
 
     # ── GroupingSet ───────────────────────────────────────────────
 
-    _GROUPING_SET_KW: dict[int, str] = {
-        pb.GROUPING_SET_ROLLUP: "ROLLUP(",
-        pb.GROUPING_SET_CUBE: "CUBE(",
-        pb.GROUPING_SET_SETS: "GROUPING SETS (",
-    }
-
     def visit_GroupingSet(self, node: pb.GroupingSet) -> None:
         kind = node.kind
         if kind == pb.GROUPING_SET_EMPTY:
             self._emit("()")
         elif kind == pb.GROUPING_SET_SIMPLE:
             self._emit_inline_list(node.content)
-        elif kind in self._GROUPING_SET_KW:
-            self._emit(self._GROUPING_SET_KW[kind])
+        elif kind in _GROUPING_SET_KW:
+            self._emit(_GROUPING_SET_KW[kind])
             self._emit_inline_list(node.content)
             self._emit(")")
 
@@ -1328,6 +1314,17 @@ class _SqlFormatter(Visitor):
         self._emit(")")
 
 
+def _needs_bool_parens(parent_op: int, child_node: Message) -> bool:
+    inner = _unwrap_node(child_node)
+    if not isinstance(inner, pb.BoolExpr):
+        return False
+    if parent_op == pb.AND_EXPR:
+        return inner.boolop == pb.OR_EXPR
+    if parent_op == pb.NOT_EXPR:
+        return inner.boolop in (pb.AND_EXPR, pb.OR_EXPR)
+    return False
+
+
 _SIMPLE_IDENT_RE: Final = re.compile(r"^[a-z_][a-z0-9_]*$")
 
 
@@ -1349,5 +1346,10 @@ def _quote_ident(name: str) -> str:
 
 @functools.lru_cache(maxsize=256)
 def _pascal_to_snake(name: str) -> str:
-    """Convert PascalCase to snake_case (e.g. 'SelectStmt' → 'select_stmt')."""
+    """Convert PascalCase to snake_case (e.g. ``SelectStmt`` → ``select_stmt``).
+
+    The regex only splits at lowercase/digit → uppercase boundaries, so leading acronyms stay grouped
+    (``SQLValueFunction`` → ``sqlvalue_function``).  This intentionally matches protobuf's own field-name
+    convention in ``Node.__slots__``.
+    """
     return re.sub(r"(?<=[a-z0-9])([A-Z])", r"_\1", name).lower()

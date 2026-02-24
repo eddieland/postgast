@@ -31,7 +31,7 @@ def _iter_children(node: Message) -> Generator[tuple[str, Message], None, None]:
     for fd, value in node.ListFields():
         if fd.type != FieldDescriptor.TYPE_MESSAGE:
             continue
-        if fd.label == FieldDescriptor.LABEL_REPEATED:
+        if getattr(fd, "label", None) == FieldDescriptor.LABEL_REPEATED:
             for item in value:
                 yield fd.name, _unwrap_node(item)
         else:

@@ -779,7 +779,10 @@ class _SqlFormatter(Visitor):
                 pb.LCS_FORNOKEYUPDATE: "FOR NO KEY UPDATE",
                 pb.LCS_FORUPDATE: "FOR UPDATE",
             }
-            self._emit(strength_map.get(lc.strength, "FOR UPDATE"))
+            if lc.strength not in strength_map:
+                msg = f"Unknown lock strength: {lc.strength}"
+                raise ValueError(msg)
+            self._emit(strength_map[lc.strength])
             if lc.locked_rels:
                 self._emit(" OF ")
                 for i, rel in enumerate(lc.locked_rels):

@@ -83,8 +83,8 @@ def format_sql(sql: str | ParseResult) -> str:
         sql: A SQL string or an already-parsed ``ParseResult``.
 
     Returns:
-        A pretty-printed SQL string with uppercase keywords, clause-per-line
-        layout, and indented bodies.  Each statement ends with a semicolon.
+        A pretty-printed SQL string with uppercase keywords, clause-per-line layout, and indented bodies. Each statement
+        ends with a semicolon.
 
     Raises:
         PgQueryError: If *sql* is a string that cannot be parsed.

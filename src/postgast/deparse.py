@@ -18,18 +18,16 @@ if TYPE_CHECKING:
 def deparse(tree: ParseResult | AstNode) -> str:
     """Convert a protobuf parse tree back into a SQL string.
 
-    Calls libpg_query's ``pg_query_deparse_protobuf`` to convert a
-    ``ParseResult`` AST back into SQL text. This is the inverse of
-    :func:`postgast.parse`.
+    Calls libpg_query's ``pg_query_deparse_protobuf`` to convert a ``ParseResult`` AST back into SQL text. This is the
+    inverse of :func:`postgast.parse`.
 
     Note:
-        The deparsed SQL is canonicalized by libpg_query and may differ from
-        the original query in whitespace, casing, or parenthesization while
-        remaining semantically equivalent.
+        The deparsed SQL is canonicalized by libpg_query and may differ from the original query in whitespace, casing,
+        or parenthesization while remaining semantically equivalent.
 
     Args:
-        tree: A ``ParseResult`` protobuf message (as returned by
-            :func:`postgast.parse`), or a typed ``AstNode`` wrapper.
+        tree: A ``ParseResult`` protobuf message (as returned by :func:`postgast.parse`), or a typed ``AstNode``
+            wrapper.
 
     Returns:
         The deparsed SQL string.

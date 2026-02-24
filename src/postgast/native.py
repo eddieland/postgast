@@ -1,8 +1,7 @@
 """Low-level ctypes bindings to libpg_query.
 
-This module loads the libpg_query shared library via ctypes, defines C struct
-bindings for all result types, and declares function signatures. It is an
-internal module — use the public postgast API instead.
+This module loads the libpg_query shared library via ctypes, defines C struct bindings for all result types, and
+declares function signatures. It is an internal module — use the public postgast API instead.
 """
 
 import ctypes
@@ -21,8 +20,8 @@ _VENDORED_LIB_NAMES = {
 def _load_libpg_query() -> ctypes.CDLL:
     """Load the libpg_query shared library.
 
-    Checks for a vendored copy bundled alongside this module first, then falls
-    back to ctypes.util.find_library for system-installed libraries.
+    Checks for a vendored copy bundled alongside this module first, then falls back to ctypes.util.find_library for
+    system-installed libraries.
 
     Returns:
         The loaded CDLL instance.
@@ -71,9 +70,8 @@ class PgQueryError(Structure):
 class PgQueryProtobuf(Structure):
     """Mirrors the C PgQueryProtobuf struct (len + data).
 
-    Uses ``c_void_p`` for ``data`` instead of ``c_char_p`` because protobuf
-    binary payloads contain embedded null bytes and ``c_char_p`` would
-    silently truncate at the first null.
+    Uses ``c_void_p`` for ``data`` instead of ``c_char_p`` because protobuf binary payloads contain embedded null bytes
+    and ``c_char_p`` would silently truncate at the first null.
     """
 
     _fields_ = [

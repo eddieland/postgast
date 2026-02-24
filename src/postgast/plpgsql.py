@@ -12,18 +12,15 @@ from postgast.native import lib
 def parse_plpgsql(sql: str) -> list[dict[str, Any]]:
     """Parse a PL/pgSQL function into a structured representation.
 
-    Calls libpg_query's ``pg_query_parse_plpgsql`` to parse a
-    ``CREATE FUNCTION ... LANGUAGE plpgsql`` statement and returns the
-    parsed function body as a list of dictionaries.
+    Calls libpg_query's ``pg_query_parse_plpgsql`` to parse a ``CREATE FUNCTION ... LANGUAGE plpgsql`` statement and
+    returns the parsed function body as a list of dictionaries.
 
     Args:
         sql: A ``CREATE FUNCTION`` statement with ``LANGUAGE plpgsql``.
 
     Returns:
-        A list of dictionaries describing the parsed PL/pgSQL function(s).
-        Each dictionary contains keys like ``"PLpgSQL_function"`` with
-        nested structure representing declarations, statements, and
-        control flow.
+        A list of dictionaries describing the parsed PL/pgSQL function(s). Each dictionary contains keys like
+        ``"PLpgSQL_function"`` with nested structure representing declarations, statements, and control flow.
 
     Raises:
         PgQueryError: If the input contains a syntax error.

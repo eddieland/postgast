@@ -72,15 +72,13 @@ def _wrap_list(repeated: Iterable[Message]) -> list[AstNode]:
 def wrap(tree: Message) -> AstNode:
     """Wrap a protobuf message tree in typed AST wrappers.
 
-    This is the main entry point. Pass a ``ParseResult`` from
-    ``postgast.parse()`` to get a fully typed wrapper tree.
+    This is the main entry point. Pass a ``ParseResult`` from ``postgast.parse()`` to get a fully typed wrapper tree.
 
     Args:
         tree: Any protobuf ``Message`` (typically ``ParseResult``).
 
     Returns:
-        A typed ``AstNode`` wrapper. Access fields as properties;
-        nested nodes are wrapped lazily on access.
+        A typed ``AstNode`` wrapper. Access fields as properties; nested nodes are wrapped lazily on access.
 
     Example:
         >>> from postgast import parse

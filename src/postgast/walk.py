@@ -27,11 +27,11 @@ def _unwrap_node(node: Message) -> Message:
 
 
 def _iter_children(node: Message) -> Generator[tuple[str, Message], None, None]:
-    """Yield ``(field_name, child_message)`` for every message-typed field set on *node*, unwrapping ``Node`` wrappers."""
+    """Yield ``(field_name, child_message)`` for every message-typed field on *node*, unwrapping ``Node`` wrappers."""
     for fd, value in node.ListFields():
         if fd.type != FieldDescriptor.TYPE_MESSAGE:
             continue
-        if fd.is_repeated:
+        if fd.label == FieldDescriptor.LABEL_REPEATED:
             for item in value:
                 yield fd.name, _unwrap_node(item)
         else:
@@ -41,17 +41,13 @@ def _iter_children(node: Message) -> Generator[tuple[str, Message], None, None]:
 def walk(node: Message) -> Generator[tuple[str, Message], None, None]:
     """Depth-first pre-order traversal of a protobuf message tree.
 
-    Yields ``(field_name, message)`` tuples for every protobuf message
-    encountered. The *field_name* is the protobuf field name that led to
-    the message (e.g. ``"where_clause"``, ``"target_list"``), or an empty
-    string for the root.
+    Yields ``(field_name, message)`` tuples for every protobuf message encountered. The *field_name* is the protobuf
+    field name that led to the message (e.g. ``"where_clause"``, ``"target_list"``), or an empty string for the root.
 
-    ``Node`` oneof wrappers are transparently unwrapped so that only
-    concrete message types appear in the output.
+    ``Node`` oneof wrappers are transparently unwrapped so that only concrete message types appear in the output.
 
     Args:
-        node: Any protobuf ``Message`` instance (``ParseResult``,
-            ``SelectStmt``, etc.).
+        node: Any protobuf ``Message`` instance (``ParseResult``, ``SelectStmt``, etc.).
 
     Yields:
         ``(field_name, message)`` tuples in depth-first pre-order.
@@ -79,9 +75,8 @@ def walk(node: Message) -> Generator[tuple[str, Message], None, None]:
 def walk_typed(node: AstNode) -> Generator[tuple[str, AstNode], None, None]:
     """Depth-first pre-order traversal of a typed AST wrapper tree.
 
-    Like :func:`walk` but accepts and yields typed :class:`AstNode` wrappers
-    instead of raw protobuf ``Message`` objects. Delegates to :func:`walk`
-    internally.
+    Like :func:`walk` but accepts and yields typed :class:`AstNode` wrappers instead of raw protobuf ``Message``
+    objects. Delegates to :func:`walk` internally.
 
     Args:
         node: A typed ``AstNode`` wrapper (e.g. from :func:`postgast.wrap`).
@@ -109,10 +104,8 @@ def walk_typed(node: AstNode) -> Generator[tuple[str, AstNode], None, None]:
 class Visitor:
     """Base class for protobuf parse tree visitors.
 
-    Subclass and override ``visit_<TypeName>`` methods (e.g.
-    ``visit_SelectStmt``, ``visit_ColumnRef``) to handle specific node
-    types. Unhandled types fall through to :meth:`generic_visit` which
-    recurses into children.
+    Subclass and override ``visit_<TypeName>`` methods (e.g. ``visit_SelectStmt``, ``visit_ColumnRef``) to handle
+    specific node types. Unhandled types fall through to :meth:`generic_visit` which recurses into children.
 
     Call :meth:`visit` on a root message to start traversal::
 
@@ -131,9 +124,8 @@ class Visitor:
     def visit(self, node: Message) -> None:
         """Dispatch *node* to ``visit_<TypeName>`` or :meth:`generic_visit`.
 
-        Looks up a method named ``visit_<TypeName>`` (where ``<TypeName>``
-        matches the protobuf descriptor name, e.g. ``visit_SelectStmt``).
-        Falls back to :meth:`generic_visit` if no specific handler exists.
+        Looks up a method named ``visit_<TypeName>`` (where ``<TypeName>`` matches the protobuf descriptor name, e.g.
+        ``visit_SelectStmt``). Falls back to :meth:`generic_visit` if no specific handler exists.
 
         Args:
             node: Any protobuf ``Message`` instance.
@@ -146,9 +138,8 @@ class Visitor:
     def generic_visit(self, node: Message) -> None:
         """Visit all message-typed children of *node*.
 
-        Override this method to customize the default traversal behavior.
-        Call ``super().generic_visit(node)`` from a ``visit_*`` handler to
-        continue recursion into a node's children after custom processing.
+        Override this method to customize the default traversal behavior. Call ``super().generic_visit(node)`` from a
+        ``visit_*`` handler to continue recursion into a node's children after custom processing.
 
         Args:
             node: Any protobuf ``Message`` instance.
@@ -160,11 +151,10 @@ class Visitor:
 class TypedVisitor:
     """Base class for typed AST wrapper visitors.
 
-    Like :class:`Visitor` but dispatches to handlers that receive typed
-    :class:`AstNode` wrappers instead of raw protobuf ``Message`` objects.
+    Like :class:`Visitor` but dispatches to handlers that receive typed :class:`AstNode` wrappers instead of raw
+    protobuf ``Message`` objects.
 
-    Subclass and override ``visit_<TypeName>`` methods to handle specific
-    node types with full type safety::
+    Subclass and override ``visit_<TypeName>`` methods to handle specific node types with full type safety::
 
         class TableCollector(TypedVisitor):
             def __init__(self):
@@ -187,9 +177,8 @@ class TypedVisitor:
     def generic_visit(self, node: AstNode) -> None:
         """Visit all child nodes of *node*.
 
-        Override this method to customize the default traversal behavior.
-        Call ``super().generic_visit(node)`` from a ``visit_*`` handler to
-        continue recursion into a node's children after custom processing.
+        Override this method to customize the default traversal behavior. Call ``super().generic_visit(node)`` from a
+        ``visit_*`` handler to continue recursion into a node's children after custom processing.
         """
         from postgast.nodes.base import _wrap  # pyright: ignore[reportPrivateUsage]
 

@@ -16,16 +16,14 @@ _SPLIT_METHODS = {
 def split(sql: str, *, method: Literal["scanner", "parser"] = "parser") -> list[str]:
     """Split a multi-statement SQL string into individual statements.
 
-    Calls the selected libpg_query split function to split the input into
-    individual SQL statements. The ``"parser"`` method (default) uses the full
-    PostgreSQL parser for improved accuracy, while ``"scanner"`` uses a faster
+    Calls the selected libpg_query split function to split the input into individual SQL statements. The ``"parser"``
+    method (default) uses the full PostgreSQL parser for improved accuracy, while ``"scanner"`` uses a faster
     scanner-based approach that tolerates invalid SQL.
 
     Args:
         sql: A SQL string potentially containing multiple statements.
-        method: Which libpg_query splitter to use. ``"parser"`` (default) calls
-            ``pg_query_split_with_parser`` for improved accuracy on valid SQL.
-            ``"scanner"`` calls ``pg_query_split_with_scanner``, which tolerates
+        method: Which libpg_query splitter to use. ``"parser"`` (default) calls ``pg_query_split_with_parser`` for
+            improved accuracy on valid SQL. ``"scanner"`` calls ``pg_query_split_with_scanner``, which tolerates
             malformed SQL but may miss some edge cases.
 
     Returns:

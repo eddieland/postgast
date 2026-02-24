@@ -23,15 +23,14 @@ class FingerprintResult(NamedTuple):
 def fingerprint(query: str) -> FingerprintResult:
     """Compute a structural fingerprint of a SQL query.
 
-    Calls libpg_query's ``pg_query_fingerprint`` to produce a hash that
-    identifies structurally equivalent queries regardless of literal values.
+    Calls libpg_query's ``pg_query_fingerprint`` to produce a hash that identifies structurally equivalent queries
+    regardless of literal values.
 
     Args:
         query: A SQL query string.
 
     Returns:
-        A ``FingerprintResult`` containing the numeric fingerprint and its
-        hex string representation.
+        A ``FingerprintResult`` containing the numeric fingerprint and its hex string representation.
 
     Raises:
         PgQueryError: If the query cannot be parsed.

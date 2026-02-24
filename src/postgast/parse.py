@@ -12,16 +12,14 @@ from postgast.pg_query_pb2 import ParseResult
 def parse(query: str) -> ParseResult:
     """Parse a SQL query into a protobuf AST.
 
-    Calls libpg_query's ``pg_query_parse_protobuf`` to parse the query and
-    returns the deserialized ``ParseResult`` protobuf message containing the
-    abstract syntax tree.
+    Calls libpg_query's ``pg_query_parse_protobuf`` to parse the query and returns the deserialized ``ParseResult``
+    protobuf message containing the abstract syntax tree.
 
     Args:
         query: A SQL query string.
 
     Returns:
-        A ``ParseResult`` protobuf message with ``version`` (int) and
-        ``stmts`` (list of ``RawStmt``) fields.
+        A ``ParseResult`` protobuf message with ``version`` (int) and ``stmts`` (list of ``RawStmt``) fields.
 
     Raises:
         PgQueryError: If the query contains a syntax error.

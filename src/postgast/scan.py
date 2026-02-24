@@ -12,20 +12,17 @@ from postgast.pg_query_pb2 import ScanResult
 def scan(sql: str) -> ScanResult:
     """Tokenize a SQL string into a sequence of scan tokens.
 
-    Calls libpg_query's ``pg_query_scan`` to tokenize the input and returns
-    the deserialized ``ScanResult`` protobuf message containing a list of
-    ``ScanToken`` objects with token type, keyword kind, and byte positions.
+    Calls libpg_query's ``pg_query_scan`` to tokenize the input and returns the deserialized ``ScanResult`` protobuf
+    message containing a list of ``ScanToken`` objects with token type, keyword kind, and byte positions.
 
     Args:
         sql: A SQL string to tokenize.
 
     Returns:
-        A ``ScanResult`` protobuf message with ``version`` (int) and
-        ``tokens`` (list of ``ScanToken``) fields.
+        A ``ScanResult`` protobuf message with ``version`` (int) and ``tokens`` (list of ``ScanToken``) fields.
 
     Raises:
-        PgQueryError: If the input contains a scan error (e.g., unterminated
-            string literal).
+        PgQueryError: If the input contains a scan error (e.g., unterminated string literal).
 
     Example:
         >>> result = scan("SELECT 1")

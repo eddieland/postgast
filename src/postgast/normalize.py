@@ -9,9 +9,8 @@ from postgast.native import lib
 def normalize(query: str) -> str:
     """Normalize a SQL query by replacing literal constants with placeholders.
 
-    Calls libpg_query's ``pg_query_normalize`` to replace literal values
-    (strings, numbers, etc.) with parameter placeholders (``$1``, ``$2``, ...).
-    This is useful for grouping structurally equivalent queries.
+    Calls libpg_query's ``pg_query_normalize`` to replace literal values (strings, numbers, etc.) with parameter
+    placeholders (``$1``, ``$2``, ...). This is useful for grouping structurally equivalent queries.
 
     Args:
         query: A SQL query string.

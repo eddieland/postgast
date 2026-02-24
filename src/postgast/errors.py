@@ -1,7 +1,7 @@
 """Error handling for postgast.
 
-Provides the public PgQueryError exception and an internal helper to raise it
-from C result structs returned by libpg_query.
+Provides the public PgQueryError exception and an internal helper to raise it from C result structs returned by
+libpg_query.
 """
 
 from __future__ import annotations
@@ -17,8 +17,7 @@ class PgQueryError(Exception):
 
     Attributes:
         message: Human-readable error description.
-        cursorpos: 1-based position in the SQL string where the error was
-            detected (0 if unavailable).
+        cursorpos: 1-based position in the SQL string where the error was detected (0 if unavailable).
         context: Additional context from the parser, or None.
         funcname: Internal C function name where the error originated, or None.
         filename: Internal C source file, or None.
@@ -47,8 +46,7 @@ class PgQueryError(Exception):
 
         Args:
             message: Human-readable error description.
-            cursorpos: 1-based position in the SQL string where the
-                error was detected.
+            cursorpos: 1-based position in the SQL string where the error was detected.
             context: Additional parser context.
             funcname: Internal C function name where the error originated.
             filename: Internal C source file.
@@ -66,13 +64,11 @@ class PgQueryError(Exception):
 def check_error(result: Structure) -> None:
     """Inspect a C result struct's error pointer and raise if set.
 
-    If the error pointer is non-null, extracts the error fields and raises
-    ``PgQueryError``. The caller is responsible for freeing the C result
-    (typically via a ``finally`` block).
+    If the error pointer is non-null, extracts the error fields and raises ``PgQueryError``. The caller is responsible
+    for freeing the C result (typically via a ``finally`` block).
 
     Args:
-        result: A ctypes Structure with an ``error`` field (pointer to
-            PgQueryError C struct).
+        result: A ctypes Structure with an ``error`` field (pointer to PgQueryError C struct).
     """
     err_ptr = result.error
     if not err_ptr:

@@ -66,8 +66,8 @@ class TriggerIdentity(typing.NamedTuple):
 def find_nodes(tree: Message, node_type: type[_M]) -> Generator[_M, None, None]:
     """Yield all protobuf messages matching *node_type* from a parse tree.
 
-    Walks the tree in depth-first pre-order (same as :func:`walk`) and yields
-    every message that is an instance of *node_type*.
+    Walks the tree in depth-first pre-order (same as :func:`walk`) and yields every message that is an instance of
+    *node_type*.
 
     Args:
         tree: Any protobuf ``Message`` (``ParseResult``, ``SelectStmt``, etc.).
@@ -91,11 +91,10 @@ def find_nodes(tree: Message, node_type: type[_M]) -> Generator[_M, None, None]:
 def extract_tables(tree: Message) -> list[str]:
     """Return table names referenced in a parse tree.
 
-    Collects all ``RangeVar`` nodes and returns their names as dot-joined
-    strings (``"schema.table"`` when schema-qualified, ``"table"`` otherwise).
+    Collects all ``RangeVar`` nodes and returns their names as dot-joined strings (``"schema.table"`` when
+    schema-qualified, ``"table"`` otherwise).
 
-    Results preserve encounter order and include duplicates. Use ``set()`` on
-    the result to get unique table names.
+    Results preserve encounter order and include duplicates. Use ``set()`` on the result to get unique table names.
 
     Args:
         tree: Any protobuf ``Message`` (``ParseResult``, ``SelectStmt``, etc.).
@@ -117,8 +116,8 @@ def extract_tables(tree: Message) -> list[str]:
 def extract_columns(tree: Message) -> list[str]:
     """Return column references found in a parse tree.
 
-    Collects all ``ColumnRef`` nodes and returns their names as dot-joined
-    strings. ``SELECT *`` produces ``"*"``; ``t.*`` produces ``"t.*"``.
+    Collects all ``ColumnRef`` nodes and returns their names as dot-joined strings. ``SELECT *`` produces ``"*"``;
+    ``t.*`` produces ``"t.*"``.
 
     Results preserve encounter order and include duplicates.
 
@@ -152,8 +151,8 @@ def extract_columns(tree: Message) -> list[str]:
 def extract_functions(tree: Message) -> list[str]:
     """Return function call names found in a parse tree.
 
-    Collects all ``FuncCall`` nodes and returns their names as dot-joined
-    strings (``"schema.func"`` when schema-qualified, ``"func"`` otherwise).
+    Collects all ``FuncCall`` nodes and returns their names as dot-joined strings (``"schema.func"`` when
+    schema-qualified, ``"func"`` otherwise).
 
     Results preserve encounter order and include duplicates.
 
@@ -185,8 +184,8 @@ def extract_functions(tree: Message) -> list[str]:
 def extract_function_identity(tree: Message) -> FunctionIdentity | None:
     """Return the identity of the first ``CREATE FUNCTION`` statement in a parse tree.
 
-    Finds the first ``CreateFunctionStmt`` node where ``is_procedure`` is ``False``
-    and returns a :class:`FunctionIdentity` with the schema and function name.
+    Finds the first ``CreateFunctionStmt`` node where ``is_procedure`` is ``False`` and returns a
+    :class:`FunctionIdentity` with the schema and function name.
 
     Args:
         tree: Any protobuf ``Message`` (``ParseResult``, ``SelectStmt``, etc.).
@@ -221,8 +220,8 @@ def extract_function_identity(tree: Message) -> FunctionIdentity | None:
 def extract_trigger_identity(tree: Message) -> TriggerIdentity | None:
     """Return the identity of the first ``CREATE TRIGGER`` statement in a parse tree.
 
-    Finds the first ``CreateTrigStmt`` node and returns a :class:`TriggerIdentity`
-    with the trigger name, schema, and table name.
+    Finds the first ``CreateTrigStmt`` node and returns a :class:`TriggerIdentity` with the trigger name, schema,
+    and table name.
 
     Args:
         tree: Any protobuf ``Message`` (``ParseResult``, ``SelectStmt``, etc.).
@@ -249,8 +248,7 @@ def extract_trigger_identity(tree: Message) -> TriggerIdentity | None:
 def set_or_replace(tree: Message) -> int:
     """Set ``replace = True`` on eligible DDL nodes in a parse tree.
 
-    Walks *tree* and flips the ``replace`` flag on
-    ``CreateFunctionStmt``, ``CreateTrigStmt``, and ``ViewStmt`` nodes
+    Walks *tree* and flips the ``replace`` flag on ``CreateFunctionStmt``, ``CreateTrigStmt``, and ``ViewStmt`` nodes
     where it is currently ``False``.
 
     Args:
@@ -278,8 +276,8 @@ def set_or_replace(tree: Message) -> int:
 def ensure_or_replace(sql: str) -> str:
     """Return *sql* with all eligible ``CREATE`` statements rewritten to ``CREATE OR REPLACE``.
 
-    Parses the input, sets ``replace = True`` on ``CreateFunctionStmt``,
-    ``CreateTrigStmt``, and ``ViewStmt`` nodes, and deparses back to SQL.
+    Parses the input, sets ``replace = True`` on ``CreateFunctionStmt``, ``CreateTrigStmt``, and ``ViewStmt`` nodes,
+    and deparses back to SQL.
 
     Args:
         sql: One or more SQL statements.
@@ -352,9 +350,8 @@ def _drop_view(stmt: ViewStmt) -> DropStmt:
 def to_drop(sql: str) -> str:
     """Return the ``DROP`` statement corresponding to a ``CREATE`` statement.
 
-    Parses *sql*, builds a ``DropStmt`` protobuf from the parsed AST, and
-    deparses it back to SQL. Supports ``CREATE FUNCTION``, ``CREATE PROCEDURE``,
-    ``CREATE TRIGGER``, and ``CREATE VIEW`` (including ``OR REPLACE`` variants).
+    Parses *sql*, builds a ``DropStmt`` protobuf from the parsed AST, and deparses it back to SQL. Supports ``CREATE
+    FUNCTION``, ``CREATE PROCEDURE``, ``CREATE TRIGGER``, and ``CREATE VIEW`` (including ``OR REPLACE`` variants).
 
     Args:
         sql: A single CREATE statement.
@@ -363,8 +360,8 @@ def to_drop(sql: str) -> str:
         The corresponding DROP statement.
 
     Raises:
-        ValueError: If *sql* contains zero or more than one statement, or if
-            the statement is not a supported CREATE type.
+        ValueError: If *sql* contains zero or more than one statement, or if the statement is not a supported CREATE
+            type.
         PgQueryError: If *sql* is not valid SQL.
 
     Example:

@@ -117,10 +117,10 @@ recipebook and how to use it (run vs edit mode).
 
 ### Requirement: Optional dependency configuration
 
-The `marimo` package SHALL be declared as an optional dependency under a `recipes` extra in `pyproject.toml`,
-installable via `uv sync --extra recipes`.
+The `marimo` package SHALL be declared as a dev-only dependency under a `recipes` dependency group in `pyproject.toml`,
+installable via `uv sync --group recipes`.
 
-#### Scenario: Install recipes extra
+#### Scenario: Install recipes group
 
-- **WHEN** a user runs `uv sync --extra recipes`
+- **WHEN** a user runs `uv sync --group recipes`
 - **THEN** `marimo` is installed and `recipes/ast_walker.py` can be executed

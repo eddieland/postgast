@@ -18,7 +18,7 @@ NATIVE_LIB := src/postgast/$(NATIVE_LIB_NAME)
 all: install lint test ## Install, lint, and test (full check)
 
 install: ## Install dependencies
-	uv sync --all-extras
+	uv sync --all-groups
 
 build-native: ## Build libpg_query and copy into src for local dev
 	$(MAKE) -C vendor/libpg_query build_shared
@@ -69,7 +69,7 @@ proto: ## Regenerate Python protobuf bindings from vendored pg_query.proto
 	uv run python -m grpc_tools.protoc --python_out=src/postgast --pyi_out=src/postgast --proto_path=vendor/libpg_query/protobuf pg_query.proto
 
 docs: ## Build Sphinx documentation
-	uv run --extra docs sphinx-build -b html docs docs/_build/html
+	uv run --group docs sphinx-build -b html docs docs/_build/html
 
 ##@ Build & Release
 
@@ -79,7 +79,7 @@ build: ## Build package
 ##@ Maintenance
 
 upgrade: ## Upgrade all dependencies
-	uv sync --upgrade --all-extras --dev
+	uv sync --upgrade --all-groups
 
 clean: ## Remove build artifacts, caches, .venv
 	-rm -rf dist/

@@ -37,7 +37,7 @@ jobs:
 
       # Skip native build — lint job doesn't need the compiled library.
       - name: Install all dependencies
-        run: uv sync --all-extras
+        run: uv sync --all-groups
         env:
           POSTGAST_SKIP_NATIVE_BUILD: "1"
 
@@ -98,7 +98,7 @@ jobs:
       # hook from accessing platform build tools (nmake on Windows). The native
       # library is built explicitly in the next steps instead.
       - name: Install all dependencies
-        run: uv sync --all-extras
+        run: uv sync --all-groups
         env:
           POSTGAST_SKIP_NATIVE_BUILD: "1"
 

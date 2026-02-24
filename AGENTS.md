@@ -11,7 +11,7 @@ deserializes results into protobuf Python objects.
 All `make` targets use `uv run` to execute within the project virtualenv.
 
 ```bash
-make install       # uv sync --all-extras
+make install       # uv sync --all-groups
 make fmt           # mdformat, codespell, ruff check --fix, ruff format
 make lint          # fmt + basedpyright
 make test          # pytest
@@ -34,11 +34,11 @@ uv run pytest tests/test_foo.py::test_bar -v  # single test
 - Public API defined by `__init__.py` re-exports and `__all__`, not module prefixes.
 - Ruff: line-length 120, Google-style docstrings. Type checker: BasedPyright. Python 3.10+.
 - Always use `uv run` — never bare `pip install` or manual venv activation.
-- `uv add <pkg>` = core dep (keep minimal), `uv add --dev <pkg>` = dev-only, `uv add --optional recipes <pkg>` =
-  optional extra.
+- `uv add <pkg>` = core dep (keep minimal), `uv add --dev <pkg>` = dev-only, `uv add --group recipes <pkg>` = recipes
+  group, `uv add --group docs <pkg>` = docs group.
 - `uv run --with <pkg> <cmd>` — temporarily add a package for a single invocation without modifying `pyproject.toml`.
 - `uv run --only-group dev <cmd>` — run with only a specific dep group, excluding core deps.
-- `uv sync --upgrade --all-extras --dev` — upgrade all deps to latest compatible versions.
+- `uv sync --upgrade --all-groups` — upgrade all deps to latest compatible versions.
 
 ## Scripts
 

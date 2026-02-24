@@ -6,6 +6,7 @@ authors = [
 ]
 readme = "README.md"
 license = "BSD-2-Clause"
+license-files = ["LICENSE", "THIRD-PARTY-LICENSES"]
 requires-python = ">=3.10"
 dynamic = ["version"]
 keywords = ["postgresql", "sql", "parser", "ast", "libpg_query"]
@@ -85,9 +86,6 @@ include = ["src/postgast", "vendor/libpg_query", "hatch_build.py", "pg_query_exp
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/postgast"]
-
-[tool.hatch.build.targets.wheel.force-include]
-"THIRD-PARTY-LICENSES" = "postgast/THIRD-PARTY-LICENSES"
 
 [tool.ruff]
 line-length = 120

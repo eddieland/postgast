@@ -231,6 +231,7 @@ markers = [
 
 [tool.coverage.run]
 source = ["postgast"]
+omit = ["src/postgast/pg_query_pb2.py"]
 
 [tool.coverage.report]
 show_missing = true

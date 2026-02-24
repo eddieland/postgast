@@ -32,7 +32,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "protobuf",
+    "protobuf>=5.27.2",
 ]
 
 [project.optional-dependencies]
@@ -57,6 +57,7 @@ dev = [
     "mdformat-pyproject>=0.0.2",
     "mdformat-ruff>=0.1",
     "mdformat>=1.0.0",
+    "protobuf>=5.27.2,<6.0.0", # pin to avoid regenerating pb2 when protobuf major changes
     "psycopg[binary]",
     "pytest-cov>=7.0.0",
     "pytest-sugar>=1.1.1",

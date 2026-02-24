@@ -76,6 +76,8 @@ class CustomBuildHook(BuildHookInterface):
         method compiles all sources and links them into a DLL using the project's
         pg_query_exports.def file.
         """
+        self._ensure_msvc_env()
+
         def_file = root / "pg_query_exports.def"
         if not def_file.exists():
             msg = f"pg_query_exports.def not found at {def_file}"
@@ -113,6 +115,49 @@ class CustomBuildHook(BuildHookInterface):
         obj_files = glob.glob(str(obj_dir / "*.obj"))
         link_cmd = ["link", "/DLL", f"/DEF:{def_file}", "/OUT:pg_query.dll", *obj_files]
         subprocess.check_call(link_cmd, cwd=libpg_query_dir)
+
+    def _ensure_msvc_env(self) -> None:
+        """Ensure MSVC tools (cl.exe, link.exe) are on PATH.
+
+        If they're already available, this is a no-op. Otherwise, locates
+        vcvarsall.bat via vswhere.exe and imports the developer environment
+        variables into the current process.
+        """
+        if shutil.which("cl"):
+            return
+
+        vswhere = Path(r"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe")
+        if not vswhere.exists():
+            msg = "cl.exe not on PATH and vswhere.exe not found — Visual Studio is required to build on Windows"
+            raise RuntimeError(msg)
+
+        result = subprocess.check_output(
+            [str(vswhere), "-latest", "-property", "installationPath"],
+            text=True,
+        ).strip()
+        if not result:
+            msg = "vswhere did not return a Visual Studio installation path"
+            raise RuntimeError(msg)
+
+        vcvarsall = Path(result) / "VC" / "Auxiliary" / "Build" / "vcvarsall.bat"
+        if not vcvarsall.exists():
+            msg = f"vcvarsall.bat not found at {vcvarsall}"
+            raise RuntimeError(msg)
+
+        # Run vcvarsall and capture the resulting environment.
+        output = subprocess.check_output(
+            f'call "{vcvarsall}" x64 >nul 2>&1 && set',
+            shell=True,
+            text=True,
+        )
+        for line in output.splitlines():
+            if "=" in line:
+                key, _, value = line.partition("=")
+                os.environ[key] = value
+
+        if not shutil.which("cl"):
+            msg = "cl.exe still not found after running vcvarsall.bat"
+            raise RuntimeError(msg)
 
     def clean(self, versions: list[str]) -> None:
         """Remove compiled artifacts from the vendor directory."""

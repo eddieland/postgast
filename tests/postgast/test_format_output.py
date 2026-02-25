@@ -10,11 +10,12 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-import yaml
+from ruamel.yaml import YAML
 
 from postgast import format_sql
 
 _CASES_DIR = Path(__file__).parent / "format_cases"
+_yaml = YAML(typ="safe")
 
 
 def _load_format_cases() -> list[tuple[str, str, str]]:
@@ -25,7 +26,7 @@ def _load_format_cases() -> list[tuple[str, str, str]]:
     """
     cases: list[tuple[str, str, str]] = []
     for yaml_file in sorted(_CASES_DIR.glob("*.yaml")):
-        for entry in yaml.safe_load(yaml_file.read_text()):
+        for entry in _yaml.load(yaml_file.read_text()):  # pyright: ignore[reportUnknownMemberType]
             label: str = entry["label"]
             pretty: str = entry["pretty"]
             inputs: list[str] = entry["inputs"]

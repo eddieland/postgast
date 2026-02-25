@@ -1,42 +1,39 @@
 """Operator precedence levels derived from the PostgreSQL parser grammar.
 
-This module encodes the operator-precedence ladder that PostgreSQL's Bison
-parser uses to resolve ambiguous expressions.  Precedence is a **compile-time
-artifact** — it lives in ``%left`` / ``%right`` / ``%nonassoc`` directives
-inside ``gram.y`` and is not exposed by any catalog, libpg_query API, or
-runtime data structure.  Because the parse tree already reflects the correct
-nesting, this table is only needed when *emitting* SQL (formatting / deparsing)
-to decide where parentheses are required.
+This module encodes the operator-precedence ladder that PostgreSQL's Bison parser uses to resolve ambiguous
+expressions. Precedence is a **compile-time artifact**: it lives in ``%left`` / ``%right`` / ``%nonassoc`` directives
+inside ``gram.y`` and is not exposed by any catalog, libpg_query API, or runtime data structure. Because the parse tree
+already reflects the correct nesting, this table is only needed when *emitting* SQL (formatting / deparsing) to decide
+where parentheses are required.
 
 Source
 ------
-The canonical reference is the precedence block near the top of PostgreSQL's
-``gram.y``.  For the PostgreSQL 17 version used by this project:
+The canonical reference is the precedence block near the top of PostgreSQL's ``gram.y``.
+For the PostgreSQL 17 version used by this project:
 
     https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/parser/gram.y
 
-Search for the ``%nonassoc`` / ``%left`` / ``%right`` section (roughly lines
-100–160).  The table below is a faithful transcription.
+Search for the ``%nonassoc`` / ``%left`` / ``%right`` section (roughly lines 100–160).
+The table below is a faithful transcription.
 
-PostgreSQL is Copyright (c) 1996-2025, The PostgreSQL Global Development Group,
-and is distributed under the PostgreSQL License.  See
-https://www.postgresql.org/about/licence/ for details.
+PostgreSQL is Copyright (c) 1996-2025, The PostgreSQL Global Development Group, and is distributed under the PostgreSQL
+License. See https://www.postgresql.org/about/licence/ for details.
 
-The precedence table has been extremely stable — the last major rework was in
-PostgreSQL 9.5 for SQL-standard compliance.  When upgrading the vendored
-libpg_query, verify the table still matches.
+The precedence table has been extremely stable (the last major rework was in PostgreSQL 9.5 for SQL-standard compliance).
+**When upgrading the vendored libpg_query, verify the table still matches.**
 """
 
 from __future__ import annotations
 
 import enum
-from typing import Final
+from typing import TYPE_CHECKING, Final, Literal, TypeAlias
 
 import postgast.pg_query_pb2 as pb
 
-# ---------------------------------------------------------------------------
-# Associativity
-# ---------------------------------------------------------------------------
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from google.protobuf.message import Message
 
 
 class Assoc(enum.Enum):
@@ -47,13 +44,19 @@ class Assoc(enum.Enum):
     NONE = "nonassoc"
 
 
+class Side(enum.Enum):
+    """Which side of a binary operator a child expression appears on."""
+
+    LEFT = "left"
+    RIGHT = "right"
+
+
 # ---------------------------------------------------------------------------
 # Precedence levels
 # ---------------------------------------------------------------------------
 #
-# Higher numeric value == tighter binding.  The numbers are arbitrary; only
-# their relative order matters.  They follow the declaration order in gram.y
-# (bottom = tightest).
+# Higher numeric value == tighter binding. The numbers are arbitrary; only their relative order matters.  They follow
+# the declaration order in gram.y (bottom = tightest).
 #
 # gram.y (PostgreSQL 17, REL_17_STABLE):
 #
@@ -101,28 +104,15 @@ PAREN: Final = 18  # ( )
 TYPECAST: Final = 19  # ::
 DOT: Final = 20  # .
 
-ASSOC_UNION: Final = Assoc.LEFT
-ASSOC_INTERSECT: Final = Assoc.LEFT
-ASSOC_OR: Final = Assoc.LEFT
-ASSOC_AND: Final = Assoc.LEFT
-ASSOC_NOT: Final = Assoc.RIGHT
-ASSOC_IS: Final = Assoc.NONE
-ASSOC_COMPARISON: Final = Assoc.NONE
-ASSOC_PATTERN: Final = Assoc.NONE
-ASSOC_OP: Final = Assoc.LEFT
-ASSOC_ADD_SUB: Final = Assoc.LEFT
-ASSOC_MUL_DIV: Final = Assoc.LEFT
-ASSOC_EXP: Final = Assoc.LEFT
-ASSOC_UMINUS: Final = Assoc.RIGHT
-ASSOC_TYPECAST: Final = Assoc.LEFT
-
-
 # ---------------------------------------------------------------------------
 # Lookup helpers
 # ---------------------------------------------------------------------------
 
+_Op: TypeAlias = Literal[
+    ">", "<", "=", "<=", ">=", "<>", "!=", "+", "-", "*", "/", "%", "^", "||", "&", "|", "#", "~", "<<", ">>"
+]
 # Maps operator symbol strings to (precedence, associativity).
-_OP_TABLE: Final[dict[str, tuple[int, Assoc]]] = {
+_OP_TABLE: Final[Mapping[_Op, tuple[int, Assoc]]] = {
     # Comparison operators  (gram.y: '<' '>' '=' LESS_EQUALS ...)
     "<": (COMPARISON, Assoc.NONE),
     ">": (COMPARISON, Assoc.NONE),
@@ -192,21 +182,17 @@ def _unwrap_node(node: pb.Node) -> object:
     return getattr(node, field)
 
 
-def precedence_of(node: pb.Node | object) -> Precedence:
+def precedence_of(node: pb.Node | Message) -> Precedence:
     """Return the precedence of an expression node.
 
-    Given a protobuf ``Node`` (or an already-unwrapped message), return
-    a ``Precedence`` describing how tightly it binds.  This is the key
-    building block for deciding whether parentheses are needed when
-    emitting SQL.
+    Given a protobuf ``Node`` (or an already-unwrapped message), return a ``Precedence`` describing how tightly it
+    binds. This is the key building block for deciding whether parentheses are needed when emitting SQL.
 
-    Nodes that are *atomic* (column references, constants, function calls,
-    subselects, etc.) return ``ATOMIC`` — a sentinel with a very high
-    precedence level so they never require wrapping.
+    Nodes that are *atomic* (column references, constants, function calls, subselects, etc.) return ``ATOMIC``, a
+    sentinel with a very high precedence level so they never require wrapping.
 
     Args:
-        node: A ``pg_query_pb2.Node`` or an unwrapped protobuf message
-              (e.g. ``A_Expr``, ``BoolExpr``).
+        node: A ``pg_query_pb2.Node`` or an unwrapped protobuf message (e.g. ``A_Expr``, ``BoolExpr``).
 
     Returns:
         A ``Precedence`` with *level* and *assoc* fields.
@@ -285,27 +271,31 @@ def precedence_of(node: pb.Node | object) -> Precedence:
     return ATOMIC
 
 
-def needs_parens(parent: pb.Node | object, child: pb.Node | object) -> bool:
+def needs_parens(parent: pb.Node | Message, child: pb.Node | Message, *, side: Side | None = None) -> bool:
     """Decide whether *child* needs parentheses when nested inside *parent*.
 
     This encodes the fundamental rule:
 
     * If the child binds **less tightly** than the parent, it needs parens.
-    * If they bind **equally** and the child appears on the non-associative
-      side, it needs parens.
-    * If the parent is ``nonassoc``, equal-precedence children always need
-      parens (PostgreSQL rejects ``a = b = c`` — it is not associative).
+    * If they bind **equally** and the parent is ``nonassoc``, the child always needs parens
+      (PostgreSQL rejects ``a = b = c``).
+    * If they bind **equally** and *side* is provided, associativity is checked: a child on the non-associative side of
+      a left- or right-associative parent needs parens (e.g. the right operand of ``a - (b + c)``).
+    * If they bind **equally**, the parent is left/right-associative, and *side* is ``None``, parens are **not** added
+      (conservative default that avoids false positives when side information is unavailable).
 
     Args:
         parent: The outer expression node.
         child: The inner expression node to test.
+        side: Which side of *parent* the *child* appears on. When provided, enables associativity-aware decisions for
+              equal-precedence operators.
 
     Returns:
         ``True`` if the child should be wrapped in ``(``, ``)``.
 
     Example:
         >>> import postgast.pg_query_pb2 as pb
-        >>> from postgast.precedence import needs_parens
+        >>> from postgast.precedence import needs_parens, Side
         >>> or_expr = pb.BoolExpr(boolop=pb.OR_EXPR)
         >>> and_expr = pb.BoolExpr(boolop=pb.AND_EXPR)
         >>> needs_parens(and_expr, or_expr)
@@ -316,8 +306,24 @@ def needs_parens(parent: pb.Node | object, child: pb.Node | object) -> bool:
     p = precedence_of(parent)
     c = precedence_of(child)
 
+    # If the child binds less tightly than the parent, it needs parens.
     if c.level < p.level:
         return True
 
-    # nonassoc operators can't chain at the same level
-    return c.level == p.level and p.assoc is Assoc.NONE
+    # If the child binds more tightly, it doesn't need parens.
+    if c.level != p.level:
+        return False
+
+    # Equal precedence: decision depends on associativity.
+    if p.assoc is Assoc.NONE:
+        return True
+
+    if side is None:
+        return False
+
+    # Left-associative: right child at same level needs parens (a - (b + c))
+    if p.assoc is Assoc.LEFT:
+        return side is Side.RIGHT
+
+    # Right-associative: left child at same level needs parens
+    return side is Side.LEFT

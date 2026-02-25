@@ -19,6 +19,7 @@ from postgast.precedence import (
     UMINUS,
     Assoc,
     Precedence,
+    Side,
     needs_parens,
     precedence_of,
 )
@@ -288,11 +289,41 @@ class TestNeedsParens:
         child = _make_a_expr("+")
         assert needs_parens(parent, child) is True
 
-    def test_same_left_assoc_no_parens(self):
-        # a + b inside a + c — left-associative at same level, no parens needed
+    def test_same_left_assoc_no_parens_without_side(self):
+        # Without side info, left-associative at same level defaults to no parens
         parent = _make_a_expr("+")
         child = _make_a_expr("-")
         assert needs_parens(parent, child) is False
+
+    def test_same_left_assoc_left_child_no_parens(self):
+        # a - b on left side of + → (a - b) + c, no parens needed (left-assoc)
+        parent = _make_a_expr("+")
+        child = _make_a_expr("-")
+        assert needs_parens(parent, child, side=Side.LEFT) is False
+
+    def test_same_left_assoc_right_child_needs_parens(self):
+        # a + b on right side of - → c - (a + b), needs parens
+        parent = _make_a_expr("-")
+        child = _make_a_expr("+")
+        assert needs_parens(parent, child, side=Side.RIGHT) is True
+
+    def test_nonassoc_needs_parens_regardless_of_side(self):
+        parent = _make_a_expr("=")
+        child = _make_a_expr("<")
+        assert needs_parens(parent, child, side=Side.LEFT) is True
+        assert needs_parens(parent, child, side=Side.RIGHT) is True
+
+    def test_right_assoc_right_child_no_parens(self):
+        # Right-associative: right child at same level doesn't need parens
+        parent = pb.BoolExpr(boolop=pb.NOT_EXPR)
+        child = pb.BoolExpr(boolop=pb.NOT_EXPR)
+        assert needs_parens(parent, child, side=Side.RIGHT) is False
+
+    def test_right_assoc_left_child_needs_parens(self):
+        # Right-associative: left child at same level needs parens
+        parent = pb.BoolExpr(boolop=pb.NOT_EXPR)
+        child = pb.BoolExpr(boolop=pb.NOT_EXPR)
+        assert needs_parens(parent, child, side=Side.LEFT) is True
 
 
 class TestPrecedenceClass:

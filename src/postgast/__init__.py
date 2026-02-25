@@ -23,7 +23,7 @@ from postgast.normalize import normalize
 from postgast.parse import parse
 from postgast.pg_query_pb2 import ParseResult
 from postgast.plpgsql import parse_plpgsql
-from postgast.precedence import Assoc, Precedence, needs_parens, precedence_of
+from postgast.precedence import Assoc, Precedence, Side, needs_parens, precedence_of
 from postgast.scan import scan
 from postgast.split import split
 from postgast.walk import TypedVisitor, Visitor, walk, walk_typed
@@ -45,21 +45,22 @@ __all__ = [
     "FunctionIdentity",
     "needs_parens",
     "normalize",
-    "parse",
     "parse_plpgsql",
+    "parse",
     "ParseResult",
     "pg_query_pb2",
     "PgQueryError",
-    "Precedence",
     "precedence_of",
+    "Precedence",
     "scan",
     "set_or_replace",
+    "Side",
     "split",
     "to_drop",
     "TriggerIdentity",
     "TypedVisitor",
     "Visitor",
-    "walk",
     "walk_typed",
+    "walk",
     "wrap",
 ]

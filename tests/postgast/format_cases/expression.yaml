@@ -1,10 +1,10 @@
 # Expression formatting (CASE, COALESCE, window functions)
 - label: case_expression
   inputs:
-    - >-
-      SELECT CASE WHEN status = 1 THEN 'active'
-      WHEN status = 2 THEN 'inactive'
-      ELSE 'unknown' END AS label FROM users
+  - >-
+    SELECT CASE WHEN status = 1 THEN 'active'
+    WHEN status = 2 THEN 'inactive'
+    ELSE 'unknown' END AS label FROM users
   pretty: |-
     SELECT
       CASE
@@ -12,132 +12,104 @@
         WHEN status = 2 THEN 'inactive'
         ELSE 'unknown'
       END AS label
-    FROM
-      users;
+    FROM users;
 
 - label: coalesce
   inputs:
-    - "SELECT COALESCE(a, b, 0) FROM t"
+  - SELECT COALESCE(a, b, 0) FROM t
   pretty: |-
-    SELECT
-      COALESCE(a, b, 0)
-    FROM
-      t;
+    SELECT COALESCE(a, b, 0)
+    FROM t;
 
 - label: window_function
   inputs:
-    - "SELECT row_number() OVER (PARTITION BY dept ORDER BY salary DESC) FROM employees"
+  - SELECT row_number() OVER (PARTITION BY dept ORDER BY salary DESC) FROM employees
   pretty: |-
-    SELECT
-      row_number() OVER (PARTITION BY dept ORDER BY salary DESC)
-    FROM
-      employees;
+    SELECT row_number() OVER (PARTITION BY dept ORDER BY salary DESC)
+    FROM employees;
 
 - label: agg_filter
   inputs:
-    - "SELECT count(*) FILTER (WHERE x > 0) FROM t"
+  - SELECT count(*) FILTER (WHERE x > 0) FROM t
   pretty: |-
-    SELECT
-      count(*) FILTER (WHERE x > 0)
-    FROM
-      t;
+    SELECT count(*) FILTER (WHERE x > 0)
+    FROM t;
 
 # Arithmetic precedence
 - label: arith_add_mul
   inputs:
-    - "SELECT (a + b) * c FROM t"
+  - SELECT (a + b) * c FROM t
   pretty: |-
-    SELECT
-      (a + b) * c
-    FROM
-      t;
+    SELECT (a + b) * c
+    FROM t;
 
 - label: arith_no_parens
   inputs:
-    - "SELECT a + b * c FROM t"
+  - SELECT a + b * c FROM t
   pretty: |-
-    SELECT
-      a + b * c
-    FROM
-      t;
+    SELECT a + b * c
+    FROM t;
 
 - label: arith_right_parens
   inputs:
-    - "SELECT a * (b + c) FROM t"
+  - SELECT a * (b + c) FROM t
   pretty: |-
-    SELECT
-      a * (b + c)
-    FROM
-      t;
+    SELECT a * (b + c)
+    FROM t;
 
 - label: arith_right_assoc_sub
   inputs:
-    - "SELECT a - (b - c) FROM t"
+  - SELECT a - (b - c) FROM t
   pretty: |-
-    SELECT
-      a - (b - c)
-    FROM
-      t;
+    SELECT a - (b - c)
+    FROM t;
 
 - label: arith_left_assoc_sub
   inputs:
-    - "SELECT a - b - c FROM t"
+  - SELECT a - b - c FROM t
   pretty: |-
-    SELECT
-      a - b - c
-    FROM
-      t;
+    SELECT a - b - c
+    FROM t;
 
 - label: typecast_expr
   inputs:
-    - "SELECT (a + b)::integer FROM t"
+  - SELECT (a + b)::integer FROM t
   pretty: |-
-    SELECT
-      (a + b)::INTEGER
-    FROM
-      t;
+    SELECT (a + b)::INTEGER
+    FROM t;
 
 - label: unary_minus_mul
   inputs:
-    - "SELECT -a * b FROM t"
+  - SELECT -a * b FROM t
   pretty: |-
-    SELECT
-      - a * b
-    FROM
-      t;
+    SELECT - a * b
+    FROM t;
 
 # Boolean parenthesization
 - label: bool_or_inside_and
   inputs:
-    - "SELECT * FROM t WHERE (a = 1 OR b = 2) AND (c = 3 OR d = 4)"
+  - SELECT * FROM t WHERE (a = 1 OR b = 2) AND (c = 3 OR d = 4)
   pretty: |-
-    SELECT
-      *
-    FROM
-      t
+    SELECT *
+    FROM t
     WHERE
       (a = 1 OR b = 2)
       AND (c = 3 OR d = 4);
 
 - label: bool_not_compound
   inputs:
-    - "SELECT * FROM t WHERE NOT (a = 1 AND b = 2)"
+  - SELECT * FROM t WHERE NOT (a = 1 AND b = 2)
   pretty: |-
-    SELECT
-      *
-    FROM
-      t
-    WHERE
-      NOT (a = 1 AND b = 2);
+    SELECT *
+    FROM t
+    WHERE NOT (a = 1 AND b = 2);
 
 - label: bool_and_then_or
   inputs:
-    - "SELECT * FROM t WHERE a = 1 AND b = 2 OR c = 3"
+  - SELECT * FROM t WHERE a = 1 AND b = 2 OR c = 3
   pretty: |-
-    SELECT
-      *
-    FROM
-      t
+    SELECT *
+    FROM t
     WHERE
       a = 1
       AND b = 2
@@ -145,12 +117,10 @@
 
 - label: bool_nested_or_and_or
   inputs:
-    - "SELECT * FROM t WHERE a = 1 OR (b = 2 AND (c = 3 OR d = 4))"
+  - SELECT * FROM t WHERE a = 1 OR (b = 2 AND (c = 3 OR d = 4))
   pretty: |-
-    SELECT
-      *
-    FROM
-      t
+    SELECT *
+    FROM t
     WHERE
       a = 1
       OR b = 2
@@ -159,63 +129,49 @@
 # Window frames
 - label: window_rows_between
   inputs:
-    - "SELECT sum(x) OVER (ORDER BY y ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM t"
+  - SELECT sum(x) OVER (ORDER BY y ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM t
   pretty: |-
-    SELECT
-      sum(x) OVER (ORDER BY y ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)
-    FROM
-      t;
+    SELECT sum(x) OVER (ORDER BY y ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)
+    FROM t;
 
 - label: window_range_unbounded
   inputs:
-    - "SELECT sum(x) OVER (ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) FROM t"
+  - SELECT sum(x) OVER (ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) FROM t
   pretty: |-
-    SELECT
-      sum(x) OVER (ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)
-    FROM
-      t;
+    SELECT sum(x) OVER (ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)
+    FROM t;
 
 - label: window_groups
   inputs:
-    - "SELECT sum(x) OVER (ORDER BY y GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM t"
+  - SELECT sum(x) OVER (ORDER BY y GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM t
   pretty: |-
-    SELECT
-      sum(x) OVER (ORDER BY y GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING)
-    FROM
-      t;
+    SELECT sum(x) OVER (ORDER BY y GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING)
+    FROM t;
 
 - label: window_no_between
   inputs:
-    - "SELECT sum(x) OVER (ORDER BY y ROWS UNBOUNDED PRECEDING) FROM t"
+  - SELECT sum(x) OVER (ORDER BY y ROWS UNBOUNDED PRECEDING) FROM t
   pretty: |-
-    SELECT
-      sum(x) OVER (ORDER BY y ROWS UNBOUNDED PRECEDING)
-    FROM
-      t;
+    SELECT sum(x) OVER (ORDER BY y ROWS UNBOUNDED PRECEDING)
+    FROM t;
 
 - label: window_preceding_current
   inputs:
-    - "SELECT sum(x) OVER (ORDER BY y ROWS BETWEEN 5 PRECEDING AND CURRENT ROW) FROM t"
+  - SELECT sum(x) OVER (ORDER BY y ROWS BETWEEN 5 PRECEDING AND CURRENT ROW) FROM t
   pretty: |-
-    SELECT
-      sum(x) OVER (ORDER BY y ROWS BETWEEN 5 PRECEDING AND CURRENT ROW)
-    FROM
-      t;
+    SELECT sum(x) OVER (ORDER BY y ROWS BETWEEN 5 PRECEDING AND CURRENT ROW)
+    FROM t;
 
 - label: window_current_following
   inputs:
-    - "SELECT sum(x) OVER (ORDER BY y RANGE BETWEEN CURRENT ROW AND 10 FOLLOWING) FROM t"
+  - SELECT sum(x) OVER (ORDER BY y RANGE BETWEEN CURRENT ROW AND 10 FOLLOWING) FROM t
   pretty: |-
-    SELECT
-      sum(x) OVER (ORDER BY y RANGE BETWEEN CURRENT ROW AND 10 FOLLOWING)
-    FROM
-      t;
+    SELECT sum(x) OVER (ORDER BY y RANGE BETWEEN CURRENT ROW AND 10 FOLLOWING)
+    FROM t;
 
 - label: window_exclude_ties
   inputs:
-    - "SELECT sum(x) OVER (ORDER BY y GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES) FROM t"
+  - SELECT sum(x) OVER (ORDER BY y GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES) FROM t
   pretty: |-
-    SELECT
-      sum(x) OVER (ORDER BY y GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES)
-    FROM
-      t;
+    SELECT sum(x) OVER (ORDER BY y GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE TIES)
+    FROM t;

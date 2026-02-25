@@ -653,70 +653,69 @@ class _SqlFormatter(Visitor):
                 self._emit(" DISTINCT ON (")
                 self._emit_inline_list(node.distinct_clause)
                 self._emit(")")
-        self._newline()
 
-        # Target list
-        self._indent()
-        self._emit_multiline_list(node.target_list, visit=lambda t: self._visit_res_target(_unwrap_node(t)))
-        self._dedent()
-
-        # FROM
-        if node.from_clause:
-            self._newline()
-            self._emit("FROM")
+        # Target list — inline when a single, single-line target
+        if len(node.target_list) == 1 and "\n" not in self._fmt(
+            cast("pb.ResTarget", _unwrap_node(node.target_list[0]))
+        ):
+            self._emit(" ")
+            self._visit_res_target(_unwrap_node(node.target_list[0]))
+        else:
             self._newline()
             self._indent()
-            self._visit_from_list(node.from_clause)
+            self._emit_multiline_list(node.target_list, visit=lambda t: self._visit_res_target(_unwrap_node(t)))
             self._dedent()
+
+        # FROM — inline when a single non-join item
+        if node.from_clause:
+            self._newline()
+            self._emit_from_clause("FROM", node.from_clause)
 
         # WHERE
         if node.HasField("where_clause"):
             self._emit_where(node.where_clause)
 
-        # GROUP BY
+        # GROUP BY — inline when a single item
         if node.group_clause:
             self._newline()
             self._emit("GROUP BY")
-            self._newline()
-            self._indent()
-            self._emit_multiline_list(node.group_clause)
-            self._dedent()
+            if len(node.group_clause) == 1:
+                self._emit(" ")
+                self._visit_node(node.group_clause[0])
+            else:
+                self._newline()
+                self._indent()
+                self._emit_multiline_list(node.group_clause)
+                self._dedent()
 
-        # HAVING
+        # HAVING — inline for simple expressions, multiline for AND/OR
         if node.HasField("having_clause"):
-            self._newline()
-            self._emit("HAVING")
-            self._newline()
-            self._indent()
-            self._visit_where_expr(node.having_clause)
-            self._dedent()
+            self._emit_filter_clause("HAVING", node.having_clause)
 
-        # ORDER BY
+        # ORDER BY — inline when a single item
         if node.sort_clause:
             self._newline()
             self._emit("ORDER BY")
-            self._newline()
-            self._indent()
-            self._emit_multiline_list(node.sort_clause)
-            self._dedent()
+            if len(node.sort_clause) == 1:
+                self._emit(" ")
+                self._visit_node(node.sort_clause[0])
+            else:
+                self._newline()
+                self._indent()
+                self._emit_multiline_list(node.sort_clause)
+                self._dedent()
 
-        # LIMIT
+        # LIMIT — always inline (single scalar value)
         if node.HasField("limit_count"):
             self._newline()
-            self._emit("LIMIT")
-            self._newline()
-            self._indent()
+            self._emit("LIMIT ")
             self._visit_node(node.limit_count)
-            self._dedent()
 
-        # OFFSET
+        # OFFSET — always inline (single scalar value)
         if node.HasField("limit_offset"):
             self._newline()
-            self._emit("OFFSET")
-            self._newline()
-            self._indent()
+            self._emit("OFFSET ")
             self._visit_node(node.limit_offset)
-            self._dedent()
 
         # Locking (FOR UPDATE/SHARE/NO KEY UPDATE/KEY SHARE)
         for lock in node.locking_clause:
@@ -814,23 +813,49 @@ class _SqlFormatter(Visitor):
         self._visit_node(node)
         self._in_clause_context = prev
 
+    def _emit_filter_clause(self, keyword: str, expr: Message) -> None:
+        """Emit a WHERE/HAVING-style clause.  Inline for simple expressions, multiline for AND/OR."""
+        inner = _unwrap_node(expr)
+        is_compound = isinstance(inner, pb.BoolExpr) and inner.boolop in (pb.AND_EXPR, pb.OR_EXPR)
+        self._newline()
+        self._emit(keyword)
+        if is_compound:
+            self._newline()
+            self._indent()
+            self._visit_where_expr(expr)
+            self._dedent()
+        else:
+            self._emit(" ")
+            self._visit_node(expr)
+
     def _emit_where(self, where_clause: Message) -> None:
-        """Emit a WHERE clause block (keyword + indented expression)."""
-        self._newline()
-        self._emit("WHERE")
-        self._newline()
-        self._indent()
-        self._visit_where_expr(where_clause)
-        self._dedent()
+        """Emit a WHERE clause.  Inline for simple expressions, multiline for AND/OR."""
+        self._emit_filter_clause("WHERE", where_clause)
+
+    def _emit_from_clause(self, keyword: str, from_list: Sequence[Any]) -> None:
+        """Emit a FROM/USING clause.  Inline for a single non-join item, multiline otherwise."""
+        self._emit(keyword)
+        if len(from_list) == 1 and not isinstance(_unwrap_node(from_list[0]), pb.JoinExpr):
+            self._emit(" ")
+            self._visit_node(_unwrap_node(from_list[0]))
+        else:
+            self._newline()
+            self._indent()
+            self._visit_from_list(from_list)
+            self._dedent()
 
     def _emit_returning(self, returning_list: Sequence[Any]) -> None:
-        """Emit a RETURNING clause block."""
+        """Emit a RETURNING clause.  Inline for a single target, multiline otherwise."""
         self._newline()
         self._emit("RETURNING")
-        self._newline()
-        self._indent()
-        self._emit_multiline_list(returning_list, visit=lambda t: self._visit_res_target(_unwrap_node(t)))
-        self._dedent()
+        if len(returning_list) == 1:
+            self._emit(" ")
+            self._visit_res_target(_unwrap_node(returning_list[0]))
+        else:
+            self._newline()
+            self._indent()
+            self._emit_multiline_list(returning_list, visit=lambda t: self._visit_res_target(_unwrap_node(t)))
+            self._dedent()
 
     def _emit_alias_colnames(self, colnames: Sequence[Any]) -> None:
         """Emit parenthesised column-name list for an alias (quoted identifiers)."""
@@ -839,13 +864,17 @@ class _SqlFormatter(Visitor):
         self._emit(")")
 
     def _emit_set_clause(self, target_list: Sequence[Any]) -> None:
-        """Emit a SET clause block (keyword + indented assignment list)."""
+        """Emit a SET clause.  Inline for a single assignment, multiline otherwise."""
         self._newline()
         self._emit("SET")
-        self._newline()
-        self._indent()
-        self._emit_multiline_list(target_list, visit=self._visit_set_assignment)
-        self._dedent()
+        if len(target_list) == 1:
+            self._emit(" ")
+            self._visit_set_assignment(target_list[0])
+        else:
+            self._newline()
+            self._indent()
+            self._emit_multiline_list(target_list, visit=self._visit_set_assignment)
+            self._dedent()
 
     def _visit_set_assignment(self, item: Any) -> None:
         """Emit a single ``col = expr`` assignment inside a SET clause."""
@@ -957,11 +986,7 @@ class _SqlFormatter(Visitor):
 
         if node.from_clause:
             self._newline()
-            self._emit("FROM")
-            self._newline()
-            self._indent()
-            self._visit_from_list(node.from_clause)
-            self._dedent()
+            self._emit_from_clause("FROM", node.from_clause)
 
         if node.HasField("where_clause"):
             self._emit_where(node.where_clause)
@@ -980,11 +1005,7 @@ class _SqlFormatter(Visitor):
 
         if node.using_clause:
             self._newline()
-            self._emit("USING")
-            self._newline()
-            self._indent()
-            self._visit_from_list(node.using_clause)
-            self._dedent()
+            self._emit_from_clause("USING", node.using_clause)
 
         if node.HasField("where_clause"):
             self._emit_where(node.where_clause)

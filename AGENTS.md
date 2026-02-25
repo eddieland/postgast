@@ -32,6 +32,8 @@ uv run pytest tests/test_foo.py::test_bar -v  # single test
 
 - New modules: plain names (`split.py`), not underscore-prefixed. Existing `_*.py` modules are legacy.
 - Public API defined by `__init__.py` re-exports and `__all__`, not module prefixes.
+- Annotate module-level constants with `typing.Final` (e.g., `TIMEOUT: Final = 30`). No automated rule enforces this yet
+  ([ruff#10137](https://github.com/astral-sh/ruff/issues/10137)), so treat it as a manual convention.
 - Ruff: line-length 120, Google-style docstrings. Type checker: BasedPyright. Python 3.10+.
 - Always use `uv run` — never bare `pip install` or manual venv activation.
 - `uv add <pkg>` = core dep (keep minimal), `uv add --dev <pkg>` = dev-only, `uv add --group recipes <pkg>` = recipes

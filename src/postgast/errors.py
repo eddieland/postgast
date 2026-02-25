@@ -15,10 +15,10 @@ if TYPE_CHECKING:
 class PgQueryError(Exception):
     """Structured error raised when libpg_query rejects a SQL statement.
 
-    Every postgast function that calls into libpg_query — :func:`~postgast.parse`,
+    Every postgast function that calls into libpg_query (:func:`~postgast.parse`,
     :func:`~postgast.deparse`, :func:`~postgast.normalize`, :func:`~postgast.fingerprint`,
     :func:`~postgast.split`, :func:`~postgast.scan`, :func:`~postgast.parse_plpgsql`, and
-    :func:`~postgast.format_sql` — may raise this exception.  The error carries the
+    :func:`~postgast.format_sql`) may raise this exception.  The error carries the
     same structured fields that the C library provides, so callers can build precise
     diagnostics (e.g., underlining the offending token) without parsing the message
     string.

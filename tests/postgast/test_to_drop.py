@@ -65,6 +65,87 @@ class TestDropView:
         assert to_drop("CREATE OR REPLACE VIEW public.v AS SELECT 1") == "DROP VIEW public.v"
 
 
+class TestDropTable:
+    def test_schema_qualified(self):
+        assert to_drop("CREATE TABLE public.users (id int)") == "DROP TABLE public.users"
+
+    def test_unqualified(self):
+        assert to_drop("CREATE TABLE users (id int)") == "DROP TABLE users"
+
+    def test_if_not_exists(self):
+        assert to_drop("CREATE TABLE IF NOT EXISTS t (id int)") == "DROP TABLE t"
+
+    def test_with_columns_and_constraints(self):
+        sql = "CREATE TABLE t (id int PRIMARY KEY, name text NOT NULL, UNIQUE (name))"
+        assert to_drop(sql) == "DROP TABLE t"
+
+
+class TestDropIndex:
+    def test_schema_qualified(self):
+        assert to_drop("CREATE INDEX my_idx ON public.t (col)") == "DROP INDEX public.my_idx"
+
+    def test_unqualified(self):
+        assert to_drop("CREATE INDEX my_idx ON t (col)") == "DROP INDEX my_idx"
+
+    def test_unique_index(self):
+        assert to_drop("CREATE UNIQUE INDEX my_idx ON t (col)") == "DROP INDEX my_idx"
+
+    def test_if_not_exists(self):
+        assert to_drop("CREATE INDEX IF NOT EXISTS my_idx ON t (col)") == "DROP INDEX my_idx"
+
+
+class TestDropSequence:
+    def test_schema_qualified(self):
+        assert to_drop("CREATE SEQUENCE public.my_seq") == "DROP SEQUENCE public.my_seq"
+
+    def test_unqualified(self):
+        assert to_drop("CREATE SEQUENCE my_seq") == "DROP SEQUENCE my_seq"
+
+    def test_if_not_exists(self):
+        assert to_drop("CREATE SEQUENCE IF NOT EXISTS my_seq") == "DROP SEQUENCE my_seq"
+
+
+class TestDropSchema:
+    def test_simple(self):
+        assert to_drop("CREATE SCHEMA myschema") == "DROP SCHEMA myschema"
+
+    def test_if_not_exists(self):
+        assert to_drop("CREATE SCHEMA IF NOT EXISTS myschema") == "DROP SCHEMA myschema"
+
+
+class TestDropType:
+    def test_enum(self):
+        assert to_drop("CREATE TYPE status AS ENUM ('active', 'inactive')") == "DROP TYPE status"
+
+    def test_enum_schema_qualified(self):
+        assert to_drop("CREATE TYPE public.status AS ENUM ('active')") == "DROP TYPE public.status"
+
+    def test_range(self):
+        assert to_drop("CREATE TYPE floatrange AS RANGE (subtype = float8)") == "DROP TYPE floatrange"
+
+    def test_composite(self):
+        assert to_drop("CREATE TYPE address AS (street text, city text)") == "DROP TYPE address"
+
+    def test_composite_schema_qualified(self):
+        assert to_drop("CREATE TYPE public.address AS (street text, city text)") == "DROP TYPE public.address"
+
+
+class TestDropExtension:
+    def test_simple(self):
+        assert to_drop("CREATE EXTENSION hstore") == "DROP EXTENSION hstore"
+
+    def test_if_not_exists(self):
+        assert to_drop("CREATE EXTENSION IF NOT EXISTS hstore") == "DROP EXTENSION hstore"
+
+
+class TestDropMaterializedView:
+    def test_simple(self):
+        assert to_drop("CREATE MATERIALIZED VIEW mv AS SELECT 1") == "DROP MATERIALIZED VIEW mv"
+
+    def test_schema_qualified(self):
+        assert to_drop("CREATE MATERIALIZED VIEW public.mv AS SELECT 1") == "DROP MATERIALIZED VIEW public.mv"
+
+
 class TestErrors:
     def test_unsupported_statement(self):
         with pytest.raises(ValueError, match="unsupported statement type"):

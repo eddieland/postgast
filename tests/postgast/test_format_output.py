@@ -446,6 +446,70 @@ FORMAT_EXAMPLES: list[tuple[str, str, str]] = [
             FROM
               "MySchema"."user" "MyAlias";"""),
     ),
+    # -- Arithmetic precedence ---------------------------------------
+    (
+        "arith_add_mul",
+        "SELECT (a + b) * c FROM t",
+        dedent("""\
+            SELECT
+              (a + b) * c
+            FROM
+              t;"""),
+    ),
+    (
+        "arith_no_parens",
+        "SELECT a + b * c FROM t",
+        dedent("""\
+            SELECT
+              a + b * c
+            FROM
+              t;"""),
+    ),
+    (
+        "arith_right_parens",
+        "SELECT a * (b + c) FROM t",
+        dedent("""\
+            SELECT
+              a * (b + c)
+            FROM
+              t;"""),
+    ),
+    (
+        "arith_right_assoc_sub",
+        "SELECT a - (b - c) FROM t",
+        dedent("""\
+            SELECT
+              a - (b - c)
+            FROM
+              t;"""),
+    ),
+    (
+        "arith_left_assoc_sub",
+        "SELECT a - b - c FROM t",
+        dedent("""\
+            SELECT
+              a - b - c
+            FROM
+              t;"""),
+    ),
+    (
+        "typecast_expr",
+        "SELECT (a + b)::integer FROM t",
+        dedent("""\
+            SELECT
+              (a + b)::INTEGER
+            FROM
+              t;"""),
+    ),
+    (
+        "unary_minus_mul",
+        "SELECT -a * b FROM t",
+        dedent("""\
+            SELECT
+              - a * b
+            FROM
+              t;"""),
+    ),
     # -- Boolean parenthesization ------------------------------------
     (
         "bool_or_inside_and",

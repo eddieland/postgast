@@ -39,6 +39,7 @@ from postgast.pg_query_pb2 import (
     ParseResult,
     RangeVar,
     String,
+    TypeName,
     ViewStmt,
 )
 from postgast.walk import walk
@@ -491,9 +492,7 @@ def _drop_schema(stmt: CreateSchemaStmt) -> DropStmt:
     """Build a DropStmt for a CREATE SCHEMA."""
     drop = DropStmt()
     drop.remove_type = OBJECT_SCHEMA
-
-    lst = drop.objects.add().list
-    lst.items.add().string.sval = stmt.schemaname
+    drop.objects.add().string.sval = stmt.schemaname
     return drop
 
 
@@ -502,13 +501,26 @@ def _drop_type(type_name_nodes: typing.Any, object_type: ObjectType) -> DropStmt
     drop = DropStmt()
     drop.remove_type = object_type
 
-    lst = drop.objects.add().list
+    tn = TypeName(typemod=-1)
     for name_node in type_name_nodes:
         which = name_node.WhichOneof("node")
         if which is not None:
             inner = getattr(name_node, which)
             if isinstance(inner, String):
-                lst.items.add().string.sval = inner.sval
+                tn.names.add().string.sval = inner.sval
+    drop.objects.add().type_name.CopyFrom(tn)
+    return drop
+
+
+def _drop_type_from_relation(relation: RangeVar) -> DropStmt:
+    """Build a DropStmt for a composite type (which uses a RangeVar for its name)."""
+    drop = DropStmt()
+    drop.remove_type = OBJECT_TYPE
+    tn = TypeName(typemod=-1)
+    if relation.schemaname:
+        tn.names.add().string.sval = relation.schemaname
+    tn.names.add().string.sval = relation.relname
+    drop.objects.add().type_name.CopyFrom(tn)
     return drop
 
 
@@ -583,7 +595,7 @@ def to_drop(sql: str) -> str:
     elif which == "create_range_stmt":
         drop = _drop_type(node.create_range_stmt.type_name, OBJECT_TYPE)
     elif which == "composite_type_stmt":
-        drop = _drop_relation(node.composite_type_stmt.typevar, OBJECT_TYPE)
+        drop = _drop_type_from_relation(node.composite_type_stmt.typevar)
     elif which == "create_table_as_stmt":
         stmt = node.create_table_as_stmt
         if stmt.objtype == OBJECT_MATVIEW:

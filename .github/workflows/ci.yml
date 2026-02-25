@@ -122,7 +122,7 @@ jobs:
           Copy-Item pg_query.dll ../../src/postgast/pg_query.dll
 
       - name: Run tests with coverage
-        run: uv run pytest --cov --cov-report=xml
+        run: uv run --no-sync pytest --cov --cov-report=xml
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'

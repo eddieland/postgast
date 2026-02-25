@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from postgast import StatementInfo, classify_statement, parse
+from postgast.pg_query_pb2 import Node
 
 
 class TestDML:
@@ -193,11 +194,39 @@ class TestOther:
         assert info.object_type == "MATERIALIZED VIEW"
 
 
+class TestAlterPolymorphic:
+    """ALTER statements that can target multiple object types report object_type=None."""
+
+    def test_rename(self):
+        info = classify_statement(parse("ALTER TABLE t RENAME TO t2"))
+        assert info is not None
+        assert info.action == "ALTER"
+        assert info.object_type is None
+        assert info.node_name == "rename_stmt"
+
+    def test_alter_owner(self):
+        info = classify_statement(parse("ALTER FUNCTION f() OWNER TO newowner"))
+        assert info is not None
+        assert info.action == "ALTER"
+        assert info.object_type is None
+        assert info.node_name == "alter_owner_stmt"
+
+    def test_alter_set_schema(self):
+        info = classify_statement(parse("ALTER TABLE t SET SCHEMA newschema"))
+        assert info is not None
+        assert info.action == "ALTER"
+        assert info.object_type is None
+        assert info.node_name == "alter_object_schema_stmt"
+
+
 class TestEdgeCases:
     def test_empty_tree(self):
         from postgast.pg_query_pb2 import ParseResult
 
         assert classify_statement(ParseResult()) is None
+
+    def test_empty_node(self):
+        assert classify_statement(Node()) is None
 
     def test_multi_statement_returns_first(self):
         info = classify_statement(parse("SELECT 1; INSERT INTO t VALUES (1)"))
@@ -216,3 +245,28 @@ class TestEdgeCases:
         info = classify_statement(parse("CREATE INDEX idx ON t (col)"))
         assert info is not None
         assert info.node_name == "index_stmt"
+
+    def test_node_input(self):
+        tree = parse("CREATE TABLE t (id int)")
+        node = tree.stmts[0].stmt
+        info = classify_statement(node)
+        assert info is not None
+        assert info.action == "CREATE"
+        assert info.object_type == "TABLE"
+
+    def test_drop_extension_classification(self):
+        info = classify_statement(parse("DROP EXTENSION hstore"))
+        assert info is not None
+        assert info.action == "DROP"
+        assert info.object_type == "EXTENSION"
+
+
+class TestClassificationKeysValid:
+    """Verify that all keys in _STATEMENT_CLASSIFICATION are real Node oneof field names."""
+
+    def test_all_keys_are_valid_node_fields(self):
+        from postgast.helpers import _STATEMENT_CLASSIFICATION
+
+        valid_fields = {field.name for field in Node.DESCRIPTOR.oneofs[0].fields}
+        invalid = set(_STATEMENT_CLASSIFICATION) - valid_fields
+        assert invalid == set(), f"Keys not in Node oneof: {invalid}"

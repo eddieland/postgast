@@ -130,6 +130,14 @@ class TestDropType:
         assert to_drop("CREATE TYPE public.address AS (street text, city text)") == "DROP TYPE public.address"
 
 
+class TestDropExtension:
+    def test_simple(self):
+        assert to_drop("CREATE EXTENSION hstore") == "DROP EXTENSION hstore"
+
+    def test_if_not_exists(self):
+        assert to_drop("CREATE EXTENSION IF NOT EXISTS hstore") == "DROP EXTENSION hstore"
+
+
 class TestDropMaterializedView:
     def test_simple(self):
         assert to_drop("CREATE MATERIALIZED VIEW mv AS SELECT 1") == "DROP MATERIALIZED VIEW mv"

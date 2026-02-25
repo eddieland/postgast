@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import typing
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Final, TypeVar
 
 from google.protobuf.message import Message
 
@@ -12,6 +12,7 @@ from postgast.pg_query_pb2 import (
     FUNC_PARAM_IN,
     FUNC_PARAM_INOUT,
     FUNC_PARAM_VARIADIC,
+    OBJECT_EXTENSION,
     OBJECT_FUNCTION,
     OBJECT_INDEX,
     OBJECT_MATVIEW,
@@ -45,7 +46,9 @@ from postgast.pg_query_pb2 import (
 from postgast.walk import walk
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Generator, Mapping
+
+    from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
 
     from postgast.pg_query_pb2 import ObjectType
 
@@ -477,7 +480,7 @@ def _drop_view(stmt: ViewStmt) -> DropStmt:
 
 
 def _drop_relation(relation: RangeVar, object_type: ObjectType) -> DropStmt:
-    """Build a DropStmt for a relation-based CREATE (TABLE, INDEX, SEQUENCE)."""
+    """Build a DropStmt for a relation-based CREATE (TABLE, SEQUENCE, MATERIALIZED VIEW)."""
     drop = DropStmt()
     drop.remove_type = object_type
 
@@ -485,6 +488,20 @@ def _drop_relation(relation: RangeVar, object_type: ObjectType) -> DropStmt:
     if relation.schemaname:
         lst.items.add().string.sval = relation.schemaname
     lst.items.add().string.sval = relation.relname
+    return drop
+
+
+def _drop_index(stmt: IndexStmt) -> DropStmt:
+    """Build a DropStmt for a CREATE INDEX.
+
+    Uses ``idxname`` (the index name) rather than the table relation.
+    """
+    drop = DropStmt()
+    drop.remove_type = OBJECT_INDEX
+    lst = drop.objects.add().list
+    if stmt.relation.schemaname:
+        lst.items.add().string.sval = stmt.relation.schemaname
+    lst.items.add().string.sval = stmt.idxname
     return drop
 
 
@@ -496,7 +513,15 @@ def _drop_schema(stmt: CreateSchemaStmt) -> DropStmt:
     return drop
 
 
-def _drop_type(type_name_nodes: typing.Any, object_type: ObjectType) -> DropStmt:
+def _drop_extension(stmt: CreateExtensionStmt) -> DropStmt:
+    """Build a DropStmt for a CREATE EXTENSION."""
+    drop = DropStmt()
+    drop.remove_type = OBJECT_EXTENSION
+    drop.objects.add().string.sval = stmt.extname
+    return drop
+
+
+def _drop_type(type_name_nodes: RepeatedCompositeFieldContainer[Node], object_type: ObjectType) -> DropStmt:
     """Build a DropStmt for a CREATE TYPE (enum, range, composite, etc.)."""
     drop = DropStmt()
     drop.remove_type = object_type
@@ -536,6 +561,7 @@ def to_drop(sql: str) -> str:
     - ``CREATE INDEX``
     - ``CREATE SEQUENCE``
     - ``CREATE SCHEMA``
+    - ``CREATE EXTENSION``
     - ``CREATE TYPE`` (enum, range, composite)
     - ``CREATE MATERIALIZED VIEW ... AS``
 
@@ -578,18 +604,13 @@ def to_drop(sql: str) -> str:
     elif which == "create_stmt":
         drop = _drop_relation(node.create_stmt.relation, OBJECT_TABLE)
     elif which == "index_stmt":
-        # Index DROP uses the index name (not the table relation)
-        idx = node.index_stmt
-        drop = DropStmt()
-        drop.remove_type = OBJECT_INDEX
-        lst = drop.objects.add().list
-        if idx.relation.schemaname:
-            lst.items.add().string.sval = idx.relation.schemaname
-        lst.items.add().string.sval = idx.idxname
+        drop = _drop_index(node.index_stmt)
     elif which == "create_seq_stmt":
         drop = _drop_relation(node.create_seq_stmt.sequence, OBJECT_SEQUENCE)
     elif which == "create_schema_stmt":
         drop = _drop_schema(node.create_schema_stmt)
+    elif which == "create_extension_stmt":
+        drop = _drop_extension(node.create_extension_stmt)
     elif which == "create_enum_stmt":
         drop = _drop_type(node.create_enum_stmt.type_name, OBJECT_TYPE)
     elif which == "create_range_stmt":
@@ -617,7 +638,8 @@ class StatementInfo(typing.NamedTuple):
     Attributes:
         action: The action being performed (e.g., ``"SELECT"``, ``"CREATE"``, ``"ALTER"``, ``"DROP"``).
         object_type: The object type, if applicable (e.g., ``"TABLE"``, ``"VIEW"``, ``"FUNCTION"``).
-            ``None`` for DML statements like ``SELECT`` or ``INSERT``.
+            ``None`` for DML statements like ``SELECT`` or ``INSERT``, and for ``ALTER`` operations
+            that can target multiple object types (e.g., ``RENAME``, ``OWNER TO``, ``SET SCHEMA``).
         node_name: The protobuf oneof field name (e.g., ``"select_stmt"``, ``"create_stmt"``).
     """
 
@@ -627,7 +649,7 @@ class StatementInfo(typing.NamedTuple):
 
 
 # Mapping from protobuf oneof field name to (action, object_type).
-_STATEMENT_CLASSIFICATION: dict[str, tuple[str, str | None]] = {
+_STATEMENT_CLASSIFICATION: Final[Mapping[str, tuple[str, str | None]]] = {
     # DML
     "select_stmt": ("SELECT", None),
     "insert_stmt": ("INSERT", None),
@@ -695,14 +717,14 @@ _STATEMENT_CLASSIFICATION: dict[str, tuple[str, str | None]] = {
     "alter_system_stmt": ("ALTER", "SYSTEM"),
     "alter_table_space_options_stmt": ("ALTER", "TABLESPACE"),
     "alter_table_move_all_stmt": ("ALTER", "TABLE"),
-    "alter_owner_stmt": ("ALTER", "OWNER"),
-    "alter_object_schema_stmt": ("ALTER", "SCHEMA"),
-    "alter_object_depends_stmt": ("ALTER", "DEPENDS"),
+    "alter_owner_stmt": ("ALTER", None),
+    "alter_object_schema_stmt": ("ALTER", None),
+    "alter_object_depends_stmt": ("ALTER", None),
     "alter_default_privileges_stmt": ("ALTER", "DEFAULT PRIVILEGES"),
     "alter_tsdictionary_stmt": ("ALTER", "TEXT SEARCH DICTIONARY"),
     "alter_tsconfiguration_stmt": ("ALTER", "TEXT SEARCH CONFIGURATION"),
     "alter_stats_stmt": ("ALTER", "STATISTICS"),
-    "rename_stmt": ("ALTER", "RENAME"),
+    "rename_stmt": ("ALTER", None),
     # DDL — DROP
     "drop_stmt": ("DROP", None),  # refined below from remove_type
     "dropdb_stmt": ("DROP", "DATABASE"),
@@ -753,13 +775,14 @@ _STATEMENT_CLASSIFICATION: dict[str, tuple[str, str | None]] = {
 }
 
 # Mapping from DropStmt.remove_type to human-readable object type.
-_DROP_OBJECT_TYPES: dict[int, str] = {
+_DROP_OBJECT_TYPES: Final[Mapping[int, str]] = {
     OBJECT_TABLE: "TABLE",
     OBJECT_VIEW: "VIEW",
     OBJECT_INDEX: "INDEX",
     OBJECT_SEQUENCE: "SEQUENCE",
     OBJECT_SCHEMA: "SCHEMA",
     OBJECT_TYPE: "TYPE",
+    OBJECT_EXTENSION: "EXTENSION",
     OBJECT_FUNCTION: "FUNCTION",
     OBJECT_PROCEDURE: "PROCEDURE",
     OBJECT_TRIGGER: "TRIGGER",

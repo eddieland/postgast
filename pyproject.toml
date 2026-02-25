@@ -224,6 +224,8 @@ skip = "src/postgast/pg_query_pb2.py,src/postgast/pg_query_pb2.pyi,src/postgast/
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = ["--doctest-modules"]
+filterwarnings = []
 markers = [
     "stress: marks tests as stress tests — large inputs, deep nesting, high counts (deselect with '-m \"not stress\"')",
     "fuzz: marks tests as fuzz tests — property-based tests with Hypothesis (deselect with '-m \"not fuzz\"')",

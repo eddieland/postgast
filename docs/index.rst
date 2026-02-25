@@ -41,6 +41,7 @@ Installation
    :caption: Contents
 
    guide
+   examples
    api
    upgrade-policy
    contributing

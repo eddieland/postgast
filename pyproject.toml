@@ -82,7 +82,6 @@ source = "uv-dynamic-versioning"
 
 [tool.uv-dynamic-versioning]
 vcs = "git"
-style = "pep440"
 bump = true
 
 [tool.hatch.build.hooks.custom]
@@ -224,11 +223,7 @@ ignore-words-list = "fo,inout,larg"
 skip = "src/postgast/pg_query_pb2.py,src/postgast/pg_query_pb2.pyi,src/postgast/nodes"
 
 [tool.pytest.ini_options]
-python_files = ["*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-testpaths = ["src", "tests"]
-filterwarnings = []
+testpaths = ["tests"]
 markers = [
     "stress: marks tests as stress tests — large inputs, deep nesting, high counts (deselect with '-m \"not stress\"')",
     "fuzz: marks tests as fuzz tests — property-based tests with Hypothesis (deselect with '-m \"not fuzz\"')",
@@ -241,6 +236,3 @@ omit = ["src/postgast/pg_query_pb2.py"]
 [tool.coverage.report]
 show_missing = true
 skip_empty = true
-
-[tool.coverage.html]
-directory = "htmlcov"

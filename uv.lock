@@ -1138,6 +1138,14 @@ recipes = [
     { name = "marimo" },
     { name = "pyzmq" },
 ]
+test = [
+    { name = "hypothesis" },
+    { name = "protobuf" },
+    { name = "psycopg", extra = ["binary"] },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-sugar" },
+]
 
 [package.metadata]
 requires-dist = [{ name = "protobuf", specifier = ">=5.27.2" }]
@@ -1169,6 +1177,14 @@ docs = [
 recipes = [
     { name = "marimo", specifier = ">=0.10" },
     { name = "pyzmq", specifier = ">=27.1.0" },
+]
+test = [
+    { name = "hypothesis", specifier = ">=6.151.9" },
+    { name = "protobuf", specifier = ">=5.27.2,<6.0.0" },
+    { name = "psycopg", extras = ["binary"] },
+    { name = "pytest", specifier = ">=9.0.2" },
+    { name = "pytest-cov", specifier = ">=7.0.0" },
+    { name = "pytest-sugar", specifier = ">=1.1.1" },
 ]
 
 [[package]]

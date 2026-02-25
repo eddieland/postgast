@@ -97,8 +97,10 @@ jobs:
       # Skip native build during uv sync — build isolation prevents the hatch
       # hook from accessing platform build tools (nmake on Windows). The native
       # library is built explicitly in the next steps instead.
-      - name: Install all dependencies
-        run: uv sync --all-groups
+      # Only install the test group — lint-only tools (basedpyright, ruff, etc.)
+      # and non-test groups (docs, recipes) are not needed here.
+      - name: Install test dependencies
+        run: uv sync --no-default-groups --group test
         env:
           POSTGAST_SKIP_NATIVE_BUILD: "1"
 
@@ -120,7 +122,7 @@ jobs:
           Copy-Item pg_query.dll ../../src/postgast/pg_query.dll
 
       - name: Run tests with coverage
-        run: uv run pytest --cov --cov-report=xml
+        run: uv run --no-sync pytest --cov --cov-report=xml
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'

@@ -36,10 +36,6 @@ dependencies = [
     "protobuf>=5.27.2",
 ]
 
-[project.optional-dependencies]
-recipes = ["marimo>=0.10", "pyzmq>=27.1.0"]
-docs = ["sphinx>=8.0", "furo>=2024.8", "sphinx-copybutton>=0.5", "sphinx-autodoc-typehints>=2.0"]
-
 [project.urls]
 Homepage = "https://github.com/eddieland/postgast"
 Repository = "https://github.com/eddieland/postgast"
@@ -64,6 +60,16 @@ dev = [
     "pytest-sugar>=1.1.1",
     "pytest>=9.0.2",
     "ruff>=0.15.1",
+]
+docs = [
+    "sphinx>=8.0",
+    "furo>=2024.8",
+    "sphinx-copybutton>=0.5",
+    "sphinx-autodoc-typehints>=2.0",
+]
+recipes = [
+    "marimo>=0.10",
+    "pyzmq>=27.1.0",
 ]
 
 [build-system]

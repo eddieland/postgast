@@ -70,6 +70,7 @@ docs = [
     "furo>=2024.8",
     "sphinx-copybutton>=0.5",
     "sphinx-autodoc-typehints>=2.0",
+    "sphinx-llm>=0.3",
 ]
 recipes = [
     "marimo>=0.10",

@@ -23,10 +23,6 @@ from postgast.precedence import (
     precedence_of,
 )
 
-# ---------------------------------------------------------------------------
-# precedence_of — BoolExpr
-# ---------------------------------------------------------------------------
-
 
 class TestBoolExprPrecedence:
     def test_or(self):
@@ -48,18 +44,32 @@ class TestBoolExprPrecedence:
         assert NOT > AND > OR
 
 
-# ---------------------------------------------------------------------------
-# precedence_of — A_Expr binary operators
-# ---------------------------------------------------------------------------
-
-
 def _make_a_expr(op: str, kind: int = pb.AEXPR_OP, *, unary: bool = False) -> pb.A_Expr:
     """Build a minimal A_Expr node with the given operator."""
     name_node = pb.Node(string=pb.String(sval=op))
-    expr = pb.A_Expr(kind=kind, name=[name_node])
+    expr = pb.A_Expr(
+        kind=kind,  # pyright: ignore[reportArgumentType]
+        name=[name_node],
+    )
     if not unary:
-        expr.lexpr.CopyFrom(pb.Node(column_ref=pb.ColumnRef(fields=[pb.Node(string=pb.String(sval="a"))])))
-    expr.rexpr.CopyFrom(pb.Node(column_ref=pb.ColumnRef(fields=[pb.Node(string=pb.String(sval="b"))])))
+        expr.lexpr.CopyFrom(
+            pb.Node(
+                column_ref=pb.ColumnRef(
+                    fields=[
+                        pb.Node(string=pb.String(sval="a")),
+                    ],
+                ),
+            ),
+        )
+    expr.rexpr.CopyFrom(
+        pb.Node(
+            column_ref=pb.ColumnRef(
+                fields=[
+                    pb.Node(string=pb.String(sval="b")),
+                ],
+            ),
+        ),
+    )
     return expr
 
 
@@ -129,11 +139,6 @@ class TestAExprPrecedence:
         assert COMPARISON > AND
 
 
-# ---------------------------------------------------------------------------
-# precedence_of — unary minus
-# ---------------------------------------------------------------------------
-
-
 class TestUnaryMinus:
     def test_unary_minus_precedence(self):
         p = precedence_of(_make_a_expr("-", unary=True))
@@ -142,11 +147,6 @@ class TestUnaryMinus:
 
     def test_unary_minus_tighter_than_binary(self):
         assert UMINUS > MUL_DIV
-
-
-# ---------------------------------------------------------------------------
-# precedence_of — A_Expr kinds (LIKE, BETWEEN, IN, etc.)
-# ---------------------------------------------------------------------------
 
 
 class TestAExprKindPrecedence:
@@ -191,11 +191,6 @@ class TestAExprKindPrecedence:
         assert precedence_of(expr) == ATOMIC
 
 
-# ---------------------------------------------------------------------------
-# precedence_of — other node types
-# ---------------------------------------------------------------------------
-
-
 class TestOtherNodePrecedence:
     def test_null_test(self):
         p = precedence_of(pb.NullTest())
@@ -226,11 +221,6 @@ class TestOtherNodePrecedence:
         assert precedence_of(pb.CaseExpr()) == ATOMIC
 
 
-# ---------------------------------------------------------------------------
-# precedence_of — wrapped in Node
-# ---------------------------------------------------------------------------
-
-
 class TestNodeWrapped:
     def test_bool_expr_in_node(self):
         node = pb.Node(bool_expr=pb.BoolExpr(boolop=pb.AND_EXPR))
@@ -244,11 +234,6 @@ class TestNodeWrapped:
     def test_column_ref_in_node(self):
         node = pb.Node(column_ref=pb.ColumnRef())
         assert precedence_of(node) == ATOMIC
-
-
-# ---------------------------------------------------------------------------
-# needs_parens
-# ---------------------------------------------------------------------------
 
 
 class TestNeedsParens:
@@ -310,11 +295,6 @@ class TestNeedsParens:
         assert needs_parens(parent, child) is False
 
 
-# ---------------------------------------------------------------------------
-# Precedence class
-# ---------------------------------------------------------------------------
-
-
 class TestPrecedenceClass:
     def test_repr(self):
         p = Precedence(level=5, assoc=Assoc.LEFT)
@@ -345,11 +325,6 @@ class TestPrecedenceClass:
     def test_eq_with_non_precedence(self):
         p = Precedence(level=5, assoc=Assoc.LEFT)
         assert p != "not a precedence"
-
-
-# ---------------------------------------------------------------------------
-# Full precedence ladder ordering
-# ---------------------------------------------------------------------------
 
 
 class TestFullLadder:

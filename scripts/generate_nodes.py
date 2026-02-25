@@ -59,6 +59,331 @@ _SCALAR_TYPE_MAP: dict[int, str] = {
 }
 
 
+# ---- Class docstrings ---- #
+# One-line descriptions for each generated wrapper class.  Keyed by the
+# wrapper class name (matches ``_wrapper_name(desc)``).  When present the
+# docstring is emitted right after the ``class …(AstNode):`` line.
+_CLASS_DOCSTRINGS: dict[str, str] = {
+    # -- parse-tree value nodes --
+    "A_ArrayExpr": "Array constructor expression (``ARRAY[...]``).",
+    "A_Const": "Constant literal value (string, number, boolean, or NULL).",
+    "A_Expr": "Expression with an operator (e.g. ``a + b``, ``a LIKE b``).",
+    "A_Indices": "Array subscript or slice (e.g. ``[1]`` or ``[1:3]``).",
+    "A_Indirection": "Indirection chain (field selection or array subscript on a value).",
+    "A_Star": "Star wildcard (``*``) in a column reference or target list.",
+    "AccessPriv": "Privilege name and optional column list in a ``GRANT``/``REVOKE`` statement.",
+    "Aggref": "Aggregate function call (planner/executor node).",
+    "Alias": "Alias for a range variable or column (``AS name(col1, col2, …)``).",
+    # -- ALTER statements --
+    "AlterCollationStmt": "``ALTER COLLATION`` statement.",
+    "AlterDatabaseRefreshCollStmt": "``ALTER DATABASE … REFRESH COLLATION VERSION`` statement.",
+    "AlterDatabaseSetStmt": "``ALTER DATABASE … SET/RESET`` configuration statement.",
+    "AlterDatabaseStmt": "``ALTER DATABASE`` statement.",
+    "AlterDefaultPrivilegesStmt": "``ALTER DEFAULT PRIVILEGES`` statement.",
+    "AlterDomainStmt": "``ALTER DOMAIN`` statement.",
+    "AlterEnumStmt": "``ALTER TYPE … ADD/RENAME VALUE`` for enum types.",
+    "AlterEventTrigStmt": "``ALTER EVENT TRIGGER`` statement.",
+    "AlterExtensionContentsStmt": "``ALTER EXTENSION … ADD/DROP`` object statement.",
+    "AlterExtensionStmt": "``ALTER EXTENSION … UPDATE`` statement.",
+    "AlterFdwStmt": "``ALTER FOREIGN DATA WRAPPER`` statement.",
+    "AlterForeignServerStmt": "``ALTER SERVER`` statement.",
+    "AlterFunctionStmt": "``ALTER FUNCTION/PROCEDURE/ROUTINE`` statement.",
+    "AlterObjectDependsStmt": "``ALTER … DEPENDS ON EXTENSION`` statement.",
+    "AlterObjectSchemaStmt": "``ALTER … SET SCHEMA`` statement.",
+    "AlterOpFamilyStmt": "``ALTER OPERATOR FAMILY`` statement.",
+    "AlterOperatorStmt": "``ALTER OPERATOR`` statement.",
+    "AlterOwnerStmt": "``ALTER … OWNER TO`` statement.",
+    "AlterPolicyStmt": "``ALTER POLICY`` statement.",
+    "AlterPublicationStmt": "``ALTER PUBLICATION`` statement.",
+    "AlterRoleSetStmt": "``ALTER ROLE … SET/RESET`` configuration statement.",
+    "AlterRoleStmt": "``ALTER ROLE`` statement.",
+    "AlterSeqStmt": "``ALTER SEQUENCE`` statement.",
+    "AlterStatsStmt": "``ALTER STATISTICS`` statement.",
+    "AlterSubscriptionStmt": "``ALTER SUBSCRIPTION`` statement.",
+    "AlterSystemStmt": "``ALTER SYSTEM SET/RESET`` statement.",
+    "AlterTSConfigurationStmt": "``ALTER TEXT SEARCH CONFIGURATION`` statement.",
+    "AlterTSDictionaryStmt": "``ALTER TEXT SEARCH DICTIONARY`` statement.",
+    "AlterTableCmd": "Single sub-command within an ``ALTER TABLE`` statement.",
+    "AlterTableMoveAllStmt": "``ALTER TABLE ALL IN TABLESPACE … SET TABLESPACE`` statement.",
+    "AlterTableSpaceOptionsStmt": "``ALTER TABLESPACE … SET/RESET`` options statement.",
+    "AlterTableStmt": "``ALTER TABLE`` statement (contains a list of ``AlterTableCmd``).",
+    "AlterTypeStmt": "``ALTER TYPE … SET/RESET`` attribute statement.",
+    "AlterUserMappingStmt": "``ALTER USER MAPPING`` statement.",
+    "AlternativeSubPlan": "Alternative sub-plan list (planner node, not produced by parser).",
+    # -- planner/executor expression nodes --
+    "ArrayCoerceExpr": "Array element-by-element coercion expression (planner node).",
+    "ArrayExpr": "Array constructor expression (planner node).",
+    "BitString": "Bit-string constant value (e.g. ``B'101'``).",
+    "BoolExpr": "Boolean combination expression (``AND``, ``OR``, ``NOT``).",
+    "Boolean": "Boolean constant value (``TRUE`` or ``FALSE``).",
+    "BooleanTest": "``IS [NOT] TRUE/FALSE/UNKNOWN`` test expression.",
+    "CTECycleClause": "``CYCLE`` clause in a recursive common table expression.",
+    "CTESearchClause": "``SEARCH`` clause in a recursive common table expression.",
+    "CallContext": "Context information for a ``CALL`` statement (planner node).",
+    "CallStmt": "``CALL`` statement for invoking a procedure.",
+    "CaseExpr": "``CASE WHEN … THEN … ELSE … END`` expression.",
+    "CaseTestExpr": "Placeholder for the test value inside a ``CASE`` expression (planner node).",
+    "CaseWhen": "Single ``WHEN … THEN …`` clause in a ``CASE`` expression.",
+    "CheckPointStmt": "``CHECKPOINT`` statement.",
+    "ClosePortalStmt": "``CLOSE`` cursor statement.",
+    "ClusterStmt": "``CLUSTER`` statement.",
+    "CoalesceExpr": "``COALESCE(…)`` expression.",
+    "CoerceToDomain": "Coercion to a domain type with constraint checking (planner node).",
+    "CoerceToDomainValue": "Placeholder for the value inside a domain check constraint (planner node).",
+    "CoerceViaIO": "Coercion via I/O functions (text output then input, planner node).",
+    "CollateClause": "``COLLATE`` clause attached to an expression or type.",
+    "CollateExpr": "``COLLATE`` expression (planner node).",
+    "ColumnDef": "Column definition in ``CREATE TABLE`` or ``ALTER TABLE ADD COLUMN``.",
+    "ColumnRef": "Column reference (e.g. ``table.column`` or ``column``).",
+    "CommentStmt": "``COMMENT ON`` statement.",
+    "CommonTableExpr": "Common table expression (CTE) defined in a ``WITH`` clause.",
+    "CompositeTypeStmt": "``CREATE TYPE … AS (…)`` composite type statement.",
+    "Constraint": "Column or table constraint (``CHECK``, ``UNIQUE``, ``PRIMARY KEY``, ``FOREIGN KEY``, etc.).",
+    "ConstraintsSetStmt": "``SET CONSTRAINTS`` statement.",
+    "ConvertRowtypeExpr": "Row-type conversion expression (planner node).",
+    # -- COPY --
+    "CopyStmt": "``COPY`` statement (to/from file or program).",
+    # -- CREATE statements --
+    "CreateAmStmt": "``CREATE ACCESS METHOD`` statement.",
+    "CreateCastStmt": "``CREATE CAST`` statement.",
+    "CreateConversionStmt": "``CREATE CONVERSION`` statement.",
+    "CreateDomainStmt": "``CREATE DOMAIN`` statement.",
+    "CreateEnumStmt": "``CREATE TYPE … AS ENUM (…)`` statement.",
+    "CreateEventTrigStmt": "``CREATE EVENT TRIGGER`` statement.",
+    "CreateExtensionStmt": "``CREATE EXTENSION`` statement.",
+    "CreateFdwStmt": "``CREATE FOREIGN DATA WRAPPER`` statement.",
+    "CreateForeignServerStmt": "``CREATE SERVER`` statement for foreign data wrappers.",
+    "CreateForeignTableStmt": "``CREATE FOREIGN TABLE`` statement.",
+    "CreateFunctionStmt": "``CREATE FUNCTION/PROCEDURE/ROUTINE`` statement.",
+    "CreateOpClassItem": "Single item (operator or function) in a ``CREATE OPERATOR CLASS`` statement.",
+    "CreateOpClassStmt": "``CREATE OPERATOR CLASS`` statement.",
+    "CreateOpFamilyStmt": "``CREATE OPERATOR FAMILY`` statement.",
+    "CreatePLangStmt": "``CREATE LANGUAGE`` statement.",
+    "CreatePolicyStmt": "``CREATE POLICY`` statement for row-level security.",
+    "CreatePublicationStmt": "``CREATE PUBLICATION`` statement for logical replication.",
+    "CreateRangeStmt": "``CREATE TYPE … AS RANGE`` statement.",
+    "CreateRoleStmt": "``CREATE ROLE/USER/GROUP`` statement.",
+    "CreateSchemaStmt": "``CREATE SCHEMA`` statement.",
+    "CreateSeqStmt": "``CREATE SEQUENCE`` statement.",
+    "CreateStatsStmt": "``CREATE STATISTICS`` statement.",
+    "CreateStmt": "``CREATE TABLE`` statement.",
+    "CreateSubscriptionStmt": "``CREATE SUBSCRIPTION`` statement for logical replication.",
+    "CreateTableAsStmt": "``CREATE TABLE AS`` or ``SELECT INTO`` statement.",
+    "CreateTableSpaceStmt": "``CREATE TABLESPACE`` statement.",
+    "CreateTransformStmt": "``CREATE TRANSFORM`` statement.",
+    "CreateTrigStmt": "``CREATE TRIGGER`` statement.",
+    "CreateUserMappingStmt": "``CREATE USER MAPPING`` statement.",
+    "CreatedbStmt": "``CREATE DATABASE`` statement.",
+    # -- misc expression / utility nodes --
+    "CurrentOfExpr": "``WHERE CURRENT OF cursor`` expression.",
+    "DeallocateStmt": "``DEALLOCATE`` prepared statement.",
+    "DeclareCursorStmt": "``DECLARE CURSOR`` statement.",
+    "DefElem": "Generic name/value definition element (used in many option lists).",
+    "DefineStmt": "``CREATE AGGREGATE/OPERATOR/TYPE/COLLATION`` definition statement.",
+    "DeleteStmt": "``DELETE FROM`` statement.",
+    "DiscardStmt": "``DISCARD`` statement (``ALL``, ``PLANS``, ``SEQUENCES``, ``TEMP``).",
+    "DistinctExpr": "``IS DISTINCT FROM`` expression (planner form of a comparison).",
+    "DoStmt": "``DO`` anonymous code block statement.",
+    # -- DROP statements --
+    "DropOwnedStmt": "``DROP OWNED BY`` statement.",
+    "DropRoleStmt": "``DROP ROLE/USER/GROUP`` statement.",
+    "DropStmt": "``DROP`` statement for various object types.",
+    "DropSubscriptionStmt": "``DROP SUBSCRIPTION`` statement.",
+    "DropTableSpaceStmt": "``DROP TABLESPACE`` statement.",
+    "DropUserMappingStmt": "``DROP USER MAPPING`` statement.",
+    "DropdbStmt": "``DROP DATABASE`` statement.",
+    # -- EXECUTE / EXPLAIN / FETCH --
+    "ExecuteStmt": "``EXECUTE`` prepared statement.",
+    "ExplainStmt": "``EXPLAIN`` statement.",
+    "FetchStmt": "``FETCH`` or ``MOVE`` cursor statement.",
+    # -- planner expression nodes --
+    "FieldSelect": "Field selection from a composite value (planner node).",
+    "FieldStore": "Field assignment in a composite value update (planner node).",
+    "Float": "Floating-point constant value.",
+    "FromExpr": "``FROM`` clause with an optional ``WHERE`` qualification.",
+    "FuncCall": "Function call in parsed SQL (e.g. ``func(args)``).",
+    "FuncExpr": "Function call expression (planner node).",
+    "FunctionParameter": "Parameter definition in ``CREATE FUNCTION``.",
+    # -- GRANT / GROUPING --
+    "GrantRoleStmt": "``GRANT/REVOKE`` role membership statement.",
+    "GrantStmt": "``GRANT/REVOKE`` privileges statement.",
+    "GroupingFunc": "``GROUPING(…)`` function in a query with grouping sets.",
+    "GroupingSet": "``GROUPING SETS``, ``ROLLUP``, or ``CUBE`` clause.",
+    # -- IMPORT / INDEX / INSERT --
+    "ImportForeignSchemaStmt": "``IMPORT FOREIGN SCHEMA`` statement.",
+    "IndexElem": "Single column or expression in an index definition.",
+    "IndexStmt": "``CREATE INDEX`` statement.",
+    "InferClause": "``ON CONFLICT`` inference clause (specifies the conflict target).",
+    "InferenceElem": "Single element of an ``ON CONFLICT`` inference specification (planner node).",
+    "InlineCodeBlock": "Anonymous code block for ``DO`` statement execution (planner node).",
+    "InsertStmt": "``INSERT INTO`` statement.",
+    "IntList": "List of integer values (internal protobuf wrapper).",
+    "Integer": "Integer constant value.",
+    "IntoClause": "``INTO`` clause for ``SELECT INTO`` or ``CREATE TABLE AS``.",
+    # -- JOIN --
+    "JoinExpr": "``JOIN`` expression (``INNER``, ``LEFT``, ``RIGHT``, ``FULL``, ``CROSS``).",
+    # -- JSON / SQL/JSON --
+    "JsonAggConstructor": "Common fields for JSON aggregate constructors.",
+    "JsonArgument": "Named argument in a JSON constructor (``key : value``).",
+    "JsonArrayAgg": "``JSON_ARRAYAGG(…)`` aggregate expression.",
+    "JsonArrayConstructor": "``JSON_ARRAY(…)`` constructor expression.",
+    "JsonArrayQueryConstructor": "``JSON_ARRAY(subquery)`` constructor expression.",
+    "JsonBehavior": "``ON ERROR`` or ``ON EMPTY`` behavior clause in JSON functions.",
+    "JsonConstructorExpr": "JSON constructor expression (planner node).",
+    "JsonExpr": "JSON query expression (planner node).",
+    "JsonFormat": "``FORMAT JSON`` clause specifying JSON encoding.",
+    "JsonFuncExpr": "SQL/JSON function expression (``JSON_VALUE``, ``JSON_QUERY``, etc.).",
+    "JsonIsPredicate": "``IS JSON`` predicate expression.",
+    "JsonKeyValue": "Single ``key : value`` pair in a JSON object constructor.",
+    "JsonObjectAgg": "``JSON_OBJECTAGG(…)`` aggregate expression.",
+    "JsonObjectConstructor": "``JSON_OBJECT(…)`` constructor expression.",
+    "JsonOutput": "Output type specification for a JSON function.",
+    "JsonParseExpr": "``JSON(…)`` parse expression.",
+    "JsonReturning": "``RETURNING`` clause for JSON functions.",
+    "JsonScalarExpr": "``JSON_SCALAR(…)`` expression.",
+    "JsonSerializeExpr": "``JSON_SERIALIZE(…)`` expression.",
+    "JsonTable": "``JSON_TABLE(…)`` expression in a ``FROM`` clause.",
+    "JsonTableColumn": "Column definition inside ``JSON_TABLE``.",
+    "JsonTablePath": "Path specification inside ``JSON_TABLE``.",
+    "JsonTablePathScan": "Path scan node inside ``JSON_TABLE`` (planner node).",
+    "JsonTablePathSpec": "Path specification for ``JSON_TABLE`` with optional name.",
+    "JsonTableSiblingJoin": "Sibling join between ``JSON_TABLE`` path scans (planner node).",
+    "JsonValueExpr": "Expression with an associated JSON format (planner node).",
+    # -- LIST / LISTEN / LOAD / LOCK --
+    "List": "Generic list of nodes.",
+    "ListenStmt": "``LISTEN`` statement for notification channels.",
+    "LoadStmt": "``LOAD`` statement for loading shared libraries.",
+    "LockStmt": "``LOCK TABLE`` statement.",
+    "LockingClause": "``FOR UPDATE/SHARE/NO KEY UPDATE/KEY SHARE`` locking clause.",
+    # -- MERGE --
+    "MergeAction": "Single ``WHEN MATCHED/NOT MATCHED`` action in ``MERGE`` (planner node).",
+    "MergeStmt": "``MERGE INTO`` statement.",
+    "MergeSupportFunc": "``MERGE`` support function reference (planner node).",
+    "MergeWhenClause": "``WHEN MATCHED/NOT MATCHED`` clause in a ``MERGE`` statement.",
+    # -- MIN/MAX --
+    "MinMaxExpr": "``GREATEST(…)`` or ``LEAST(…)`` expression.",
+    "MultiAssignRef": "Reference to a specific column of a multi-assignment source.",
+    # -- named arg / nextval / notify / null --
+    "NamedArgExpr": "Named argument in a function call (``name => value``).",
+    "NextValueExpr": "``nextval(sequence)`` expression (planner node).",
+    "NotifyStmt": "``NOTIFY`` statement for sending notifications.",
+    "NullIfExpr": "``NULLIF(a, b)`` expression (planner form).",
+    "NullTest": "``IS [NOT] NULL`` test expression.",
+    # -- object with args / OID list --
+    "ObjectWithArgs": "Object name with optional argument types (used for functions/operators).",
+    "OidList": "List of OID values (internal protobuf wrapper).",
+    # -- ON CONFLICT --
+    "OnConflictClause": "``ON CONFLICT`` clause in an ``INSERT`` statement.",
+    "OnConflictExpr": "``ON CONFLICT`` expression (planner node).",
+    "OpExpr": "Operator expression (planner form of an operator invocation).",
+    # -- PL/pgSQL / PARAM --
+    "PLAssignStmt": "PL/pgSQL assignment statement (``var := expr``).",
+    "Param": "Query parameter reference (``$1``, ``$2``, etc., planner node).",
+    "ParamRef": "Parameter reference (``$1``, ``$2``, etc.) in parsed SQL.",
+    # -- parse / scan results --
+    "ParseResult": "Top-level result of parsing SQL text (contains a list of statements).",
+    "ScanResult": "Top-level result of scanning SQL text for tokens.",
+    "ScanToken": "Single token from the SQL scanner.",
+    # -- partition --
+    "PartitionBoundSpec": "Partition bound specification (``FOR VALUES …``).",
+    "PartitionCmd": "Sub-command for ``ALTER TABLE … ATTACH/DETACH PARTITION``.",
+    "PartitionElem": "Single column, expression, or collation in a partition key.",
+    "PartitionRangeDatum": "Single boundary value in a range partition bound.",
+    "PartitionSpec": "``PARTITION BY`` specification in ``CREATE TABLE``.",
+    # -- PREPARE / PUBLICATION --
+    "PrepareStmt": "``PREPARE`` statement for creating a prepared statement.",
+    "PublicationObjSpec": "Object specification in a ``CREATE/ALTER PUBLICATION`` statement.",
+    "PublicationTable": "Table specification with optional column/row filter in a publication.",
+    # -- Query (planner) --
+    "Query": "Fully analyzed query tree (planner/executor node, not produced by raw parser).",
+    # -- range table / range var --
+    "RTEPermissionInfo": "Permission-checking information for a range table entry (planner node).",
+    "RangeFunction": "Function call in a ``FROM`` clause.",
+    "RangeSubselect": "Sub-``SELECT`` in a ``FROM`` clause.",
+    "RangeTableFunc": "``XMLTABLE`` or similar table-valued function in ``FROM``.",
+    "RangeTableFuncCol": "Column definition in a ``XMLTABLE``-style function.",
+    "RangeTableSample": "``TABLESAMPLE`` clause in a ``FROM`` item.",
+    "RangeTblEntry": "Range table entry (planner node representing a ``FROM`` item).",
+    "RangeTblFunction": "Function call within a range table entry (planner node).",
+    "RangeTblRef": "Reference to a range table entry by index (planner node).",
+    "RangeVar": "Table or view reference (``schema.table``).",
+    "RawStmt": "Raw statement wrapper with statement location information.",
+    # -- REASSIGN / REFRESH / REINDEX / RENAME --
+    "ReassignOwnedStmt": "``REASSIGN OWNED BY`` statement.",
+    "RefreshMatViewStmt": "``REFRESH MATERIALIZED VIEW`` statement.",
+    "ReindexStmt": "``REINDEX`` statement.",
+    "RelabelType": "Type relabeling (no-op cast, planner node).",
+    "RenameStmt": "``ALTER … RENAME`` statement.",
+    "ReplicaIdentityStmt": "``ALTER TABLE … REPLICA IDENTITY`` statement.",
+    # -- result target / return / role --
+    "ResTarget": "Result target in a ``SELECT`` list, ``INSERT`` column list, or ``UPDATE SET`` clause.",
+    "ReturnStmt": "``RETURN`` statement (SQL function body).",
+    "RoleSpec": "Role specification (role name, ``CURRENT_USER``, ``SESSION_USER``, or ``PUBLIC``).",
+    # -- row / rule --
+    "RowCompareExpr": "Row-wise comparison expression (planner node).",
+    "RowExpr": "``ROW(…)`` constructor expression.",
+    "RowMarkClause": "Row-mark clause for locking/marking rows in a query plan.",
+    "RuleStmt": "``CREATE RULE`` statement.",
+    # -- SQL value function / scalar array op --
+    "SQLValueFunction": "SQL-standard function requiring no arguments (e.g. ``CURRENT_TIMESTAMP``).",
+    "ScalarArrayOpExpr": "Scalar operator applied to an array (``ANY``/``ALL``, planner node).",
+    # -- SECURITY LABEL / SELECT --
+    "SecLabelStmt": "``SECURITY LABEL`` statement.",
+    "SelectStmt": "``SELECT`` statement (also used for ``VALUES`` and set operations).",
+    "SetOperationStmt": "Set operation (``UNION``, ``INTERSECT``, ``EXCEPT``, planner node).",
+    "SetToDefault": "``DEFAULT`` keyword used as a value in ``INSERT`` or ``UPDATE``.",
+    "SinglePartitionSpec": "Single partition specification (internal).",
+    # -- SORT / STATS / STRING --
+    "SortBy": "``ORDER BY`` sort specification.",
+    "SortGroupClause": "Sort or group clause entry referencing a target list item (planner node).",
+    "StatsElem": "Column or expression element in a ``CREATE STATISTICS`` statement.",
+    "String": "String constant value.",
+    # -- sub-select / sub-plan / subscript --
+    "SubLink": "Sub-``SELECT`` appearing in an expression (``EXISTS``, ``IN``, ``ANY``, scalar subquery, etc.).",
+    "SubPlan": "Sub-plan reference in an expression (planner node).",
+    "SubscriptingRef": "Array or container subscripting expression (planner node).",
+    # -- summary (postgast-specific) --
+    "SummaryResult": "Result of SQL summarization (tables, functions, columns referenced).",
+    "SummaryResult_Table": "Table referenced in a summarized SQL statement.",
+    "SummaryResult_AliasesEntry": "Alias mapping entry in a summarized SQL statement.",
+    "SummaryResult_Function": "Function referenced in a summarized SQL statement.",
+    "SummaryResult_FilterColumn": "Column used in a filter (``WHERE``) in a summarized SQL statement.",
+    # -- table / target --
+    "TableFunc": "Table function definition (used by ``XMLTABLE`` and similar, planner node).",
+    "TableLikeClause": "``LIKE`` clause in ``CREATE TABLE`` (copies structure from another table).",
+    "TableSampleClause": "``TABLESAMPLE`` clause (planner node).",
+    "TargetEntry": "Single entry in a query's target list (planner node).",
+    # -- TRANSACTION / TRIGGER / TRUNCATE --
+    "TransactionStmt": "Transaction control statement (``BEGIN``, ``COMMIT``, ``ROLLBACK``, ``SAVEPOINT``, etc.).",
+    "TriggerTransition": "``REFERENCING`` transition table clause in ``CREATE TRIGGER``.",
+    "TruncateStmt": "``TRUNCATE`` statement.",
+    # -- type cast / type name --
+    "TypeCast": "Type cast expression (``expr::type`` or ``CAST(expr AS type)``).",
+    "TypeName": "Type name with optional modifiers and array bounds.",
+    # -- UNLISTEN / UPDATE --
+    "UnlistenStmt": "``UNLISTEN`` statement for notification channels.",
+    "UpdateStmt": "``UPDATE`` statement.",
+    # -- VACUUM / VAR --
+    "VacuumRelation": "Single relation in a ``VACUUM`` or ``ANALYZE`` statement.",
+    "VacuumStmt": "``VACUUM`` and/or ``ANALYZE`` statement.",
+    "Var": "Variable reference (column of a table, planner node).",
+    # -- SET / SHOW / VIEW --
+    "VariableSetStmt": "``SET`` configuration variable statement.",
+    "VariableShowStmt": "``SHOW`` configuration variable statement.",
+    "ViewStmt": "``CREATE VIEW`` statement.",
+    # -- WINDOW --
+    "WindowClause": "Window specification in a query plan (planner node).",
+    "WindowDef": "``WINDOW`` clause or inline window specification.",
+    "WindowFunc": "Window function call (planner node).",
+    "WindowFuncRunCondition": "Optimization condition for window function execution (planner node).",
+    # -- WITH / XML --
+    "WithCheckOption": "``WITH CHECK OPTION`` for views and row-level security (planner node).",
+    "WithClause": "``WITH`` clause containing common table expressions.",
+    "XmlExpr": "XML expression (``XMLCONCAT``, ``XMLELEMENT``, ``XMLFOREST``, etc.).",
+    "XmlSerialize": "``XMLSERIALIZE(content/document AS type)`` expression.",
+}
+
+
 def _is_node_oneof(desc: Descriptor) -> bool:
     """Check if a message descriptor is the Node oneof wrapper."""
     return len(desc.oneofs) == 1 and desc.oneofs[0].name == "node"
@@ -92,19 +417,19 @@ def _field_python_type(fd: FieldDescriptor) -> str:
     if fd.type == _TYPE_MESSAGE:
         if _is_node_oneof(fd.message_type):
             # Node oneof wrapper -> unwrap to AstNode
-            if fd.is_repeated:
+            if fd.label == _LABEL_REPEATED:
                 return "list[AstNode]"
             return "AstNode | None"
         # Concrete message type
         wrapper = _wrapper_name(fd.message_type)
-        if fd.is_repeated:
+        if fd.label == _LABEL_REPEATED:
             return f"list[{wrapper}]"
         return f"{wrapper} | None"
     # Scalar/enum types
     scalar = _SCALAR_TYPE_MAP.get(fd.type)
     if scalar is None:
         scalar = "int"  # enums and other integer types
-    if fd.is_repeated:
+    if fd.label == _LABEL_REPEATED:
         return f"list[{scalar}]"
     return scalar
 
@@ -123,14 +448,14 @@ def _field_body(fd: FieldDescriptor) -> str:
     if fd.type == _TYPE_MESSAGE:
         wrapper = _wrapper_name(fd.message_type)
         if _is_node_oneof(fd.message_type):
-            if fd.is_repeated:
+            if fd.label == _LABEL_REPEATED:
                 return f"return _wrap_list({attr})"
             return f"return _wrap_node_optional({attr})"
-        if fd.is_repeated:
+        if fd.label == _LABEL_REPEATED:
             return f'return [_REGISTRY["{wrapper}"](item) for item in {attr}]'
         return f'return _REGISTRY["{wrapper}"]({attr}) if self._pb.HasField({name!r}) else None'
     # Scalar or enum
-    if fd.is_repeated:
+    if fd.label == _LABEL_REPEATED:
         return f"return list({attr})"
     return f"return {attr}"
 
@@ -166,6 +491,10 @@ def _generate_class(desc: Descriptor) -> str:
     pb_type = _pb_type_name(desc)
     lines = []
     lines.append(f"class {name}(AstNode):")
+    docstring = _CLASS_DOCSTRINGS.get(name)
+    if docstring:
+        lines.append(f'    """{docstring}"""')
+        lines.append("")
     lines.append("    __slots__ = ()")
     lines.append(f"    _pb: {pb_type}")
 

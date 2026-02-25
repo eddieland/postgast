@@ -15,6 +15,8 @@ if TYPE_CHECKING:
 
 
 class A_ArrayExpr(AstNode):
+    """Array constructor expression (``ARRAY[...]``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.A_ArrayExpr
     __match_args__ = ("elements",)
@@ -29,6 +31,8 @@ class A_ArrayExpr(AstNode):
 
 
 class A_Const(AstNode):
+    """Constant literal value (string, number, boolean, or NULL)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.A_Const
     __match_args__ = (
@@ -54,6 +58,8 @@ class A_Const(AstNode):
 
 
 class A_Expr(AstNode):
+    """Expression with an operator (e.g. ``a + b``, ``a LIKE b``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.A_Expr
     __match_args__ = (
@@ -85,6 +91,8 @@ class A_Expr(AstNode):
 
 
 class A_Indices(AstNode):
+    """Array subscript or slice (e.g. ``[1]`` or ``[1:3]``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.A_Indices
     __match_args__ = (
@@ -107,6 +115,8 @@ class A_Indices(AstNode):
 
 
 class A_Indirection(AstNode):
+    """Indirection chain (field selection or array subscript on a value)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.A_Indirection
     __match_args__ = (
@@ -124,6 +134,8 @@ class A_Indirection(AstNode):
 
 
 class A_Star(AstNode):
+    """Star wildcard (``*``) in a column reference or target list."""
+
     __slots__ = ()
     _pb: pg_query_pb2.A_Star
     __match_args__ = ()
@@ -131,6 +143,8 @@ class A_Star(AstNode):
 
 
 class AccessPriv(AstNode):
+    """Privilege name and optional column list in a ``GRANT``/``REVOKE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AccessPriv
     __match_args__ = (
@@ -148,6 +162,8 @@ class AccessPriv(AstNode):
 
 
 class Aggref(AstNode):
+    """Aggregate function call (planner/executor node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.Aggref
     __match_args__ = (
@@ -249,6 +265,8 @@ class Aggref(AstNode):
 
 
 class Alias(AstNode):
+    """Alias for a range variable or column (``AS name(col1, col2, …)``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.Alias
     __match_args__ = (
@@ -266,6 +284,8 @@ class Alias(AstNode):
 
 
 class AlterCollationStmt(AstNode):
+    """``ALTER COLLATION`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterCollationStmt
     __match_args__ = ("collname",)
@@ -276,6 +296,8 @@ class AlterCollationStmt(AstNode):
 
 
 class AlterDatabaseRefreshCollStmt(AstNode):
+    """``ALTER DATABASE … REFRESH COLLATION VERSION`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterDatabaseRefreshCollStmt
     __match_args__ = ("dbname",)
@@ -286,6 +308,8 @@ class AlterDatabaseRefreshCollStmt(AstNode):
 
 
 class AlterDatabaseSetStmt(AstNode):
+    """``ALTER DATABASE … SET/RESET`` configuration statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterDatabaseSetStmt
     __match_args__ = (
@@ -303,6 +327,8 @@ class AlterDatabaseSetStmt(AstNode):
 
 
 class AlterDatabaseStmt(AstNode):
+    """``ALTER DATABASE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterDatabaseStmt
     __match_args__ = (
@@ -320,6 +346,8 @@ class AlterDatabaseStmt(AstNode):
 
 
 class AlterDefaultPrivilegesStmt(AstNode):
+    """``ALTER DEFAULT PRIVILEGES`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterDefaultPrivilegesStmt
     __match_args__ = (
@@ -337,6 +365,8 @@ class AlterDefaultPrivilegesStmt(AstNode):
 
 
 class AlterDomainStmt(AstNode):
+    """``ALTER DOMAIN`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterDomainStmt
     __match_args__ = (
@@ -374,6 +404,8 @@ class AlterDomainStmt(AstNode):
 
 
 class AlterEnumStmt(AstNode):
+    """``ALTER TYPE … ADD/RENAME VALUE`` for enum types."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterEnumStmt
     __match_args__ = (
@@ -411,6 +443,8 @@ class AlterEnumStmt(AstNode):
 
 
 class AlterEventTrigStmt(AstNode):
+    """``ALTER EVENT TRIGGER`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterEventTrigStmt
     __match_args__ = (
@@ -428,6 +462,8 @@ class AlterEventTrigStmt(AstNode):
 
 
 class AlterExtensionContentsStmt(AstNode):
+    """``ALTER EXTENSION … ADD/DROP`` object statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterExtensionContentsStmt
     __match_args__ = (
@@ -455,6 +491,8 @@ class AlterExtensionContentsStmt(AstNode):
 
 
 class AlterExtensionStmt(AstNode):
+    """``ALTER EXTENSION … UPDATE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterExtensionStmt
     __match_args__ = (
@@ -472,6 +510,8 @@ class AlterExtensionStmt(AstNode):
 
 
 class AlterFdwStmt(AstNode):
+    """``ALTER FOREIGN DATA WRAPPER`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterFdwStmt
     __match_args__ = (
@@ -494,6 +534,8 @@ class AlterFdwStmt(AstNode):
 
 
 class AlterForeignServerStmt(AstNode):
+    """``ALTER SERVER`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterForeignServerStmt
     __match_args__ = (
@@ -521,6 +563,8 @@ class AlterForeignServerStmt(AstNode):
 
 
 class AlterFunctionStmt(AstNode):
+    """``ALTER FUNCTION/PROCEDURE/ROUTINE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterFunctionStmt
     __match_args__ = (
@@ -543,6 +587,8 @@ class AlterFunctionStmt(AstNode):
 
 
 class AlterObjectDependsStmt(AstNode):
+    """``ALTER … DEPENDS ON EXTENSION`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterObjectDependsStmt
     __match_args__ = (
@@ -575,6 +621,8 @@ class AlterObjectDependsStmt(AstNode):
 
 
 class AlterObjectSchemaStmt(AstNode):
+    """``ALTER … SET SCHEMA`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterObjectSchemaStmt
     __match_args__ = (
@@ -607,6 +655,8 @@ class AlterObjectSchemaStmt(AstNode):
 
 
 class AlterOpFamilyStmt(AstNode):
+    """``ALTER OPERATOR FAMILY`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterOpFamilyStmt
     __match_args__ = (
@@ -634,6 +684,8 @@ class AlterOpFamilyStmt(AstNode):
 
 
 class AlterOperatorStmt(AstNode):
+    """``ALTER OPERATOR`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterOperatorStmt
     __match_args__ = (
@@ -651,6 +703,8 @@ class AlterOperatorStmt(AstNode):
 
 
 class AlterOwnerStmt(AstNode):
+    """``ALTER … OWNER TO`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterOwnerStmt
     __match_args__ = (
@@ -678,6 +732,8 @@ class AlterOwnerStmt(AstNode):
 
 
 class AlterPolicyStmt(AstNode):
+    """``ALTER POLICY`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterPolicyStmt
     __match_args__ = (
@@ -710,6 +766,8 @@ class AlterPolicyStmt(AstNode):
 
 
 class AlterPublicationStmt(AstNode):
+    """``ALTER PUBLICATION`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterPublicationStmt
     __match_args__ = (
@@ -742,6 +800,8 @@ class AlterPublicationStmt(AstNode):
 
 
 class AlterRoleSetStmt(AstNode):
+    """``ALTER ROLE … SET/RESET`` configuration statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterRoleSetStmt
     __match_args__ = (
@@ -764,6 +824,8 @@ class AlterRoleSetStmt(AstNode):
 
 
 class AlterRoleStmt(AstNode):
+    """``ALTER ROLE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterRoleStmt
     __match_args__ = (
@@ -786,6 +848,8 @@ class AlterRoleStmt(AstNode):
 
 
 class AlterSeqStmt(AstNode):
+    """``ALTER SEQUENCE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterSeqStmt
     __match_args__ = (
@@ -813,6 +877,8 @@ class AlterSeqStmt(AstNode):
 
 
 class AlterStatsStmt(AstNode):
+    """``ALTER STATISTICS`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterStatsStmt
     __match_args__ = (
@@ -835,6 +901,8 @@ class AlterStatsStmt(AstNode):
 
 
 class AlterSubscriptionStmt(AstNode):
+    """``ALTER SUBSCRIPTION`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterSubscriptionStmt
     __match_args__ = (
@@ -867,6 +935,8 @@ class AlterSubscriptionStmt(AstNode):
 
 
 class AlterSystemStmt(AstNode):
+    """``ALTER SYSTEM SET/RESET`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterSystemStmt
     __match_args__ = ("setstmt",)
@@ -877,6 +947,8 @@ class AlterSystemStmt(AstNode):
 
 
 class AlterTSConfigurationStmt(AstNode):
+    """``ALTER TEXT SEARCH CONFIGURATION`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterTSConfigurationStmt
     __match_args__ = (
@@ -919,6 +991,8 @@ class AlterTSConfigurationStmt(AstNode):
 
 
 class AlterTSDictionaryStmt(AstNode):
+    """``ALTER TEXT SEARCH DICTIONARY`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterTSDictionaryStmt
     __match_args__ = (
@@ -936,6 +1010,8 @@ class AlterTSDictionaryStmt(AstNode):
 
 
 class AlterTableCmd(AstNode):
+    """Single sub-command within an ``ALTER TABLE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterTableCmd
     __match_args__ = (
@@ -983,6 +1059,8 @@ class AlterTableCmd(AstNode):
 
 
 class AlterTableMoveAllStmt(AstNode):
+    """``ALTER TABLE ALL IN TABLESPACE … SET TABLESPACE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterTableMoveAllStmt
     __match_args__ = (
@@ -1015,6 +1093,8 @@ class AlterTableMoveAllStmt(AstNode):
 
 
 class AlterTableSpaceOptionsStmt(AstNode):
+    """``ALTER TABLESPACE … SET/RESET`` options statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterTableSpaceOptionsStmt
     __match_args__ = (
@@ -1037,6 +1117,8 @@ class AlterTableSpaceOptionsStmt(AstNode):
 
 
 class AlterTableStmt(AstNode):
+    """``ALTER TABLE`` statement (contains a list of ``AlterTableCmd``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterTableStmt
     __match_args__ = (
@@ -1064,6 +1146,8 @@ class AlterTableStmt(AstNode):
 
 
 class AlterTypeStmt(AstNode):
+    """``ALTER TYPE … SET/RESET`` attribute statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterTypeStmt
     __match_args__ = (
@@ -1081,6 +1165,8 @@ class AlterTypeStmt(AstNode):
 
 
 class AlterUserMappingStmt(AstNode):
+    """``ALTER USER MAPPING`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlterUserMappingStmt
     __match_args__ = (
@@ -1103,6 +1189,8 @@ class AlterUserMappingStmt(AstNode):
 
 
 class AlternativeSubPlan(AstNode):
+    """Alternative sub-plan list (planner node, not produced by parser)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.AlternativeSubPlan
     __match_args__ = (
@@ -1120,6 +1208,8 @@ class AlternativeSubPlan(AstNode):
 
 
 class ArrayCoerceExpr(AstNode):
+    """Array element-by-element coercion expression (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ArrayCoerceExpr
     __match_args__ = (
@@ -1166,6 +1256,8 @@ class ArrayCoerceExpr(AstNode):
 
 
 class ArrayExpr(AstNode):
+    """Array constructor expression (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ArrayExpr
     __match_args__ = (
@@ -1207,6 +1299,8 @@ class ArrayExpr(AstNode):
 
 
 class BitString(AstNode):
+    """Bit-string constant value (e.g. ``B'101'``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.BitString
     __match_args__ = ("bsval",)
@@ -1217,6 +1311,8 @@ class BitString(AstNode):
 
 
 class BoolExpr(AstNode):
+    """Boolean combination expression (``AND``, ``OR``, ``NOT``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.BoolExpr
     __match_args__ = (
@@ -1243,6 +1339,8 @@ class BoolExpr(AstNode):
 
 
 class Boolean(AstNode):
+    """Boolean constant value (``TRUE`` or ``FALSE``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.Boolean
     __match_args__ = ("boolval",)
@@ -1253,6 +1351,8 @@ class Boolean(AstNode):
 
 
 class BooleanTest(AstNode):
+    """``IS [NOT] TRUE/FALSE/UNKNOWN`` test expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.BooleanTest
     __match_args__ = (
@@ -1279,6 +1379,8 @@ class BooleanTest(AstNode):
 
 
 class CTECycleClause(AstNode):
+    """``CYCLE`` clause in a recursive common table expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CTECycleClause
     __match_args__ = (
@@ -1335,6 +1437,8 @@ class CTECycleClause(AstNode):
 
 
 class CTESearchClause(AstNode):
+    """``SEARCH`` clause in a recursive common table expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CTESearchClause
     __match_args__ = (
@@ -1361,6 +1465,8 @@ class CTESearchClause(AstNode):
 
 
 class CallContext(AstNode):
+    """Context information for a ``CALL`` statement (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CallContext
     __match_args__ = ("atomic",)
@@ -1371,6 +1477,8 @@ class CallContext(AstNode):
 
 
 class CallStmt(AstNode):
+    """``CALL`` statement for invoking a procedure."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CallStmt
     __match_args__ = (
@@ -1393,6 +1501,8 @@ class CallStmt(AstNode):
 
 
 class CaseExpr(AstNode):
+    """``CASE WHEN … THEN … ELSE … END`` expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CaseExpr
     __match_args__ = (
@@ -1434,6 +1544,8 @@ class CaseExpr(AstNode):
 
 
 class CaseTestExpr(AstNode):
+    """Placeholder for the test value inside a ``CASE`` expression (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CaseTestExpr
     __match_args__ = (
@@ -1461,6 +1573,8 @@ class CaseTestExpr(AstNode):
 
 
 class CaseWhen(AstNode):
+    """Single ``WHEN … THEN …`` clause in a ``CASE`` expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CaseWhen
     __match_args__ = (
@@ -1487,6 +1601,8 @@ class CaseWhen(AstNode):
 
 
 class CheckPointStmt(AstNode):
+    """``CHECKPOINT`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CheckPointStmt
     __match_args__ = ()
@@ -1494,6 +1610,8 @@ class CheckPointStmt(AstNode):
 
 
 class ClosePortalStmt(AstNode):
+    """``CLOSE`` cursor statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ClosePortalStmt
     __match_args__ = ("portalname",)
@@ -1504,6 +1622,8 @@ class ClosePortalStmt(AstNode):
 
 
 class ClusterStmt(AstNode):
+    """``CLUSTER`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ClusterStmt
     __match_args__ = (
@@ -1526,6 +1646,8 @@ class ClusterStmt(AstNode):
 
 
 class CoalesceExpr(AstNode):
+    """``COALESCE(…)`` expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CoalesceExpr
     __match_args__ = (
@@ -1557,6 +1679,8 @@ class CoalesceExpr(AstNode):
 
 
 class CoerceToDomain(AstNode):
+    """Coercion to a domain type with constraint checking (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CoerceToDomain
     __match_args__ = (
@@ -1598,6 +1722,8 @@ class CoerceToDomain(AstNode):
 
 
 class CoerceToDomainValue(AstNode):
+    """Placeholder for the value inside a domain check constraint (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CoerceToDomainValue
     __match_args__ = (
@@ -1629,6 +1755,8 @@ class CoerceToDomainValue(AstNode):
 
 
 class CoerceViaIO(AstNode):
+    """Coercion via I/O functions (text output then input, planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CoerceViaIO
     __match_args__ = (
@@ -1665,6 +1793,8 @@ class CoerceViaIO(AstNode):
 
 
 class CollateClause(AstNode):
+    """``COLLATE`` clause attached to an expression or type."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CollateClause
     __match_args__ = (
@@ -1686,6 +1816,8 @@ class CollateClause(AstNode):
 
 
 class CollateExpr(AstNode):
+    """``COLLATE`` expression (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CollateExpr
     __match_args__ = (
@@ -1712,6 +1844,8 @@ class CollateExpr(AstNode):
 
 
 class ColumnDef(AstNode):
+    """Column definition in ``CREATE TABLE`` or ``ALTER TABLE ADD COLUMN``."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ColumnDef
     __match_args__ = (
@@ -1813,6 +1947,8 @@ class ColumnDef(AstNode):
 
 
 class ColumnRef(AstNode):
+    """Column reference (e.g. ``table.column`` or ``column``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ColumnRef
     __match_args__ = ("fields",)
@@ -1827,6 +1963,8 @@ class ColumnRef(AstNode):
 
 
 class CommentStmt(AstNode):
+    """``COMMENT ON`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CommentStmt
     __match_args__ = (
@@ -1849,6 +1987,8 @@ class CommentStmt(AstNode):
 
 
 class CommonTableExpr(AstNode):
+    """Common table expression (CTE) defined in a ``WITH`` clause."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CommonTableExpr
     __match_args__ = (
@@ -1920,6 +2060,8 @@ class CommonTableExpr(AstNode):
 
 
 class CompositeTypeStmt(AstNode):
+    """``CREATE TYPE … AS (…)`` composite type statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CompositeTypeStmt
     __match_args__ = (
@@ -1937,6 +2079,8 @@ class CompositeTypeStmt(AstNode):
 
 
 class Constraint(AstNode):
+    """Column or table constraint (``CHECK``, ``UNIQUE``, ``PRIMARY KEY``, ``FOREIGN KEY``, etc.)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.Constraint
     __match_args__ = (
@@ -2098,6 +2242,8 @@ class Constraint(AstNode):
 
 
 class ConstraintsSetStmt(AstNode):
+    """``SET CONSTRAINTS`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ConstraintsSetStmt
     __match_args__ = (
@@ -2115,6 +2261,8 @@ class ConstraintsSetStmt(AstNode):
 
 
 class ConvertRowtypeExpr(AstNode):
+    """Row-type conversion expression (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ConvertRowtypeExpr
     __match_args__ = (
@@ -2146,6 +2294,8 @@ class ConvertRowtypeExpr(AstNode):
 
 
 class CopyStmt(AstNode):
+    """``COPY`` statement (to/from file or program)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CopyStmt
     __match_args__ = (
@@ -2193,6 +2343,8 @@ class CopyStmt(AstNode):
 
 
 class CreateAmStmt(AstNode):
+    """``CREATE ACCESS METHOD`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateAmStmt
     __match_args__ = (
@@ -2215,6 +2367,8 @@ class CreateAmStmt(AstNode):
 
 
 class CreateCastStmt(AstNode):
+    """``CREATE CAST`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateCastStmt
     __match_args__ = (
@@ -2247,6 +2401,8 @@ class CreateCastStmt(AstNode):
 
 
 class CreateConversionStmt(AstNode):
+    """``CREATE CONVERSION`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateConversionStmt
     __match_args__ = (
@@ -2279,6 +2435,8 @@ class CreateConversionStmt(AstNode):
 
 
 class CreateDomainStmt(AstNode):
+    """``CREATE DOMAIN`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateDomainStmt
     __match_args__ = (
@@ -2306,6 +2464,8 @@ class CreateDomainStmt(AstNode):
 
 
 class CreateEnumStmt(AstNode):
+    """``CREATE TYPE … AS ENUM (…)`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateEnumStmt
     __match_args__ = (
@@ -2323,6 +2483,8 @@ class CreateEnumStmt(AstNode):
 
 
 class CreateEventTrigStmt(AstNode):
+    """``CREATE EVENT TRIGGER`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateEventTrigStmt
     __match_args__ = (
@@ -2350,6 +2512,8 @@ class CreateEventTrigStmt(AstNode):
 
 
 class CreateExtensionStmt(AstNode):
+    """``CREATE EXTENSION`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateExtensionStmt
     __match_args__ = (
@@ -2372,6 +2536,8 @@ class CreateExtensionStmt(AstNode):
 
 
 class CreateFdwStmt(AstNode):
+    """``CREATE FOREIGN DATA WRAPPER`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateFdwStmt
     __match_args__ = (
@@ -2394,6 +2560,8 @@ class CreateFdwStmt(AstNode):
 
 
 class CreateForeignServerStmt(AstNode):
+    """``CREATE SERVER`` statement for foreign data wrappers."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateForeignServerStmt
     __match_args__ = (
@@ -2431,6 +2599,8 @@ class CreateForeignServerStmt(AstNode):
 
 
 class CreateForeignTableStmt(AstNode):
+    """``CREATE FOREIGN TABLE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateForeignTableStmt
     __match_args__ = (
@@ -2453,6 +2623,8 @@ class CreateForeignTableStmt(AstNode):
 
 
 class CreateFunctionStmt(AstNode):
+    """``CREATE FUNCTION/PROCEDURE/ROUTINE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateFunctionStmt
     __match_args__ = (
@@ -2495,6 +2667,8 @@ class CreateFunctionStmt(AstNode):
 
 
 class CreateOpClassItem(AstNode):
+    """Single item (operator or function) in a ``CREATE OPERATOR CLASS`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateOpClassItem
     __match_args__ = (
@@ -2532,6 +2706,8 @@ class CreateOpClassItem(AstNode):
 
 
 class CreateOpClassStmt(AstNode):
+    """``CREATE OPERATOR CLASS`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateOpClassStmt
     __match_args__ = (
@@ -2569,6 +2745,8 @@ class CreateOpClassStmt(AstNode):
 
 
 class CreateOpFamilyStmt(AstNode):
+    """``CREATE OPERATOR FAMILY`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateOpFamilyStmt
     __match_args__ = (
@@ -2586,6 +2764,8 @@ class CreateOpFamilyStmt(AstNode):
 
 
 class CreatePLangStmt(AstNode):
+    """``CREATE LANGUAGE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreatePLangStmt
     __match_args__ = (
@@ -2623,6 +2803,8 @@ class CreatePLangStmt(AstNode):
 
 
 class CreatePolicyStmt(AstNode):
+    """``CREATE POLICY`` statement for row-level security."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreatePolicyStmt
     __match_args__ = (
@@ -2665,6 +2847,8 @@ class CreatePolicyStmt(AstNode):
 
 
 class CreatePublicationStmt(AstNode):
+    """``CREATE PUBLICATION`` statement for logical replication."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreatePublicationStmt
     __match_args__ = (
@@ -2692,6 +2876,8 @@ class CreatePublicationStmt(AstNode):
 
 
 class CreateRangeStmt(AstNode):
+    """``CREATE TYPE … AS RANGE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateRangeStmt
     __match_args__ = (
@@ -2709,6 +2895,8 @@ class CreateRangeStmt(AstNode):
 
 
 class CreateRoleStmt(AstNode):
+    """``CREATE ROLE/USER/GROUP`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateRoleStmt
     __match_args__ = (
@@ -2731,6 +2919,8 @@ class CreateRoleStmt(AstNode):
 
 
 class CreateSchemaStmt(AstNode):
+    """``CREATE SCHEMA`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateSchemaStmt
     __match_args__ = (
@@ -2758,6 +2948,8 @@ class CreateSchemaStmt(AstNode):
 
 
 class CreateSeqStmt(AstNode):
+    """``CREATE SEQUENCE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateSeqStmt
     __match_args__ = (
@@ -2790,6 +2982,8 @@ class CreateSeqStmt(AstNode):
 
 
 class CreateStatsStmt(AstNode):
+    """``CREATE STATISTICS`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateStatsStmt
     __match_args__ = (
@@ -2832,6 +3026,8 @@ class CreateStatsStmt(AstNode):
 
 
 class CreateStmt(AstNode):
+    """``CREATE TABLE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateStmt
     __match_args__ = (
@@ -2899,6 +3095,8 @@ class CreateStmt(AstNode):
 
 
 class CreateSubscriptionStmt(AstNode):
+    """``CREATE SUBSCRIPTION`` statement for logical replication."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateSubscriptionStmt
     __match_args__ = (
@@ -2926,6 +3124,8 @@ class CreateSubscriptionStmt(AstNode):
 
 
 class CreateTableAsStmt(AstNode):
+    """``CREATE TABLE AS`` or ``SELECT INTO`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateTableAsStmt
     __match_args__ = (
@@ -2958,6 +3158,8 @@ class CreateTableAsStmt(AstNode):
 
 
 class CreateTableSpaceStmt(AstNode):
+    """``CREATE TABLESPACE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateTableSpaceStmt
     __match_args__ = (
@@ -2984,6 +3186,8 @@ class CreateTableSpaceStmt(AstNode):
 
 
 class CreateTransformStmt(AstNode):
+    """``CREATE TRANSFORM`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateTransformStmt
     __match_args__ = (
@@ -3016,6 +3220,8 @@ class CreateTransformStmt(AstNode):
 
 
 class CreateTrigStmt(AstNode):
+    """``CREATE TRIGGER`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateTrigStmt
     __match_args__ = (
@@ -3098,6 +3304,8 @@ class CreateTrigStmt(AstNode):
 
 
 class CreateUserMappingStmt(AstNode):
+    """``CREATE USER MAPPING`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreateUserMappingStmt
     __match_args__ = (
@@ -3125,6 +3333,8 @@ class CreateUserMappingStmt(AstNode):
 
 
 class CreatedbStmt(AstNode):
+    """``CREATE DATABASE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CreatedbStmt
     __match_args__ = (
@@ -3142,6 +3352,8 @@ class CreatedbStmt(AstNode):
 
 
 class CurrentOfExpr(AstNode):
+    """``WHERE CURRENT OF cursor`` expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.CurrentOfExpr
     __match_args__ = (
@@ -3169,6 +3381,8 @@ class CurrentOfExpr(AstNode):
 
 
 class DeallocateStmt(AstNode):
+    """``DEALLOCATE`` prepared statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.DeallocateStmt
     __match_args__ = (
@@ -3190,6 +3404,8 @@ class DeallocateStmt(AstNode):
 
 
 class DeclareCursorStmt(AstNode):
+    """``DECLARE CURSOR`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.DeclareCursorStmt
     __match_args__ = (
@@ -3212,6 +3428,8 @@ class DeclareCursorStmt(AstNode):
 
 
 class DefElem(AstNode):
+    """Generic name/value definition element (used in many option lists)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.DefElem
     __match_args__ = (
@@ -3243,6 +3461,8 @@ class DefElem(AstNode):
 
 
 class DefineStmt(AstNode):
+    """``CREATE AGGREGATE/OPERATOR/TYPE/COLLATION`` definition statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.DefineStmt
     __match_args__ = (
@@ -3285,6 +3505,8 @@ class DefineStmt(AstNode):
 
 
 class DeleteStmt(AstNode):
+    """``DELETE FROM`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.DeleteStmt
     __match_args__ = (
@@ -3317,6 +3539,8 @@ class DeleteStmt(AstNode):
 
 
 class DiscardStmt(AstNode):
+    """``DISCARD`` statement (``ALL``, ``PLANS``, ``SEQUENCES``, ``TEMP``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.DiscardStmt
     __match_args__ = ("target",)
@@ -3327,6 +3551,8 @@ class DiscardStmt(AstNode):
 
 
 class DistinctExpr(AstNode):
+    """``IS DISTINCT FROM`` expression (planner form of a comparison)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.DistinctExpr
     __match_args__ = (
@@ -3373,6 +3599,8 @@ class DistinctExpr(AstNode):
 
 
 class DoStmt(AstNode):
+    """``DO`` anonymous code block statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.DoStmt
     __match_args__ = ("args",)
@@ -3383,6 +3611,8 @@ class DoStmt(AstNode):
 
 
 class DropOwnedStmt(AstNode):
+    """``DROP OWNED BY`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.DropOwnedStmt
     __match_args__ = (
@@ -3400,6 +3630,8 @@ class DropOwnedStmt(AstNode):
 
 
 class DropRoleStmt(AstNode):
+    """``DROP ROLE/USER/GROUP`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.DropRoleStmt
     __match_args__ = (
@@ -3417,6 +3649,8 @@ class DropRoleStmt(AstNode):
 
 
 class DropStmt(AstNode):
+    """``DROP`` statement for various object types."""
+
     __slots__ = ()
     _pb: pg_query_pb2.DropStmt
     __match_args__ = (
@@ -3449,6 +3683,8 @@ class DropStmt(AstNode):
 
 
 class DropSubscriptionStmt(AstNode):
+    """``DROP SUBSCRIPTION`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.DropSubscriptionStmt
     __match_args__ = (
@@ -3471,6 +3707,8 @@ class DropSubscriptionStmt(AstNode):
 
 
 class DropTableSpaceStmt(AstNode):
+    """``DROP TABLESPACE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.DropTableSpaceStmt
     __match_args__ = (
@@ -3488,6 +3726,8 @@ class DropTableSpaceStmt(AstNode):
 
 
 class DropUserMappingStmt(AstNode):
+    """``DROP USER MAPPING`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.DropUserMappingStmt
     __match_args__ = (
@@ -3510,6 +3750,8 @@ class DropUserMappingStmt(AstNode):
 
 
 class DropdbStmt(AstNode):
+    """``DROP DATABASE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.DropdbStmt
     __match_args__ = (
@@ -3532,6 +3774,8 @@ class DropdbStmt(AstNode):
 
 
 class ExecuteStmt(AstNode):
+    """``EXECUTE`` prepared statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ExecuteStmt
     __match_args__ = (
@@ -3549,6 +3793,8 @@ class ExecuteStmt(AstNode):
 
 
 class ExplainStmt(AstNode):
+    """``EXPLAIN`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ExplainStmt
     __match_args__ = (
@@ -3566,6 +3812,8 @@ class ExplainStmt(AstNode):
 
 
 class FetchStmt(AstNode):
+    """``FETCH`` or ``MOVE`` cursor statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.FetchStmt
     __match_args__ = (
@@ -3593,6 +3841,8 @@ class FetchStmt(AstNode):
 
 
 class FieldSelect(AstNode):
+    """Field selection from a composite value (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.FieldSelect
     __match_args__ = (
@@ -3630,6 +3880,8 @@ class FieldSelect(AstNode):
 
 
 class FieldStore(AstNode):
+    """Field assignment in a composite value update (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.FieldStore
     __match_args__ = (
@@ -3662,6 +3914,8 @@ class FieldStore(AstNode):
 
 
 class Float(AstNode):
+    """Floating-point constant value."""
+
     __slots__ = ()
     _pb: pg_query_pb2.Float
     __match_args__ = ("fval",)
@@ -3672,6 +3926,8 @@ class Float(AstNode):
 
 
 class FromExpr(AstNode):
+    """``FROM`` clause with an optional ``WHERE`` qualification."""
+
     __slots__ = ()
     _pb: pg_query_pb2.FromExpr
     __match_args__ = (
@@ -3689,6 +3945,8 @@ class FromExpr(AstNode):
 
 
 class FuncCall(AstNode):
+    """Function call in parsed SQL (e.g. ``func(args)``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.FuncCall
     __match_args__ = (
@@ -3750,6 +4008,8 @@ class FuncCall(AstNode):
 
 
 class FuncExpr(AstNode):
+    """Function call expression (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.FuncExpr
     __match_args__ = (
@@ -3806,6 +4066,8 @@ class FuncExpr(AstNode):
 
 
 class FunctionParameter(AstNode):
+    """Parameter definition in ``CREATE FUNCTION``."""
+
     __slots__ = ()
     _pb: pg_query_pb2.FunctionParameter
     __match_args__ = (
@@ -3833,6 +4095,8 @@ class FunctionParameter(AstNode):
 
 
 class GrantRoleStmt(AstNode):
+    """``GRANT/REVOKE`` role membership statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.GrantRoleStmt
     __match_args__ = (
@@ -3870,6 +4134,8 @@ class GrantRoleStmt(AstNode):
 
 
 class GrantStmt(AstNode):
+    """``GRANT/REVOKE`` privileges statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.GrantStmt
     __match_args__ = (
@@ -3922,6 +4188,8 @@ class GrantStmt(AstNode):
 
 
 class GroupingFunc(AstNode):
+    """``GROUPING(…)`` function in a query with grouping sets."""
+
     __slots__ = ()
     _pb: pg_query_pb2.GroupingFunc
     __match_args__ = (
@@ -3953,6 +4221,8 @@ class GroupingFunc(AstNode):
 
 
 class GroupingSet(AstNode):
+    """``GROUPING SETS``, ``ROLLUP``, or ``CUBE`` clause."""
+
     __slots__ = ()
     _pb: pg_query_pb2.GroupingSet
     __match_args__ = (
@@ -3974,6 +4244,8 @@ class GroupingSet(AstNode):
 
 
 class ImportForeignSchemaStmt(AstNode):
+    """``IMPORT FOREIGN SCHEMA`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ImportForeignSchemaStmt
     __match_args__ = (
@@ -4011,6 +4283,8 @@ class ImportForeignSchemaStmt(AstNode):
 
 
 class IndexElem(AstNode):
+    """Single column or expression in an index definition."""
+
     __slots__ = ()
     _pb: pg_query_pb2.IndexElem
     __match_args__ = (
@@ -4058,6 +4332,8 @@ class IndexElem(AstNode):
 
 
 class IndexStmt(AstNode):
+    """``CREATE INDEX`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.IndexStmt
     __match_args__ = (
@@ -4185,6 +4461,8 @@ class IndexStmt(AstNode):
 
 
 class InferClause(AstNode):
+    """``ON CONFLICT`` inference clause (specifies the conflict target)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.InferClause
     __match_args__ = (
@@ -4211,6 +4489,8 @@ class InferClause(AstNode):
 
 
 class InferenceElem(AstNode):
+    """Single element of an ``ON CONFLICT`` inference specification (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.InferenceElem
     __match_args__ = (
@@ -4238,6 +4518,8 @@ class InferenceElem(AstNode):
 
 
 class InlineCodeBlock(AstNode):
+    """Anonymous code block for ``DO`` statement execution (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.InlineCodeBlock
     __match_args__ = (
@@ -4265,6 +4547,8 @@ class InlineCodeBlock(AstNode):
 
 
 class InsertStmt(AstNode):
+    """``INSERT INTO`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.InsertStmt
     __match_args__ = (
@@ -4311,6 +4595,8 @@ class InsertStmt(AstNode):
 
 
 class IntList(AstNode):
+    """List of integer values (internal protobuf wrapper)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.IntList
     __match_args__ = ("items",)
@@ -4321,6 +4607,8 @@ class IntList(AstNode):
 
 
 class Integer(AstNode):
+    """Integer constant value."""
+
     __slots__ = ()
     _pb: pg_query_pb2.Integer
     __match_args__ = ("ival",)
@@ -4331,6 +4619,8 @@ class Integer(AstNode):
 
 
 class IntoClause(AstNode):
+    """``INTO`` clause for ``SELECT INTO`` or ``CREATE TABLE AS``."""
+
     __slots__ = ()
     _pb: pg_query_pb2.IntoClause
     __match_args__ = (
@@ -4378,6 +4668,8 @@ class IntoClause(AstNode):
 
 
 class JoinExpr(AstNode):
+    """``JOIN`` expression (``INNER``, ``LEFT``, ``RIGHT``, ``FULL``, ``CROSS``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JoinExpr
     __match_args__ = (
@@ -4430,6 +4722,8 @@ class JoinExpr(AstNode):
 
 
 class JsonAggConstructor(AstNode):
+    """Common fields for JSON aggregate constructors."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonAggConstructor
     __match_args__ = (
@@ -4461,6 +4755,8 @@ class JsonAggConstructor(AstNode):
 
 
 class JsonArgument(AstNode):
+    """Named argument in a JSON constructor (``key : value``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonArgument
     __match_args__ = (
@@ -4478,6 +4774,8 @@ class JsonArgument(AstNode):
 
 
 class JsonArrayAgg(AstNode):
+    """``JSON_ARRAYAGG(…)`` aggregate expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonArrayAgg
     __match_args__ = (
@@ -4500,6 +4798,8 @@ class JsonArrayAgg(AstNode):
 
 
 class JsonArrayConstructor(AstNode):
+    """``JSON_ARRAY(…)`` constructor expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonArrayConstructor
     __match_args__ = (
@@ -4526,6 +4826,8 @@ class JsonArrayConstructor(AstNode):
 
 
 class JsonArrayQueryConstructor(AstNode):
+    """``JSON_ARRAY(subquery)`` constructor expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonArrayQueryConstructor
     __match_args__ = (
@@ -4557,6 +4859,8 @@ class JsonArrayQueryConstructor(AstNode):
 
 
 class JsonBehavior(AstNode):
+    """``ON ERROR`` or ``ON EMPTY`` behavior clause in JSON functions."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonBehavior
     __match_args__ = (
@@ -4583,6 +4887,8 @@ class JsonBehavior(AstNode):
 
 
 class JsonConstructorExpr(AstNode):
+    """JSON constructor expression (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonConstructorExpr
     __match_args__ = (
@@ -4634,6 +4940,8 @@ class JsonConstructorExpr(AstNode):
 
 
 class JsonExpr(AstNode):
+    """JSON query expression (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonExpr
     __match_args__ = (
@@ -4725,6 +5033,8 @@ class JsonExpr(AstNode):
 
 
 class JsonFormat(AstNode):
+    """``FORMAT JSON`` clause specifying JSON encoding."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonFormat
     __match_args__ = (
@@ -4746,6 +5056,8 @@ class JsonFormat(AstNode):
 
 
 class JsonFuncExpr(AstNode):
+    """SQL/JSON function expression (``JSON_VALUE``, ``JSON_QUERY``, etc.)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonFuncExpr
     __match_args__ = (
@@ -4807,6 +5119,8 @@ class JsonFuncExpr(AstNode):
 
 
 class JsonIsPredicate(AstNode):
+    """``IS JSON`` predicate expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonIsPredicate
     __match_args__ = (
@@ -4838,6 +5152,8 @@ class JsonIsPredicate(AstNode):
 
 
 class JsonKeyValue(AstNode):
+    """Single ``key : value`` pair in a JSON object constructor."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonKeyValue
     __match_args__ = (
@@ -4855,6 +5171,8 @@ class JsonKeyValue(AstNode):
 
 
 class JsonObjectAgg(AstNode):
+    """``JSON_OBJECTAGG(…)`` aggregate expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonObjectAgg
     __match_args__ = (
@@ -4882,6 +5200,8 @@ class JsonObjectAgg(AstNode):
 
 
 class JsonObjectConstructor(AstNode):
+    """``JSON_OBJECT(…)`` constructor expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonObjectConstructor
     __match_args__ = (
@@ -4913,6 +5233,8 @@ class JsonObjectConstructor(AstNode):
 
 
 class JsonOutput(AstNode):
+    """Output type specification for a JSON function."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonOutput
     __match_args__ = (
@@ -4930,6 +5252,8 @@ class JsonOutput(AstNode):
 
 
 class JsonParseExpr(AstNode):
+    """``JSON(…)`` parse expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonParseExpr
     __match_args__ = (
@@ -4956,6 +5280,8 @@ class JsonParseExpr(AstNode):
 
 
 class JsonReturning(AstNode):
+    """``RETURNING`` clause for JSON functions."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonReturning
     __match_args__ = (
@@ -4978,6 +5304,8 @@ class JsonReturning(AstNode):
 
 
 class JsonScalarExpr(AstNode):
+    """``JSON_SCALAR(…)`` expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonScalarExpr
     __match_args__ = (
@@ -4999,6 +5327,8 @@ class JsonScalarExpr(AstNode):
 
 
 class JsonSerializeExpr(AstNode):
+    """``JSON_SERIALIZE(…)`` expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonSerializeExpr
     __match_args__ = (
@@ -5020,6 +5350,8 @@ class JsonSerializeExpr(AstNode):
 
 
 class JsonTable(AstNode):
+    """``JSON_TABLE(…)`` expression in a ``FROM`` clause."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonTable
     __match_args__ = (
@@ -5066,6 +5398,8 @@ class JsonTable(AstNode):
 
 
 class JsonTableColumn(AstNode):
+    """Column definition inside ``JSON_TABLE``."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonTableColumn
     __match_args__ = (
@@ -5127,6 +5461,8 @@ class JsonTableColumn(AstNode):
 
 
 class JsonTablePath(AstNode):
+    """Path specification inside ``JSON_TABLE``."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonTablePath
     __match_args__ = ("name",)
@@ -5137,6 +5473,8 @@ class JsonTablePath(AstNode):
 
 
 class JsonTablePathScan(AstNode):
+    """Path scan node inside ``JSON_TABLE`` (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonTablePathScan
     __match_args__ = (
@@ -5174,6 +5512,8 @@ class JsonTablePathScan(AstNode):
 
 
 class JsonTablePathSpec(AstNode):
+    """Path specification for ``JSON_TABLE`` with optional name."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonTablePathSpec
     __match_args__ = (
@@ -5200,6 +5540,8 @@ class JsonTablePathSpec(AstNode):
 
 
 class JsonTableSiblingJoin(AstNode):
+    """Sibling join between ``JSON_TABLE`` path scans (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonTableSiblingJoin
     __match_args__ = (
@@ -5222,6 +5564,8 @@ class JsonTableSiblingJoin(AstNode):
 
 
 class JsonValueExpr(AstNode):
+    """Expression with an associated JSON format (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.JsonValueExpr
     __match_args__ = (
@@ -5244,6 +5588,8 @@ class JsonValueExpr(AstNode):
 
 
 class List(AstNode):
+    """Generic list of nodes."""
+
     __slots__ = ()
     _pb: pg_query_pb2.List
     __match_args__ = ("items",)
@@ -5254,6 +5600,8 @@ class List(AstNode):
 
 
 class ListenStmt(AstNode):
+    """``LISTEN`` statement for notification channels."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ListenStmt
     __match_args__ = ("conditionname",)
@@ -5264,6 +5612,8 @@ class ListenStmt(AstNode):
 
 
 class LoadStmt(AstNode):
+    """``LOAD`` statement for loading shared libraries."""
+
     __slots__ = ()
     _pb: pg_query_pb2.LoadStmt
     __match_args__ = ("filename",)
@@ -5274,6 +5624,8 @@ class LoadStmt(AstNode):
 
 
 class LockStmt(AstNode):
+    """``LOCK TABLE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.LockStmt
     __match_args__ = (
@@ -5296,6 +5648,8 @@ class LockStmt(AstNode):
 
 
 class LockingClause(AstNode):
+    """``FOR UPDATE/SHARE/NO KEY UPDATE/KEY SHARE`` locking clause."""
+
     __slots__ = ()
     _pb: pg_query_pb2.LockingClause
     __match_args__ = (
@@ -5318,6 +5672,8 @@ class LockingClause(AstNode):
 
 
 class MergeAction(AstNode):
+    """Single ``WHEN MATCHED/NOT MATCHED`` action in ``MERGE`` (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.MergeAction
     __match_args__ = (
@@ -5355,6 +5711,8 @@ class MergeAction(AstNode):
 
 
 class MergeStmt(AstNode):
+    """``MERGE INTO`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.MergeStmt
     __match_args__ = (
@@ -5392,6 +5750,8 @@ class MergeStmt(AstNode):
 
 
 class MergeSupportFunc(AstNode):
+    """``MERGE`` support function reference (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.MergeSupportFunc
     __match_args__ = (
@@ -5418,6 +5778,8 @@ class MergeSupportFunc(AstNode):
 
 
 class MergeWhenClause(AstNode):
+    """``WHEN MATCHED/NOT MATCHED`` clause in a ``MERGE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.MergeWhenClause
     __match_args__ = (
@@ -5455,6 +5817,8 @@ class MergeWhenClause(AstNode):
 
 
 class MinMaxExpr(AstNode):
+    """``GREATEST(…)`` or ``LEAST(…)`` expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.MinMaxExpr
     __match_args__ = (
@@ -5496,6 +5860,8 @@ class MinMaxExpr(AstNode):
 
 
 class MultiAssignRef(AstNode):
+    """Reference to a specific column of a multi-assignment source."""
+
     __slots__ = ()
     _pb: pg_query_pb2.MultiAssignRef
     __match_args__ = (
@@ -5518,6 +5884,8 @@ class MultiAssignRef(AstNode):
 
 
 class NamedArgExpr(AstNode):
+    """Named argument in a function call (``name => value``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.NamedArgExpr
     __match_args__ = (
@@ -5549,6 +5917,8 @@ class NamedArgExpr(AstNode):
 
 
 class NextValueExpr(AstNode):
+    """``nextval(sequence)`` expression (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.NextValueExpr
     __match_args__ = (
@@ -5571,6 +5941,8 @@ class NextValueExpr(AstNode):
 
 
 class NotifyStmt(AstNode):
+    """``NOTIFY`` statement for sending notifications."""
+
     __slots__ = ()
     _pb: pg_query_pb2.NotifyStmt
     __match_args__ = (
@@ -5588,6 +5960,8 @@ class NotifyStmt(AstNode):
 
 
 class NullIfExpr(AstNode):
+    """``NULLIF(a, b)`` expression (planner form)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.NullIfExpr
     __match_args__ = (
@@ -5634,6 +6008,8 @@ class NullIfExpr(AstNode):
 
 
 class NullTest(AstNode):
+    """``IS [NOT] NULL`` test expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.NullTest
     __match_args__ = (
@@ -5665,6 +6041,8 @@ class NullTest(AstNode):
 
 
 class ObjectWithArgs(AstNode):
+    """Object name with optional argument types (used for functions/operators)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ObjectWithArgs
     __match_args__ = (
@@ -5692,6 +6070,8 @@ class ObjectWithArgs(AstNode):
 
 
 class OidList(AstNode):
+    """List of OID values (internal protobuf wrapper)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.OidList
     __match_args__ = ("items",)
@@ -5702,6 +6082,8 @@ class OidList(AstNode):
 
 
 class OnConflictClause(AstNode):
+    """``ON CONFLICT`` clause in an ``INSERT`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.OnConflictClause
     __match_args__ = (
@@ -5733,6 +6115,8 @@ class OnConflictClause(AstNode):
 
 
 class OnConflictExpr(AstNode):
+    """``ON CONFLICT`` expression (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.OnConflictExpr
     __match_args__ = (
@@ -5780,6 +6164,8 @@ class OnConflictExpr(AstNode):
 
 
 class OpExpr(AstNode):
+    """Operator expression (planner form of an operator invocation)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.OpExpr
     __match_args__ = (
@@ -5826,6 +6212,8 @@ class OpExpr(AstNode):
 
 
 class PLAssignStmt(AstNode):
+    """PL/pgSQL assignment statement (``var := expr``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.PLAssignStmt
     __match_args__ = (
@@ -5857,6 +6245,8 @@ class PLAssignStmt(AstNode):
 
 
 class Param(AstNode):
+    """Query parameter reference (``$1``, ``$2``, etc., planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.Param
     __match_args__ = (
@@ -5898,6 +6288,8 @@ class Param(AstNode):
 
 
 class ParamRef(AstNode):
+    """Parameter reference (``$1``, ``$2``, etc.) in parsed SQL."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ParamRef
     __match_args__ = ("number",)
@@ -5912,6 +6304,8 @@ class ParamRef(AstNode):
 
 
 class ParseResult(AstNode):
+    """Top-level result of parsing SQL text (contains a list of statements)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ParseResult
     __match_args__ = (
@@ -5929,6 +6323,8 @@ class ParseResult(AstNode):
 
 
 class PartitionBoundSpec(AstNode):
+    """Partition bound specification (``FOR VALUES …``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.PartitionBoundSpec
     __match_args__ = (
@@ -5975,6 +6371,8 @@ class PartitionBoundSpec(AstNode):
 
 
 class PartitionCmd(AstNode):
+    """Sub-command for ``ALTER TABLE … ATTACH/DETACH PARTITION``."""
+
     __slots__ = ()
     _pb: pg_query_pb2.PartitionCmd
     __match_args__ = (
@@ -5997,6 +6395,8 @@ class PartitionCmd(AstNode):
 
 
 class PartitionElem(AstNode):
+    """Single column, expression, or collation in a partition key."""
+
     __slots__ = ()
     _pb: pg_query_pb2.PartitionElem
     __match_args__ = (
@@ -6028,6 +6428,8 @@ class PartitionElem(AstNode):
 
 
 class PartitionRangeDatum(AstNode):
+    """Single boundary value in a range partition bound."""
+
     __slots__ = ()
     _pb: pg_query_pb2.PartitionRangeDatum
     __match_args__ = (
@@ -6049,6 +6451,8 @@ class PartitionRangeDatum(AstNode):
 
 
 class PartitionSpec(AstNode):
+    """``PARTITION BY`` specification in ``CREATE TABLE``."""
+
     __slots__ = ()
     _pb: pg_query_pb2.PartitionSpec
     __match_args__ = (
@@ -6070,6 +6474,8 @@ class PartitionSpec(AstNode):
 
 
 class PrepareStmt(AstNode):
+    """``PREPARE`` statement for creating a prepared statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.PrepareStmt
     __match_args__ = (
@@ -6092,6 +6498,8 @@ class PrepareStmt(AstNode):
 
 
 class PublicationObjSpec(AstNode):
+    """Object specification in a ``CREATE/ALTER PUBLICATION`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.PublicationObjSpec
     __match_args__ = (
@@ -6118,6 +6526,8 @@ class PublicationObjSpec(AstNode):
 
 
 class PublicationTable(AstNode):
+    """Table specification with optional column/row filter in a publication."""
+
     __slots__ = ()
     _pb: pg_query_pb2.PublicationTable
     __match_args__ = (
@@ -6140,6 +6550,8 @@ class PublicationTable(AstNode):
 
 
 class Query(AstNode):
+    """Fully analyzed query tree (planner/executor node, not produced by raw parser)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.Query
     __match_args__ = (
@@ -6355,6 +6767,8 @@ class Query(AstNode):
 
 
 class RTEPermissionInfo(AstNode):
+    """Permission-checking information for a range table entry (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RTEPermissionInfo
     __match_args__ = (
@@ -6397,6 +6811,8 @@ class RTEPermissionInfo(AstNode):
 
 
 class RangeFunction(AstNode):
+    """Function call in a ``FROM`` clause."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RangeFunction
     __match_args__ = (
@@ -6434,6 +6850,8 @@ class RangeFunction(AstNode):
 
 
 class RangeSubselect(AstNode):
+    """Sub-``SELECT`` in a ``FROM`` clause."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RangeSubselect
     __match_args__ = (
@@ -6456,6 +6874,8 @@ class RangeSubselect(AstNode):
 
 
 class RangeTableFunc(AstNode):
+    """``XMLTABLE`` or similar table-valued function in ``FROM``."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RangeTableFunc
     __match_args__ = (
@@ -6497,6 +6917,8 @@ class RangeTableFunc(AstNode):
 
 
 class RangeTableFuncCol(AstNode):
+    """Column definition in a ``XMLTABLE``-style function."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RangeTableFuncCol
     __match_args__ = (
@@ -6538,6 +6960,8 @@ class RangeTableFuncCol(AstNode):
 
 
 class RangeTableSample(AstNode):
+    """``TABLESAMPLE`` clause in a ``FROM`` item."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RangeTableSample
     __match_args__ = (
@@ -6569,6 +6993,8 @@ class RangeTableSample(AstNode):
 
 
 class RangeTblEntry(AstNode):
+    """Range table entry (planner node representing a ``FROM`` item)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RangeTblEntry
     __match_args__ = (
@@ -6736,6 +7162,8 @@ class RangeTblEntry(AstNode):
 
 
 class RangeTblFunction(AstNode):
+    """Function call within a range table entry (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RangeTblFunction
     __match_args__ = (
@@ -6778,6 +7206,8 @@ class RangeTblFunction(AstNode):
 
 
 class RangeTblRef(AstNode):
+    """Reference to a range table entry by index (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RangeTblRef
     __match_args__ = ("rtindex",)
@@ -6788,6 +7218,8 @@ class RangeTblRef(AstNode):
 
 
 class RangeVar(AstNode):
+    """Table or view reference (``schema.table``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RangeVar
     __match_args__ = (
@@ -6829,6 +7261,8 @@ class RangeVar(AstNode):
 
 
 class RawStmt(AstNode):
+    """Raw statement wrapper with statement location information."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RawStmt
     __match_args__ = ("stmt",)
@@ -6847,6 +7281,8 @@ class RawStmt(AstNode):
 
 
 class ReassignOwnedStmt(AstNode):
+    """``REASSIGN OWNED BY`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ReassignOwnedStmt
     __match_args__ = (
@@ -6864,6 +7300,8 @@ class ReassignOwnedStmt(AstNode):
 
 
 class RefreshMatViewStmt(AstNode):
+    """``REFRESH MATERIALIZED VIEW`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RefreshMatViewStmt
     __match_args__ = (
@@ -6886,6 +7324,8 @@ class RefreshMatViewStmt(AstNode):
 
 
 class ReindexStmt(AstNode):
+    """``REINDEX`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ReindexStmt
     __match_args__ = (
@@ -6913,6 +7353,8 @@ class ReindexStmt(AstNode):
 
 
 class RelabelType(AstNode):
+    """Type relabeling (no-op cast, planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RelabelType
     __match_args__ = (
@@ -6954,6 +7396,8 @@ class RelabelType(AstNode):
 
 
 class RenameStmt(AstNode):
+    """``ALTER … RENAME`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RenameStmt
     __match_args__ = (
@@ -7001,6 +7445,8 @@ class RenameStmt(AstNode):
 
 
 class ReplicaIdentityStmt(AstNode):
+    """``ALTER TABLE … REPLICA IDENTITY`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ReplicaIdentityStmt
     __match_args__ = (
@@ -7018,6 +7464,8 @@ class ReplicaIdentityStmt(AstNode):
 
 
 class ResTarget(AstNode):
+    """Result target in a ``SELECT`` list, ``INSERT`` column list, or ``UPDATE SET`` clause."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ResTarget
     __match_args__ = (
@@ -7044,6 +7492,8 @@ class ResTarget(AstNode):
 
 
 class ReturnStmt(AstNode):
+    """``RETURN`` statement (SQL function body)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ReturnStmt
     __match_args__ = ("returnval",)
@@ -7054,6 +7504,8 @@ class ReturnStmt(AstNode):
 
 
 class RoleSpec(AstNode):
+    """Role specification (role name, ``CURRENT_USER``, ``SESSION_USER``, or ``PUBLIC``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RoleSpec
     __match_args__ = (
@@ -7075,6 +7527,8 @@ class RoleSpec(AstNode):
 
 
 class RowCompareExpr(AstNode):
+    """Row-wise comparison expression (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RowCompareExpr
     __match_args__ = (
@@ -7117,6 +7571,8 @@ class RowCompareExpr(AstNode):
 
 
 class RowExpr(AstNode):
+    """``ROW(…)`` constructor expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RowExpr
     __match_args__ = (
@@ -7153,6 +7609,8 @@ class RowExpr(AstNode):
 
 
 class RowMarkClause(AstNode):
+    """Row-mark clause for locking/marking rows in a query plan."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RowMarkClause
     __match_args__ = (
@@ -7180,6 +7638,8 @@ class RowMarkClause(AstNode):
 
 
 class RuleStmt(AstNode):
+    """``CREATE RULE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.RuleStmt
     __match_args__ = (
@@ -7222,6 +7682,8 @@ class RuleStmt(AstNode):
 
 
 class SQLValueFunction(AstNode):
+    """SQL-standard function requiring no arguments (e.g. ``CURRENT_TIMESTAMP``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.SQLValueFunction
     __match_args__ = (
@@ -7253,6 +7715,8 @@ class SQLValueFunction(AstNode):
 
 
 class ScalarArrayOpExpr(AstNode):
+    """Scalar operator applied to an array (``ANY``/``ALL``, planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ScalarArrayOpExpr
     __match_args__ = (
@@ -7289,6 +7753,8 @@ class ScalarArrayOpExpr(AstNode):
 
 
 class ScanResult(AstNode):
+    """Top-level result of scanning SQL text for tokens."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ScanResult
     __match_args__ = (
@@ -7306,6 +7772,8 @@ class ScanResult(AstNode):
 
 
 class ScanToken(AstNode):
+    """Single token from the SQL scanner."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ScanToken
     __match_args__ = (
@@ -7333,6 +7801,8 @@ class ScanToken(AstNode):
 
 
 class SecLabelStmt(AstNode):
+    """``SECURITY LABEL`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.SecLabelStmt
     __match_args__ = (
@@ -7360,6 +7830,8 @@ class SecLabelStmt(AstNode):
 
 
 class SelectStmt(AstNode):
+    """``SELECT`` statement (also used for ``VALUES`` and set operations)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.SelectStmt
     __match_args__ = (
@@ -7467,6 +7939,8 @@ class SelectStmt(AstNode):
 
 
 class SetOperationStmt(AstNode):
+    """Set operation (``UNION``, ``INTERSECT``, ``EXCEPT``, planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.SetOperationStmt
     __match_args__ = (
@@ -7514,6 +7988,8 @@ class SetOperationStmt(AstNode):
 
 
 class SetToDefault(AstNode):
+    """``DEFAULT`` keyword used as a value in ``INSERT`` or ``UPDATE``."""
+
     __slots__ = ()
     _pb: pg_query_pb2.SetToDefault
     __match_args__ = (
@@ -7545,6 +8021,8 @@ class SetToDefault(AstNode):
 
 
 class SinglePartitionSpec(AstNode):
+    """Single partition specification (internal)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.SinglePartitionSpec
     __match_args__ = ()
@@ -7552,6 +8030,8 @@ class SinglePartitionSpec(AstNode):
 
 
 class SortBy(AstNode):
+    """``ORDER BY`` sort specification."""
+
     __slots__ = ()
     _pb: pg_query_pb2.SortBy
     __match_args__ = (
@@ -7583,6 +8063,8 @@ class SortBy(AstNode):
 
 
 class SortGroupClause(AstNode):
+    """Sort or group clause entry referencing a target list item (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.SortGroupClause
     __match_args__ = (
@@ -7615,6 +8097,8 @@ class SortGroupClause(AstNode):
 
 
 class StatsElem(AstNode):
+    """Column or expression element in a ``CREATE STATISTICS`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.StatsElem
     __match_args__ = (
@@ -7632,6 +8116,8 @@ class StatsElem(AstNode):
 
 
 class String(AstNode):
+    """String constant value."""
+
     __slots__ = ()
     _pb: pg_query_pb2.String
     __match_args__ = ("sval",)
@@ -7642,6 +8128,8 @@ class String(AstNode):
 
 
 class SubLink(AstNode):
+    """Sub-``SELECT`` appearing in an expression (``EXISTS``, ``IN``, ``ANY``, scalar subquery, etc.)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.SubLink
     __match_args__ = (
@@ -7683,6 +8171,8 @@ class SubLink(AstNode):
 
 
 class SubPlan(AstNode):
+    """Sub-plan reference in an expression (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.SubPlan
     __match_args__ = (
@@ -7775,6 +8265,8 @@ class SubPlan(AstNode):
 
 
 class SubscriptingRef(AstNode):
+    """Array or container subscripting expression (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.SubscriptingRef
     __match_args__ = (
@@ -7832,6 +8324,8 @@ class SubscriptingRef(AstNode):
 
 
 class SummaryResult(AstNode):
+    """Result of SQL summarization (tables, functions, columns referenced)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.SummaryResult
     __match_args__ = (
@@ -7874,6 +8368,8 @@ class SummaryResult(AstNode):
 
 
 class SummaryResult_Table(AstNode):
+    """Table referenced in a summarized SQL statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.SummaryResult.Table
     __match_args__ = (
@@ -7901,6 +8397,8 @@ class SummaryResult_Table(AstNode):
 
 
 class SummaryResult_AliasesEntry(AstNode):
+    """Alias mapping entry in a summarized SQL statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.SummaryResult.AliasesEntry
     __match_args__ = (
@@ -7918,6 +8416,8 @@ class SummaryResult_AliasesEntry(AstNode):
 
 
 class SummaryResult_Function(AstNode):
+    """Function referenced in a summarized SQL statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.SummaryResult.Function
     __match_args__ = (
@@ -7945,6 +8445,8 @@ class SummaryResult_Function(AstNode):
 
 
 class SummaryResult_FilterColumn(AstNode):
+    """Column used in a filter (``WHERE``) in a summarized SQL statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.SummaryResult.FilterColumn
     __match_args__ = (
@@ -7967,6 +8469,8 @@ class SummaryResult_FilterColumn(AstNode):
 
 
 class TableFunc(AstNode):
+    """Table function definition (used by ``XMLTABLE`` and similar, planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.TableFunc
     __match_args__ = (
@@ -8058,6 +8562,8 @@ class TableFunc(AstNode):
 
 
 class TableLikeClause(AstNode):
+    """``LIKE`` clause in ``CREATE TABLE`` (copies structure from another table)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.TableLikeClause
     __match_args__ = (
@@ -8080,6 +8586,8 @@ class TableLikeClause(AstNode):
 
 
 class TableSampleClause(AstNode):
+    """``TABLESAMPLE`` clause (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.TableSampleClause
     __match_args__ = (
@@ -8102,6 +8610,8 @@ class TableSampleClause(AstNode):
 
 
 class TargetEntry(AstNode):
+    """Single entry in a query's target list (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.TargetEntry
     __match_args__ = (
@@ -8149,6 +8659,8 @@ class TargetEntry(AstNode):
 
 
 class TransactionStmt(AstNode):
+    """Transaction control statement (``BEGIN``, ``COMMIT``, ``ROLLBACK``, ``SAVEPOINT``, etc.)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.TransactionStmt
     __match_args__ = (
@@ -8185,6 +8697,8 @@ class TransactionStmt(AstNode):
 
 
 class TriggerTransition(AstNode):
+    """``REFERENCING`` transition table clause in ``CREATE TRIGGER``."""
+
     __slots__ = ()
     _pb: pg_query_pb2.TriggerTransition
     __match_args__ = (
@@ -8207,6 +8721,8 @@ class TriggerTransition(AstNode):
 
 
 class TruncateStmt(AstNode):
+    """``TRUNCATE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.TruncateStmt
     __match_args__ = (
@@ -8229,6 +8745,8 @@ class TruncateStmt(AstNode):
 
 
 class TypeCast(AstNode):
+    """Type cast expression (``expr::type`` or ``CAST(expr AS type)``)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.TypeCast
     __match_args__ = (
@@ -8250,6 +8768,8 @@ class TypeCast(AstNode):
 
 
 class TypeName(AstNode):
+    """Type name with optional modifiers and array bounds."""
+
     __slots__ = ()
     _pb: pg_query_pb2.TypeName
     __match_args__ = (
@@ -8296,6 +8816,8 @@ class TypeName(AstNode):
 
 
 class UnlistenStmt(AstNode):
+    """``UNLISTEN`` statement for notification channels."""
+
     __slots__ = ()
     _pb: pg_query_pb2.UnlistenStmt
     __match_args__ = ("conditionname",)
@@ -8306,6 +8828,8 @@ class UnlistenStmt(AstNode):
 
 
 class UpdateStmt(AstNode):
+    """``UPDATE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.UpdateStmt
     __match_args__ = (
@@ -8343,6 +8867,8 @@ class UpdateStmt(AstNode):
 
 
 class VacuumRelation(AstNode):
+    """Single relation in a ``VACUUM`` or ``ANALYZE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.VacuumRelation
     __match_args__ = (
@@ -8365,6 +8891,8 @@ class VacuumRelation(AstNode):
 
 
 class VacuumStmt(AstNode):
+    """``VACUUM`` and/or ``ANALYZE`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.VacuumStmt
     __match_args__ = (
@@ -8387,6 +8915,8 @@ class VacuumStmt(AstNode):
 
 
 class Var(AstNode):
+    """Variable reference (column of a table, planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.Var
     __match_args__ = (
@@ -8438,6 +8968,8 @@ class Var(AstNode):
 
 
 class VariableSetStmt(AstNode):
+    """``SET`` configuration variable statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.VariableSetStmt
     __match_args__ = (
@@ -8465,6 +8997,8 @@ class VariableSetStmt(AstNode):
 
 
 class VariableShowStmt(AstNode):
+    """``SHOW`` configuration variable statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.VariableShowStmt
     __match_args__ = ("name",)
@@ -8475,6 +9009,8 @@ class VariableShowStmt(AstNode):
 
 
 class ViewStmt(AstNode):
+    """``CREATE VIEW`` statement."""
+
     __slots__ = ()
     _pb: pg_query_pb2.ViewStmt
     __match_args__ = (
@@ -8512,6 +9048,8 @@ class ViewStmt(AstNode):
 
 
 class WindowClause(AstNode):
+    """Window specification in a query plan (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.WindowClause
     __match_args__ = (
@@ -8589,6 +9127,8 @@ class WindowClause(AstNode):
 
 
 class WindowDef(AstNode):
+    """``WINDOW`` clause or inline window specification."""
+
     __slots__ = ()
     _pb: pg_query_pb2.WindowDef
     __match_args__ = (
@@ -8635,6 +9175,8 @@ class WindowDef(AstNode):
 
 
 class WindowFunc(AstNode):
+    """Window function call (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.WindowFunc
     __match_args__ = (
@@ -8701,6 +9243,8 @@ class WindowFunc(AstNode):
 
 
 class WindowFuncRunCondition(AstNode):
+    """Optimization condition for window function execution (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.WindowFuncRunCondition
     __match_args__ = (
@@ -8733,6 +9277,8 @@ class WindowFuncRunCondition(AstNode):
 
 
 class WithCheckOption(AstNode):
+    """``WITH CHECK OPTION`` for views and row-level security (planner node)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.WithCheckOption
     __match_args__ = (
@@ -8765,6 +9311,8 @@ class WithCheckOption(AstNode):
 
 
 class WithClause(AstNode):
+    """``WITH`` clause containing common table expressions."""
+
     __slots__ = ()
     _pb: pg_query_pb2.WithClause
     __match_args__ = (
@@ -8786,6 +9334,8 @@ class WithClause(AstNode):
 
 
 class XmlExpr(AstNode):
+    """XML expression (``XMLCONCAT``, ``XMLELEMENT``, ``XMLFOREST``, etc.)."""
+
     __slots__ = ()
     _pb: pg_query_pb2.XmlExpr
     __match_args__ = (
@@ -8847,6 +9397,8 @@ class XmlExpr(AstNode):
 
 
 class XmlSerialize(AstNode):
+    """``XMLSERIALIZE(content/document AS type)`` expression."""
+
     __slots__ = ()
     _pb: pg_query_pb2.XmlSerialize
     __match_args__ = (

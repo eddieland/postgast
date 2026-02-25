@@ -51,6 +51,7 @@ test = [
     "pytest-cov>=7.0.0",
     "pytest-sugar>=1.1.1",
     "pytest>=9.0.2",
+    "ruamel-yaml>=0.19.1",
 ]
 dev = [
     { include-group = "test" },
@@ -62,7 +63,6 @@ dev = [
     "mdformat-pyproject>=0.0.2",
     "mdformat-ruff>=0.1",
     "mdformat>=1.0.0",
-    "ruamel-yaml>=0.19.1",
     "ruff>=0.15.1",
 ]
 docs = [

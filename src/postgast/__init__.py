@@ -7,7 +7,11 @@ from postgast.fingerprint import FingerprintResult, fingerprint
 from postgast.format import format_sql
 from postgast.helpers import (
     FunctionIdentity,
+    StatementInfo,
     TriggerIdentity,
+    classify_statement,
+    ensure_if_exists,
+    ensure_if_not_exists,
     ensure_or_replace,
     extract_columns,
     extract_function_identity,
@@ -15,6 +19,8 @@ from postgast.helpers import (
     extract_tables,
     extract_trigger_identity,
     find_nodes,
+    set_if_exists,
+    set_if_not_exists,
     set_or_replace,
     to_drop,
 )
@@ -29,7 +35,10 @@ from postgast.walk import TypedVisitor, Visitor, walk, walk_typed
 
 __all__ = [
     "AstNode",
+    "classify_statement",
     "deparse",
+    "ensure_if_exists",
+    "ensure_if_not_exists",
     "ensure_or_replace",
     "extract_columns",
     "extract_function_identity",
@@ -49,8 +58,11 @@ __all__ = [
     "pg_query_pb2",
     "PgQueryError",
     "scan",
+    "set_if_exists",
+    "set_if_not_exists",
     "set_or_replace",
     "split",
+    "StatementInfo",
     "to_drop",
     "TriggerIdentity",
     "TypedVisitor",

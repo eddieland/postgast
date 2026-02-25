@@ -6,6 +6,8 @@ from postgast import (
     FunctionIdentity,
     ParseResult,
     TriggerIdentity,
+    ensure_if_exists,
+    ensure_if_not_exists,
     ensure_or_replace,
     extract_columns,
     extract_function_identity,
@@ -14,6 +16,8 @@ from postgast import (
     extract_trigger_identity,
     find_nodes,
     parse,
+    set_if_exists,
+    set_if_not_exists,
     set_or_replace,
 )
 from postgast.errors import PgQueryError
@@ -280,3 +284,150 @@ class TestIdentityTupleUnpacking:
         assert trigger == "t"
         assert schema == "public"
         assert table == "orders"
+
+
+class TestSetIfNotExists:
+    def test_create_table(self):
+        tree = parse("CREATE TABLE t (id int)")
+        assert set_if_not_exists(tree) == 1
+
+    def test_create_index(self):
+        tree = parse("CREATE INDEX idx ON t (col)")
+        assert set_if_not_exists(tree) == 1
+
+    def test_create_sequence(self):
+        tree = parse("CREATE SEQUENCE my_seq")
+        assert set_if_not_exists(tree) == 1
+
+    def test_create_schema(self):
+        tree = parse("CREATE SCHEMA myschema")
+        assert set_if_not_exists(tree) == 1
+
+    def test_create_extension(self):
+        tree = parse("CREATE EXTENSION hstore")
+        assert set_if_not_exists(tree) == 1
+
+    def test_already_if_not_exists(self):
+        tree = parse("CREATE TABLE IF NOT EXISTS t (id int)")
+        assert set_if_not_exists(tree) == 0
+
+    def test_no_eligible_stmts(self):
+        tree = parse("SELECT 1; CREATE FUNCTION f() RETURNS void LANGUAGE sql AS $$ $$")
+        assert set_if_not_exists(tree) == 0
+
+    def test_multi_statement(self):
+        sql = "CREATE TABLE t1 (id int); CREATE TABLE t2 (id int)"
+        tree = parse(sql)
+        assert set_if_not_exists(tree) == 2
+
+    def test_mixed_statements(self):
+        sql = "CREATE TABLE t (id int); CREATE VIEW v AS SELECT 1; SELECT 1"
+        tree = parse(sql)
+        assert set_if_not_exists(tree) == 1
+
+
+class TestEnsureIfNotExists:
+    def test_create_table(self):
+        result = ensure_if_not_exists("CREATE TABLE t (id int)")
+        assert "IF NOT EXISTS" in result
+
+    def test_create_index(self):
+        result = ensure_if_not_exists("CREATE INDEX idx ON t (col)")
+        assert "IF NOT EXISTS" in result
+
+    def test_create_sequence(self):
+        result = ensure_if_not_exists("CREATE SEQUENCE my_seq")
+        assert "IF NOT EXISTS" in result
+
+    def test_create_schema(self):
+        result = ensure_if_not_exists("CREATE SCHEMA myschema")
+        assert "IF NOT EXISTS" in result
+
+    def test_create_extension(self):
+        result = ensure_if_not_exists("CREATE EXTENSION hstore")
+        assert "IF NOT EXISTS" in result
+
+    def test_idempotency(self):
+        sql = "CREATE TABLE t (id int)"
+        first = ensure_if_not_exists(sql)
+        second = ensure_if_not_exists(first)
+        assert first == second
+
+    def test_invalid_sql_raises(self):
+        with pytest.raises(PgQueryError):
+            ensure_if_not_exists("NOT VALID SQL !!!")
+
+
+class TestSetIfExists:
+    def test_drop_table(self):
+        tree = parse("DROP TABLE t")
+        assert set_if_exists(tree) == 1
+
+    def test_drop_view(self):
+        tree = parse("DROP VIEW v")
+        assert set_if_exists(tree) == 1
+
+    def test_drop_index(self):
+        tree = parse("DROP INDEX idx")
+        assert set_if_exists(tree) == 1
+
+    def test_drop_function(self):
+        tree = parse("DROP FUNCTION f()")
+        assert set_if_exists(tree) == 1
+
+    def test_drop_sequence(self):
+        tree = parse("DROP SEQUENCE my_seq")
+        assert set_if_exists(tree) == 1
+
+    def test_drop_schema(self):
+        tree = parse("DROP SCHEMA myschema")
+        assert set_if_exists(tree) == 1
+
+    def test_drop_type(self):
+        tree = parse("DROP TYPE my_type")
+        assert set_if_exists(tree) == 1
+
+    def test_already_if_exists(self):
+        tree = parse("DROP TABLE IF EXISTS t")
+        assert set_if_exists(tree) == 0
+
+    def test_no_eligible_stmts(self):
+        tree = parse("SELECT 1")
+        assert set_if_exists(tree) == 0
+
+    def test_multi_statement(self):
+        sql = "DROP TABLE t1; DROP TABLE t2"
+        tree = parse(sql)
+        assert set_if_exists(tree) == 2
+
+
+class TestEnsureIfExists:
+    def test_drop_table(self):
+        result = ensure_if_exists("DROP TABLE t")
+        assert "IF EXISTS" in result
+
+    def test_drop_view(self):
+        result = ensure_if_exists("DROP VIEW v")
+        assert "IF EXISTS" in result
+
+    def test_drop_function(self):
+        result = ensure_if_exists("DROP FUNCTION f()")
+        assert "IF EXISTS" in result
+
+    def test_drop_index(self):
+        result = ensure_if_exists("DROP INDEX idx")
+        assert "IF EXISTS" in result
+
+    def test_drop_schema(self):
+        result = ensure_if_exists("DROP SCHEMA myschema")
+        assert "IF EXISTS" in result
+
+    def test_idempotency(self):
+        sql = "DROP TABLE t"
+        first = ensure_if_exists(sql)
+        second = ensure_if_exists(first)
+        assert first == second
+
+    def test_invalid_sql_raises(self):
+        with pytest.raises(PgQueryError):
+            ensure_if_exists("NOT VALID SQL !!!")

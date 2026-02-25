@@ -1,0 +1,57 @@
+# CTE and set operation formatting
+- label: cte
+  inputs:
+    - "WITH active AS (SELECT * FROM users WHERE active = true) SELECT * FROM active"
+  pretty: |-
+    WITH
+      active AS (
+        SELECT
+          *
+        FROM
+          users
+        WHERE
+          active = TRUE
+      )
+    SELECT
+      *
+    FROM
+      active;
+
+- label: recursive_cte
+  inputs:
+    - >-
+      WITH RECURSIVE cnt AS
+      (SELECT 1 AS n UNION ALL SELECT n + 1 FROM cnt WHERE n < 10)
+      SELECT n FROM cnt
+  pretty: |-
+    WITH RECURSIVE
+      cnt AS (
+        SELECT
+          1 AS n
+        UNION ALL
+        SELECT
+          n + 1
+        FROM
+          cnt
+        WHERE
+          n < 10
+      )
+    SELECT
+      n
+    FROM
+      cnt;
+
+# Set operations
+- label: union_all
+  inputs:
+    - "SELECT id FROM users UNION ALL SELECT id FROM admins"
+  pretty: |-
+    SELECT
+      id
+    FROM
+      users
+    UNION ALL
+    SELECT
+      id
+    FROM
+      admins;

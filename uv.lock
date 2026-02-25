@@ -1122,6 +1122,7 @@ dev = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-sugar" },
+    { name = "pyyaml" },
     { name = "ruff" },
 ]
 docs = [
@@ -1166,6 +1167,7 @@ dev = [
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-cov", specifier = ">=7.0.0" },
     { name = "pytest-sugar", specifier = ">=1.1.1" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "ruff", specifier = ">=0.15.1" },
 ]
 docs = [

@@ -1,0 +1,31 @@
+# JOIN formatting
+- label: inner_join
+  inputs:
+    - "SELECT * FROM users JOIN orders ON users.id = orders.user_id"
+  pretty: |-
+    SELECT
+      *
+    FROM
+      users
+      JOIN orders ON users.id = orders.user_id;
+
+- label: multiple_left_joins
+  inputs:
+    - "SELECT * FROM a LEFT JOIN b ON a.id = b.a_id LEFT JOIN c ON b.id = c.b_id"
+  pretty: |-
+    SELECT
+      *
+    FROM
+      a
+      LEFT JOIN b ON a.id = b.a_id
+      LEFT JOIN c ON b.id = c.b_id;
+
+- label: natural_join
+  inputs:
+    - "SELECT * FROM a NATURAL JOIN b"
+  pretty: |-
+    SELECT
+      *
+    FROM
+      a
+      NATURAL JOIN b;

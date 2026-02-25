@@ -1,0 +1,120 @@
+# Top-level VALUES
+- label: top_level_values
+  inputs:
+    - "VALUES (1), (2), (3)"
+  pretty: |-
+    VALUES
+      (1),
+      (2),
+      (3);
+
+# Grouping sets
+- label: rollup
+  inputs:
+    - "SELECT a, b, count(*) FROM t GROUP BY ROLLUP (a, b)"
+  pretty: |-
+    SELECT
+      a,
+      b,
+      count(*)
+    FROM
+      t
+    GROUP BY
+      ROLLUP(a, b);
+
+- label: cube
+  inputs:
+    - "SELECT a, b, count(*) FROM t GROUP BY CUBE (a, b)"
+  pretty: |-
+    SELECT
+      a,
+      b,
+      count(*)
+    FROM
+      t
+    GROUP BY
+      CUBE(a, b);
+
+- label: grouping_sets
+  inputs:
+    - "SELECT a, count(*) FROM t GROUP BY GROUPING SETS ((a), ())"
+  pretty: |-
+    SELECT
+      a,
+      count(*)
+    FROM
+      t
+    GROUP BY
+      GROUPING SETS (a, ());
+
+# TABLESAMPLE
+- label: tablesample_bernoulli
+  inputs:
+    - "SELECT * FROM t TABLESAMPLE BERNOULLI(10)"
+  pretty: |-
+    SELECT
+      *
+    FROM
+      t TABLESAMPLE bernoulli(10);
+
+- label: tablesample_repeatable
+  inputs:
+    - "SELECT * FROM t TABLESAMPLE SYSTEM(50) REPEATABLE(42)"
+  pretty: |-
+    SELECT
+      *
+    FROM
+      t TABLESAMPLE system(50) REPEATABLE(42);
+
+# ROW constructors
+- label: row_explicit
+  inputs:
+    - "SELECT ROW(1, 2, 3)"
+  pretty: |-
+    SELECT
+      ROW(1, 2, 3);
+
+- label: row_implicit
+  inputs:
+    - "SELECT (1, 2, 3)"
+  pretty: |-
+    SELECT
+      (1, 2, 3);
+
+# Subquery column aliases
+- label: subquery_colnames
+  inputs:
+    - "SELECT * FROM (VALUES (1, 2), (3, 4)) AS t(a, b)"
+  pretty: |-
+    SELECT
+      *
+    FROM
+      (
+        VALUES
+          (1, 2),
+          (3, 4)
+      ) AS t(a, b);
+
+- label: subquery_no_colnames
+  inputs:
+    - "SELECT * FROM (SELECT 1) AS sub"
+  pretty: |-
+    SELECT
+      *
+    FROM
+      (
+        SELECT
+          1
+      ) AS sub;
+
+- label: subquery_quoted_colnames
+  inputs:
+    - 'SELECT * FROM (VALUES (1)) AS t("Order", "MyCol")'
+  pretty: |-
+    SELECT
+      *
+    FROM
+      (
+        VALUES
+          (1)
+      ) AS t("Order", "MyCol");

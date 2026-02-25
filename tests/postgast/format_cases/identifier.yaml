@@ -1,0 +1,71 @@
+# Identifier quoting
+- label: ident_reserved_column
+  inputs:
+    - 'SELECT "order" FROM t'
+  pretty: |-
+    SELECT
+      "order"
+    FROM
+      t;
+
+- label: ident_reserved_table
+  inputs:
+    - 'SELECT * FROM "user"'
+  pretty: |-
+    SELECT
+      *
+    FROM
+      "user";
+
+- label: ident_mixed_case
+  inputs:
+    - 'SELECT "MyColumn" FROM t'
+  pretty: |-
+    SELECT
+      "MyColumn"
+    FROM
+      t;
+
+- label: ident_plain_no_quotes
+  inputs:
+    - "SELECT name FROM users"
+  pretty: |-
+    SELECT
+      name
+    FROM
+      users;
+
+- label: ident_embedded_quote
+  inputs:
+    - 'SELECT "weird""name" FROM t'
+  pretty: |-
+    SELECT
+      "weird""name"
+    FROM
+      t;
+
+- label: ident_schema_table_alias
+  inputs:
+    - 'SELECT * FROM "MySchema"."user" AS "MyAlias"'
+  pretty: |-
+    SELECT
+      *
+    FROM
+      "MySchema"."user" "MyAlias";
+
+# Function pg_catalog stripping
+- label: pg_catalog_stripped
+  inputs:
+    - "SELECT pg_catalog.btrim(name) FROM t"
+  pretty: |-
+    SELECT
+      btrim(name)
+    FROM
+      t;
+
+- label: schema_func_preserved
+  inputs:
+    - "SELECT myschema.myfunc(1)"
+  pretty: |-
+    SELECT
+      myschema.myfunc(1);

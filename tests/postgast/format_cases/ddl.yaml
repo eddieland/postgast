@@ -1,0 +1,29 @@
+# DDL formatting
+- label: create_table
+  inputs:
+    - "CREATE TABLE users (id serial PRIMARY KEY, name text NOT NULL, email text UNIQUE)"
+  pretty: |-
+    CREATE TABLE users (
+      id serial PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE
+    );
+
+- label: create_index
+  inputs:
+    - "CREATE INDEX idx_users_name ON users (name)"
+  pretty: |-
+    CREATE INDEX idx_users_name ON users (name);
+
+- label: alter_table
+  inputs:
+    - "ALTER TABLE users ADD COLUMN age integer"
+  pretty: |-
+    ALTER TABLE users
+      ADD COLUMN age INTEGER;
+
+- label: drop_table
+  inputs:
+    - "DROP TABLE IF EXISTS users CASCADE"
+  pretty: |-
+    DROP TABLE IF EXISTS users CASCADE;

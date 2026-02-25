@@ -62,6 +62,7 @@ def walk(node: Message) -> Generator[tuple[str, Message], None, None]:
         stmt: SelectStmt
         target_list: ResTarget
         val: A_Const
+        ival: Integer
     """
     node = _unwrap_node(node)
     yield "", node
@@ -94,6 +95,7 @@ def walk_typed(node: AstNode) -> Generator[tuple[str, AstNode], None, None]:
         stmt: SelectStmt
         target_list: ResTarget
         val: A_Const
+        ival: Integer
     """
     from postgast.nodes.base import _wrap  # pyright: ignore[reportPrivateUsage]
 

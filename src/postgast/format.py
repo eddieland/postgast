@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any, Final, cast
 import postgast.pg_query_pb2 as pb
 from postgast.deparse import deparse
 from postgast.parse import parse
+from postgast.precedence import Side, needs_parens
 from postgast.scan import scan as _scan
 from postgast.walk import Visitor, _unwrap_node  # pyright: ignore[reportPrivateUsage]
 
@@ -179,6 +180,15 @@ class _SqlFormatter(Visitor):
         """Visit a node in the current output context."""
         self.visit(node)
 
+    def _visit_expr(self, parent: Message, child: Message, *, side: Side | None = None) -> None:
+        """Visit a child expression, wrapping in parens when operator precedence requires it."""
+        if needs_parens(parent, child, side=side):
+            self._emit("(")
+            self._visit_node(child)
+            self._emit(")")
+        else:
+            self._visit_node(child)
+
     def _deparse_node(self, node: Message) -> str:
         """Deparse a single node via libpg_query as a fallback."""
         tree = pb.ParseResult()
@@ -232,16 +242,16 @@ class _SqlFormatter(Visitor):
 
         if kind == pb.AEXPR_OP:
             if node.HasField("lexpr"):
-                self._visit_node(node.lexpr)
+                self._visit_expr(node, node.lexpr, side=Side.LEFT)
                 self._emit(f" {op_name} ")
-                self._visit_node(node.rexpr)
+                self._visit_expr(node, node.rexpr, side=Side.RIGHT)
             else:
                 # Unary prefix operator
                 self._emit(f"{op_name} ")
-                self._visit_node(node.rexpr)
+                self._visit_expr(node, node.rexpr)
 
         elif kind == pb.AEXPR_IN:
-            self._visit_node(node.lexpr)
+            self._visit_expr(node, node.lexpr, side=Side.LEFT)
             # op_name is "=" for IN, "<>" for NOT IN in the AST
             in_kw = "NOT IN" if op_name == "<>" else "IN"
             self._emit(f" {in_kw} (")
@@ -256,13 +266,13 @@ class _SqlFormatter(Visitor):
             self._emit(")")
 
         elif kind in (pb.AEXPR_LIKE, pb.AEXPR_ILIKE):
-            self._visit_node(node.lexpr)
+            self._visit_expr(node, node.lexpr, side=Side.LEFT)
             kw = "LIKE" if kind == pb.AEXPR_LIKE else "ILIKE"
             self._emit(f" {kw} ")
-            self._visit_node(node.rexpr)
+            self._visit_expr(node, node.rexpr, side=Side.RIGHT)
 
         elif kind in (pb.AEXPR_BETWEEN, pb.AEXPR_NOT_BETWEEN):
-            self._visit_node(node.lexpr)
+            self._visit_expr(node, node.lexpr, side=Side.LEFT)
             kw = "BETWEEN" if kind == pb.AEXPR_BETWEEN else "NOT BETWEEN"
             self._emit(f" {kw} ")
             args = _unwrap_node(node.rexpr)
@@ -291,7 +301,7 @@ class _SqlFormatter(Visitor):
             self._emit(")")
 
         elif kind in (pb.AEXPR_OP_ANY, pb.AEXPR_OP_ALL):
-            self._visit_node(node.lexpr)
+            self._visit_expr(node, node.lexpr, side=Side.LEFT)
             quantifier = "ANY" if kind == pb.AEXPR_OP_ANY else "ALL"
             self._emit(f" {op_name} {quantifier}(")
             self._visit_node(node.rexpr)
@@ -310,7 +320,7 @@ class _SqlFormatter(Visitor):
         if node.boolop == pb.NOT_EXPR:
             self._emit("NOT ")
             child = node.args[0]
-            if _needs_bool_parens(pb.NOT_EXPR, child):
+            if needs_parens(node, child):
                 self._emit("(")
                 prev = self._in_clause_context
                 self._in_clause_context = False
@@ -327,7 +337,7 @@ class _SqlFormatter(Visitor):
                 if i > 0:
                     self._newline()
                     self._emit(f"{op} ")
-                if _needs_bool_parens(node.boolop, arg):
+                if needs_parens(node, arg):
                     self._emit("(")
                     prev = self._in_clause_context
                     self._in_clause_context = False
@@ -340,7 +350,7 @@ class _SqlFormatter(Visitor):
             for i, arg in enumerate(node.args):
                 if i > 0:
                     self._emit(f" {op} ")
-                if _needs_bool_parens(node.boolop, arg):
+                if needs_parens(node, arg):
                     self._emit("(")
                     self._visit_node(arg)
                     self._emit(")")
@@ -448,7 +458,7 @@ class _SqlFormatter(Visitor):
             self._emit(" EXCLUDE TIES")
 
     def visit_TypeCast(self, node: pb.TypeCast) -> None:
-        self._visit_node(node.arg)
+        self._visit_expr(node, node.arg, side=Side.LEFT)
         self._emit("::")
         self._visit_type_name(node.type_name)
 
@@ -528,14 +538,14 @@ class _SqlFormatter(Visitor):
             self._emit(text)
 
     def visit_NullTest(self, node: pb.NullTest) -> None:
-        self._visit_node(node.arg)
+        self._visit_expr(node, node.arg, side=Side.LEFT)
         if node.nulltesttype == pb.IS_NULL:
             self._emit(" IS NULL")
         else:
             self._emit(" IS NOT NULL")
 
     def visit_BooleanTest(self, node: pb.BooleanTest) -> None:
-        self._visit_node(node.arg)
+        self._visit_expr(node, node.arg, side=Side.LEFT)
         _map = {
             pb.IS_TRUE: " IS TRUE",
             pb.IS_NOT_TRUE: " IS NOT TRUE",
@@ -1312,17 +1322,6 @@ class _SqlFormatter(Visitor):
             self._emit("(")
         self._emit_inline_list(node.args)
         self._emit(")")
-
-
-def _needs_bool_parens(parent_op: int, child_node: Message) -> bool:
-    inner = _unwrap_node(child_node)
-    if not isinstance(inner, pb.BoolExpr):
-        return False
-    if parent_op == pb.AND_EXPR:
-        return inner.boolop == pb.OR_EXPR
-    if parent_op == pb.NOT_EXPR:
-        return inner.boolop in (pb.AND_EXPR, pb.OR_EXPR)
-    return False
 
 
 _SIMPLE_IDENT_RE: Final = re.compile(r"^[a-z_][a-z0-9_]*$")

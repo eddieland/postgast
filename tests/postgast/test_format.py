@@ -92,6 +92,14 @@ ROUND_TRIP_CASES = [
     "SELECT * FROM t WHERE NOT (a = 1 AND b = 2)",
     "SELECT * FROM t WHERE a = 1 AND b = 2 OR c = 3",
     "SELECT * FROM t WHERE a = 1 OR (b = 2 AND (c = 3 OR d = 4))",
+    # ── Arithmetic precedence ──
+    "SELECT (a + b) * c FROM t",
+    "SELECT a + b * c FROM t",
+    "SELECT a * (b + c) FROM t",
+    "SELECT a - (b - c) FROM t",
+    "SELECT a - b - c FROM t",
+    "SELECT (a + b)::integer FROM t",
+    "SELECT -a * b FROM t",
     # ── Window frames ──
     "SELECT sum(x) OVER (ORDER BY y ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM t",
     "SELECT sum(x) OVER (ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) FROM t",

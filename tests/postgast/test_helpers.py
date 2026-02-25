@@ -52,47 +52,47 @@ class TestFindNodes:
 
 class TestExtractTables:
     def test_simple_table(self, users_tree: ParseResult):
-        assert extract_tables(users_tree) == ["users"]
+        assert list(extract_tables(users_tree)) == ["users"]
 
     def test_schema_qualified(self):
         result = parse("SELECT * FROM public.users")
-        assert extract_tables(result) == ["public.users"]
+        assert list(extract_tables(result)) == ["public.users"]
 
     def test_joins(self):
         result = parse("SELECT * FROM orders JOIN customers ON orders.id = customers.order_id")
-        assert extract_tables(result) == ["orders", "customers"]
+        assert list(extract_tables(result)) == ["orders", "customers"]
 
     def test_subquery(self):
         result = parse("SELECT * FROM (SELECT * FROM users) AS sub")
-        assert extract_tables(result) == ["users"]
+        assert list(extract_tables(result)) == ["users"]
 
     def test_dml_targets(self):
         result = parse("INSERT INTO logs SELECT * FROM events")
-        assert extract_tables(result) == ["logs", "events"]
+        assert list(extract_tables(result)) == ["logs", "events"]
 
     def test_duplicate_references(self):
         result = parse("SELECT * FROM t1 JOIN t1 ON t1.a = t1.b")
-        assert extract_tables(result) == ["t1", "t1"]
+        assert list(extract_tables(result)) == ["t1", "t1"]
 
 
 class TestExtractColumns:
     def test_simple_columns(self):
-        assert extract_columns(parse("SELECT name, age FROM users")) == ["name", "age"]
+        assert list(extract_columns(parse("SELECT name, age FROM users"))) == ["name", "age"]
 
     def test_table_qualified(self):
         result = parse("SELECT u.name FROM users u")
-        assert extract_columns(result) == ["u.name"]
+        assert list(extract_columns(result)) == ["u.name"]
 
     def test_star(self, users_tree: ParseResult):
-        assert extract_columns(users_tree) == ["*"]
+        assert list(extract_columns(users_tree)) == ["*"]
 
     def test_qualified_star(self):
         result = parse("SELECT u.* FROM users u")
-        assert extract_columns(result) == ["u.*"]
+        assert list(extract_columns(result)) == ["u.*"]
 
     def test_where_clause_columns(self):
         result = parse("SELECT name FROM users WHERE age > 18")
-        columns = extract_columns(result)
+        columns = list(extract_columns(result))
         assert "name" in columns
         assert "age" in columns
 
@@ -100,19 +100,19 @@ class TestExtractColumns:
 class TestExtractFunctions:
     def test_simple_call(self):
         result = parse("SELECT count(*) FROM users")
-        assert extract_functions(result) == ["count"]
+        assert list(extract_functions(result)) == ["count"]
 
     def test_multiple_calls(self):
         result = parse("SELECT lower(name), upper(city) FROM users")
-        assert extract_functions(result) == ["lower", "upper"]
+        assert list(extract_functions(result)) == ["lower", "upper"]
 
     def test_schema_qualified(self):
         result = parse("SELECT pg_catalog.now()")
-        assert extract_functions(result) == ["pg_catalog.now"]
+        assert list(extract_functions(result)) == ["pg_catalog.now"]
 
     def test_nested_calls(self):
         result = parse("SELECT upper(lower(name)) FROM users")
-        funcs = extract_functions(result)
+        funcs = list(extract_functions(result))
         assert "upper" in funcs
         assert "lower" in funcs
 
@@ -120,17 +120,17 @@ class TestExtractFunctions:
 class TestHelpersOnSubtree:
     def test_extract_tables_on_subtree(self, users_tree: ParseResult):
         select_stmt = users_tree.stmts[0].stmt.select_stmt
-        assert extract_tables(select_stmt) == ["users"]
+        assert list(extract_tables(select_stmt)) == ["users"]
 
     def test_extract_columns_on_subtree(self):
         result = parse("SELECT a, b FROM t")
         select_stmt = result.stmts[0].stmt.select_stmt
-        assert extract_columns(select_stmt) == ["a", "b"]
+        assert list(extract_columns(select_stmt)) == ["a", "b"]
 
     def test_extract_functions_on_subtree(self):
         result = parse("SELECT count(*) FROM t")
         select_stmt = result.stmts[0].stmt.select_stmt
-        assert extract_functions(select_stmt) == ["count"]
+        assert list(extract_functions(select_stmt)) == ["count"]
 
 
 class TestSetOrReplace:

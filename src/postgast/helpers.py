@@ -88,10 +88,10 @@ def find_nodes(tree: Message, node_type: type[_M]) -> Generator[_M, None, None]:
             yield node
 
 
-def extract_tables(tree: Message) -> list[str]:
-    """Return table names referenced in a parse tree.
+def extract_tables(tree: Message) -> Generator[str, None, None]:
+    """Yield table names referenced in a parse tree.
 
-    Collects all ``RangeVar`` nodes and returns their names as dot-joined strings (``"schema.table"`` when
+    Walks all ``RangeVar`` nodes and yields their names as dot-joined strings (``"schema.table"`` when
     schema-qualified, ``"table"`` otherwise).
 
     Results preserve encounter order and include duplicates. Use ``set()`` on the result to get unique table names.
@@ -99,24 +99,23 @@ def extract_tables(tree: Message) -> list[str]:
     Args:
         tree: Any protobuf ``Message`` (``ParseResult``, ``SelectStmt``, etc.).
 
-    Returns:
+    Yields:
         Table names in encounter order.
 
     Example:
         >>> from postgast import extract_tables, parse
         >>> tree = parse("SELECT * FROM public.users JOIN orders ON true")
-        >>> extract_tables(tree)
+        >>> list(extract_tables(tree))
         ['public.users', 'orders']
     """
-    return [
-        f"{node.schemaname}.{node.relname}" if node.schemaname else node.relname for node in find_nodes(tree, RangeVar)
-    ]
+    for node in find_nodes(tree, RangeVar):
+        yield f"{node.schemaname}.{node.relname}" if node.schemaname else node.relname
 
 
-def extract_columns(tree: Message) -> list[str]:
-    """Return column references found in a parse tree.
+def extract_columns(tree: Message) -> Generator[str, None, None]:
+    """Yield column references found in a parse tree.
 
-    Collects all ``ColumnRef`` nodes and returns their names as dot-joined strings. ``SELECT *`` produces ``"*"``;
+    Walks all ``ColumnRef`` nodes and yields their names as dot-joined strings. ``SELECT *`` produces ``"*"``;
     ``t.*`` produces ``"t.*"``.
 
     Results preserve encounter order and include duplicates.
@@ -124,16 +123,15 @@ def extract_columns(tree: Message) -> list[str]:
     Args:
         tree: Any protobuf ``Message`` (``ParseResult``, ``SelectStmt``, etc.).
 
-    Returns:
+    Yields:
         Column references in encounter order.
 
     Example:
         >>> from postgast import extract_columns, parse
         >>> tree = parse("SELECT u.name, age FROM users u WHERE age > 18")
-        >>> extract_columns(tree)
+        >>> list(extract_columns(tree))
         ['u.name', 'age', 'age']
     """
-    columns: list[str] = []
     for node in find_nodes(tree, ColumnRef):
         parts: list[str] = []
         for field_node in node.fields:
@@ -144,14 +142,13 @@ def extract_columns(tree: Message) -> list[str]:
                     parts.append(inner.sval)
                 elif isinstance(inner, A_Star):
                     parts.append("*")
-        columns.append(".".join(parts))
-    return columns
+        yield ".".join(parts)
 
 
-def extract_functions(tree: Message) -> list[str]:
-    """Return function call names found in a parse tree.
+def extract_functions(tree: Message) -> Generator[str, None, None]:
+    """Yield function call names found in a parse tree.
 
-    Collects all ``FuncCall`` nodes and returns their names as dot-joined strings (``"schema.func"`` when
+    Walks all ``FuncCall`` nodes and yields their names as dot-joined strings (``"schema.func"`` when
     schema-qualified, ``"func"`` otherwise).
 
     Results preserve encounter order and include duplicates.
@@ -159,16 +156,15 @@ def extract_functions(tree: Message) -> list[str]:
     Args:
         tree: Any protobuf ``Message`` (``ParseResult``, ``SelectStmt``, etc.).
 
-    Returns:
+    Yields:
         Function names in encounter order.
 
     Example:
         >>> from postgast import extract_functions, parse
         >>> tree = parse("SELECT lower(name), count(*) FROM users")
-        >>> extract_functions(tree)
+        >>> list(extract_functions(tree))
         ['lower', 'count']
     """
-    functions: list[str] = []
     for node in find_nodes(tree, FuncCall):
         parts: list[str] = []
         for name_node in node.funcname:
@@ -177,8 +173,7 @@ def extract_functions(tree: Message) -> list[str]:
                 inner = getattr(name_node, which)
                 if isinstance(inner, String):
                     parts.append(inner.sval)
-        functions.append(".".join(parts))
-    return functions
+        yield ".".join(parts)
 
 
 def extract_function_identity(tree: Message) -> FunctionIdentity | None:

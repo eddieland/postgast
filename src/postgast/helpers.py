@@ -34,6 +34,7 @@ from postgast.pg_query_pb2 import (
     CreateTrigStmt,
     DropStmt,
     FuncCall,
+    FunctionParameterMode,
     IndexStmt,
     Node,
     ObjectWithArgs,
@@ -46,15 +47,22 @@ from postgast.pg_query_pb2 import (
 from postgast.walk import walk
 
 if TYPE_CHECKING:
-    from collections.abc import Generator, Mapping
+    from collections.abc import Generator, Mapping, Set
 
     from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
 
     from postgast.pg_query_pb2 import ObjectType
 
 _M = TypeVar("_M", bound=Message)
-_OR_REPLACE_TYPES = (CreateFunctionStmt, CreateTrigStmt, ViewStmt)
-_IF_NOT_EXISTS_TYPES = (CreateStmt, IndexStmt, CreateSeqStmt, CreateSchemaStmt, CreateExtensionStmt, CreateTableAsStmt)
+_OR_REPLACE_TYPES: Final = (CreateFunctionStmt, CreateTrigStmt, ViewStmt)
+_IF_NOT_EXISTS_TYPES: Final = (
+    CreateStmt,
+    IndexStmt,
+    CreateSeqStmt,
+    CreateSchemaStmt,
+    CreateExtensionStmt,
+    CreateTableAsStmt,
+)
 
 
 class FunctionIdentity(typing.NamedTuple):
@@ -433,7 +441,12 @@ def ensure_if_exists(sql: str) -> str:
     return deparse(tree)
 
 
-_IDENTITY_MODES = frozenset({FUNC_PARAM_IN, FUNC_PARAM_INOUT, FUNC_PARAM_VARIADIC, FUNC_PARAM_DEFAULT})
+_IDENTITY_MODES: Final[Set[FunctionParameterMode]] = frozenset({
+    FUNC_PARAM_IN,
+    FUNC_PARAM_INOUT,
+    FUNC_PARAM_VARIADIC,
+    FUNC_PARAM_DEFAULT,
+})
 
 
 def _drop_function(stmt: CreateFunctionStmt) -> DropStmt:

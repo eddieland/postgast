@@ -265,7 +265,7 @@ class TestClassificationKeysValid:
     """Verify that all keys in _STATEMENT_CLASSIFICATION are real Node oneof field names."""
 
     def test_all_keys_are_valid_node_fields(self):
-        from postgast.helpers import _STATEMENT_CLASSIFICATION
+        from postgast.helpers import _STATEMENT_CLASSIFICATION  # pyright: ignore[reportPrivateUsage]
 
         valid_fields = {field.name for field in Node.DESCRIPTOR.oneofs[0].fields}
         invalid = set(_STATEMENT_CLASSIFICATION) - valid_fields

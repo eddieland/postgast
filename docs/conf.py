@@ -17,6 +17,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_autodoc_typehints",
     "sphinx_copybutton",
+    "sphinx_llm.txt",
 ]
 
 # Napoleon (Google-style docstrings)
@@ -41,9 +42,6 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "protobuf": ("https://googleapis.dev/python/protobuf/latest/", None),
 }
-
-# Serve llms.txt files at the site root for LLM discoverability
-html_extra_path = ["llms.txt", "llms-full.txt"]
 
 # General
 exclude_patterns = ["_build"]

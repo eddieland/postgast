@@ -25,7 +25,13 @@ class PgQueryError(Exception):
 
     ``cursorpos`` is a **1-based byte offset** into the original SQL string pointing to
     the token where the error was detected.  When it is ``0`` the position is unknown.
-    Convert it to a 0-based Python index with ``e.cursorpos - 1`` when slicing.
+    Because it counts *bytes*, ``e.cursorpos - 1`` only equals the corresponding Python
+    string index when the SQL is pure ASCII.  For SQL containing multibyte UTF-8
+    characters (e.g., Unicode identifiers or string literals), index into the
+    UTF-8-encoded ``bytes`` representation instead::
+
+        pos = sql.encode("utf-8")[: e.cursorpos - 1].decode("utf-8")
+        char_offset = len(pos)
 
     The ``funcname``, ``filename``, and ``lineno`` fields refer to the *internal C
     source* of libpg_query / PostgreSQL's parser, not to your Python code.  They are
@@ -51,7 +57,7 @@ class PgQueryError(Exception):
         ...     print(e.cursorpos)
         8
 
-        Use ``cursorpos`` to highlight the error location:
+        Use ``cursorpos`` to highlight the error location (ASCII-safe shortcut):
 
         >>> from postgast import parse, PgQueryError
         >>> sql = "SELECT * FORM users"
@@ -65,6 +71,17 @@ class PgQueryError(Exception):
         SELECT * FORM users
                  ^
         syntax error at or near "FORM"
+
+        For SQL that may contain non-ASCII characters, convert via the encoded
+        bytes to get the correct character offset::
+
+            sql = "SELECT '\u00fc' FORM t"
+            try:
+                parse(sql)
+            except PgQueryError as e:
+                idx = len(sql.encode("utf-8")[: e.cursorpos - 1].decode("utf-8"))
+                print(sql)
+                print(" " * idx + "^")
     """
 
     def __init__(

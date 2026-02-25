@@ -72,7 +72,7 @@ def _():
 
 @app.cell
 def _(
-    extract_tables: Callable[[Message], list[str]],
+    extract_tables: Callable[[Message], Generator[str, None, None]],
     mo: types.ModuleType,
     parse: Callable[[str], ParseResult],
     split: Callable[[str], list[str]],
@@ -170,7 +170,7 @@ def _(
 
 @app.cell
 def _(
-    extract_tables: Callable[[Message], list[str]],
+    extract_tables: Callable[[Message], Generator[str, None, None]],
     fingerprint: Callable[[str], FingerprintResult],
     mo: types.ModuleType,
     normalize: Callable[[str], str],
@@ -372,8 +372,8 @@ GROUP BY u.name, u.email
 @app.cell
 def _(
     PgQueryError: type[PgQueryError],
-    extract_functions: Callable[[Message], list[str]],
-    extract_tables: Callable[[Message], list[str]],
+    extract_functions: Callable[[Message], Generator[str, None, None]],
+    extract_tables: Callable[[Message], Generator[str, None, None]],
     mo: types.ModuleType,
     parse: Callable[[str], ParseResult],
     split: Callable[[str], list[str]],
@@ -407,8 +407,8 @@ def _(
             _tree = parse(_stmt_sql)
             _stmt_type = _tree.stmts[0].stmt.WhichOneof("node")
             _risk = _RISK.get(_stmt_type or "", "CAUTION")
-            _tables = extract_tables(_tree)
-            _funcs = extract_functions(_tree)
+            _tables = list(extract_tables(_tree))
+            _funcs = list(extract_functions(_tree))
             _plan.append({
                 "num": _i + 1,
                 "sql": _stmt_sql.strip()[:50],

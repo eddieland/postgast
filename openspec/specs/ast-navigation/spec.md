@@ -173,10 +173,10 @@ name, e.g., `"RangeVar"`, `"SelectStmt"`), and yield all matching protobuf `Mess
 - **WHEN** a caller iterates `find_nodes` and stops after the first result (e.g., `next(find_nodes(...))`)
 - **THEN** the function SHALL not traverse the entire tree
 
-### Requirement: extract_tables returns table names from a parse tree
+### Requirement: extract_tables yields table names from a parse tree
 
-`extract_tables(tree)` SHALL accept any protobuf `Message` (e.g., `ParseResult`, `SelectStmt`, or any subtree) and
-return a `list[str]` of table names found by collecting all `RangeVar` nodes in the tree.
+`extract_tables(tree)` SHALL accept any protobuf `Message` (e.g., `ParseResult`, `SelectStmt`, or any subtree) and yield
+`str` table names found by walking all `RangeVar` nodes in the tree (returns a `Generator[str, None, None]`).
 
 - When a `RangeVar` has a non-empty `schemaname`, the result SHALL be `"schemaname.relname"`.
 - When a `RangeVar` has no `schemaname`, the result SHALL be `"relname"` only.
@@ -213,10 +213,10 @@ return a `list[str]` of table names found by collecting all `RangeVar` nodes in 
 - **WHEN** `extract_tables` is called on the parse result of `SELECT * FROM t1 JOIN t1 ON t1.a = t1.b`
 - **THEN** the return value SHALL be `["t1", "t1"]`
 
-### Requirement: extract_columns returns column references from a parse tree
+### Requirement: extract_columns yields column references from a parse tree
 
-`extract_columns(tree)` SHALL accept any protobuf `Message` and return a `list[str]` of column references found by
-collecting all `ColumnRef` nodes in the tree.
+`extract_columns(tree)` SHALL accept any protobuf `Message` and yield `str` column references found by walking all
+`ColumnRef` nodes in the tree (returns a `Generator[str, None, None]`).
 
 - Column names SHALL be dot-joined from the `String.sval` values in `ColumnRef.fields`.
 - A single-element `ColumnRef` (e.g., `name`) SHALL produce `"name"`.
@@ -250,10 +250,10 @@ collecting all `ColumnRef` nodes in the tree.
 - **WHEN** `extract_columns` is called on the parse result of `SELECT name FROM users WHERE age > 18`
 - **THEN** the return value SHALL include both `"name"` and `"age"`
 
-### Requirement: extract_functions returns function call names from a parse tree
+### Requirement: extract_functions yields function call names from a parse tree
 
-`extract_functions(tree)` SHALL accept any protobuf `Message` and return a `list[str]` of function names found by
-collecting all `FuncCall` nodes in the tree.
+`extract_functions(tree)` SHALL accept any protobuf `Message` and yield `str` function names found by walking all
+`FuncCall` nodes in the tree (returns a `Generator[str, None, None]`).
 
 - Function names SHALL be dot-joined from the `String.sval` values in `FuncCall.funcname`.
 - An unqualified function call (e.g., `count(*)`) SHALL produce `"count"`.

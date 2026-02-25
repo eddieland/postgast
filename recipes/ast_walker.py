@@ -309,9 +309,9 @@ def _(
 
 @app.cell
 def _(
-    extract_columns: Callable[[Message], list[str]],
-    extract_functions: Callable[[Message], list[str]],
-    extract_tables: Callable[[Message], list[str]],
+    extract_columns: Callable[[Message], Generator[str, None, None]],
+    extract_functions: Callable[[Message], Generator[str, None, None]],
+    extract_tables: Callable[[Message], Generator[str, None, None]],
     find_nodes: Callable[[Message, type[Message]], Generator[Message, None, None]],
     mo: types.ModuleType,
     parse: Callable[[str], ParseResult],
@@ -357,9 +357,9 @@ def _(
 
 @app.cell
 def _(
-    extract_columns: Callable[[Message], list[str]],
-    extract_functions: Callable[[Message], list[str]],
-    extract_tables: Callable[[Message], list[str]],
+    extract_columns: Callable[[Message], Generator[str, None, None]],
+    extract_functions: Callable[[Message], Generator[str, None, None]],
+    extract_tables: Callable[[Message], Generator[str, None, None]],
     mo: types.ModuleType,
     parse: Callable[[str], ParseResult],
 ):

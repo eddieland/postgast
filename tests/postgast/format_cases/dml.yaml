@@ -1,7 +1,7 @@
 # INSERT formatting
 - label: insert_values
   inputs:
-    - "INSERT INTO users (name, email) VALUES ('Alice', 'alice@example.com')"
+  - INSERT INTO users (name, email) VALUES ('Alice', 'alice@example.com')
   pretty: |-
     INSERT INTO users (name, email)
     VALUES
@@ -9,43 +9,39 @@
 
 - label: insert_on_conflict_update
   inputs:
-    - "INSERT INTO t (a, b) VALUES (1, 2) ON CONFLICT (a) DO UPDATE SET b = EXCLUDED.b"
+  - INSERT INTO t (a, b) VALUES (1, 2) ON CONFLICT (a) DO UPDATE SET b = EXCLUDED.b
   pretty: |-
     INSERT INTO t (a, b)
     VALUES
       (1, 2)
     ON CONFLICT (a) DO UPDATE
-    SET
-      b = excluded.b;
+    SET b = excluded.b;
 
 # UPDATE formatting
 - label: update
   inputs:
-    - "UPDATE users SET name = 'foo', active = false WHERE id = 1"
+  - UPDATE users SET name = 'foo', active = false WHERE id = 1
   pretty: |-
     UPDATE users
     SET
       name = 'foo',
       active = FALSE
-    WHERE
-      id = 1;
+    WHERE id = 1;
 
 # DELETE formatting
 - label: delete
   inputs:
-    - "DELETE FROM users WHERE created_at < '2020-01-01'"
+  - DELETE FROM users WHERE created_at < '2020-01-01'
   pretty: |-
     DELETE FROM users
-    WHERE
-      created_at < '2020-01-01';
+    WHERE created_at < '2020-01-01';
 
 - label: delete_using
   inputs:
-    - "DELETE FROM orders USING users WHERE orders.user_id = users.id AND users.active = false"
+  - DELETE FROM orders USING users WHERE orders.user_id = users.id AND users.active = false
   pretty: |-
     DELETE FROM orders
-    USING
-      users
+    USING users
     WHERE
       orders.user_id = users.id
       AND users.active = FALSE;

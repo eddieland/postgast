@@ -42,5 +42,8 @@ intersphinx_mapping = {
     "protobuf": ("https://googleapis.dev/python/protobuf/latest/", None),
 }
 
+# Serve llms.txt files at the site root for LLM discoverability
+html_extra_path = ["llms.txt", "llms-full.txt"]
+
 # General
 exclude_patterns = ["_build"]

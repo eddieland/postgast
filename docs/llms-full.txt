@@ -1,0 +1,334 @@
+# postgast
+
+> BSD-licensed Python bindings to [libpg_query](https://github.com/pganalyze/libpg_query), the PostgreSQL parser extracted as a standalone C library. Parse, deparse, normalize, fingerprint, split, and scan PostgreSQL SQL from Python — with a minimal dependency footprint (just `protobuf` and the vendored C library, no Cython/Rust/C extensions needed).
+
+- License: BSD 2-Clause
+- Python: 3.10+
+- Parser: PostgreSQL 17 (via libpg_query)
+- Source: [github.com/eddieland/postgast](https://github.com/eddieland/postgast)
+- Docs: [postgast.readthedocs.io](https://postgast.readthedocs.io)
+
+## Install
+
+```bash
+pip install postgast
+```
+
+## Quick Start
+
+```python
+import postgast
+
+# Parse SQL into a protobuf AST
+tree = postgast.parse("SELECT id, name FROM users WHERE active = true")
+
+# Deparse back to SQL
+sql = postgast.deparse(tree)
+
+# Normalize (replace constants with placeholders)
+postgast.normalize("SELECT * FROM users WHERE id = 42")
+# => "SELECT * FROM users WHERE id = $1"
+
+# Fingerprint (structural hash)
+fp = postgast.fingerprint("SELECT * FROM users WHERE id = 42")
+
+# Split multi-statement SQL
+postgast.split("SELECT 1; SELECT 2;")
+# => ["SELECT 1", "SELECT 2"]
+```
+
+## Core API
+
+### `postgast.parse(sql) -> ParseResult`
+
+Parse a SQL query into a protobuf AST. The returned `ParseResult` is a protobuf message. Each statement in `tree.stmts` is a `RawStmt` wrapping a `Node` oneof.
+
+```python
+tree = postgast.parse("SELECT id, name FROM users WHERE active = true")
+# tree.stmts[0] contains the first statement
+```
+
+### `postgast.deparse(tree) -> str`
+
+Convert a parse tree back into SQL text. The deparsed SQL is canonicalized by libpg_query and may differ from the original in whitespace, casing, or parenthesization while remaining semantically equivalent.
+
+```python
+sql = postgast.deparse(tree)
+# "SELECT id, name FROM users WHERE active = true"
+```
+
+### `postgast.normalize(sql) -> str`
+
+Replace literal constants with positional placeholders. Useful for grouping structurally equivalent queries.
+
+```python
+postgast.normalize("SELECT * FROM users WHERE id = 42 AND name = 'alice'")
+# => "SELECT * FROM users WHERE id = $1 AND name = $2"
+```
+
+### `postgast.fingerprint(sql) -> FingerprintResult`
+
+Compute a structural hash that identifies equivalent queries regardless of literal values. Returns a `FingerprintResult` with `.fingerprint` (uint64) and `.hex` (str).
+
+```python
+fp = postgast.fingerprint("SELECT * FROM users WHERE id = 42")
+fp.fingerprint  # uint64 hash
+fp.hex          # hex string representation
+```
+
+### `postgast.split(sql, method="parser"|"scanner") -> list[str]`
+
+Split a multi-statement SQL string into individual statements. Two methods:
+- `"parser"` (default) — uses the full PostgreSQL parser for accuracy
+- `"scanner"` — faster, tolerates invalid SQL
+
+```python
+postgast.split("SELECT 1; SELECT 2;")
+# => ["SELECT 1", "SELECT 2"]
+
+# Scanner method tolerates broken SQL
+postgast.split("SELECT 1; INVALID SYNTAX; SELECT 2", method="scanner")
+# => ["SELECT 1", " INVALID SYNTAX", " SELECT 2"]
+```
+
+### `postgast.scan(sql) -> ScanResult`
+
+Tokenize a SQL string. Each token has `.token`, `.keyword_kind`, `.start`, and `.end`.
+
+```python
+result = postgast.scan("SELECT id FROM users WHERE active = true")
+for token in result.tokens:
+    text = "SELECT id FROM users WHERE active = true"[token.start:token.end]
+    print(f"{text:12s}  token={token.token}  keyword={token.keyword_kind}")
+```
+
+## Tree Walking
+
+### `postgast.walk(tree)`
+
+Depth-first generator yielding `(field_name, node)` tuples for every node in the tree.
+
+```python
+for field_name, node in postgast.walk(tree):
+    print(type(node).__name__, field_name)
+```
+
+### `postgast.walk_typed(tree, node_type)`
+
+Walk filtered to a specific protobuf message type.
+
+### `postgast.Visitor`
+
+Visitor base class. Define `visit_<TypeName>(self, node)` methods. Unhandled node types automatically recurse into their children. Call `self.generic_visit(node)` to continue recursion from a handler.
+
+```python
+class TableCollector(postgast.Visitor):
+    def __init__(self):
+        self.tables = []
+
+    def visit_RangeVar(self, node):
+        self.tables.append(node.relname)
+
+collector = TableCollector()
+collector.visit(tree)
+print(collector.tables)
+```
+
+Omit `self.generic_visit(node)` in a handler to stop recursion into that subtree:
+
+```python
+class TopLevelTables(postgast.Visitor):
+    """Collect tables from the top-level FROM clause only, ignoring subqueries."""
+    def __init__(self):
+        self.tables = []
+
+    def visit_RangeVar(self, node):
+        self.tables.append(node.relname)
+
+    def visit_SubLink(self, _node):
+        pass  # don't recurse into subqueries
+```
+
+### `postgast.TypedVisitor`
+
+Typed visitor variant for use with wrapped AST nodes.
+
+## AST Helpers
+
+### `postgast.find_nodes(tree, node_type)`
+
+Find all nodes of a given protobuf type in the parse tree.
+
+```python
+from postgast.pg_query_pb2 import RangeVar, FuncCall
+
+for rv in postgast.find_nodes(tree, RangeVar):
+    print(rv.relname)
+
+for fc in postgast.find_nodes(tree, FuncCall):
+    print(fc.funcname[0].string.sval)
+```
+
+### `postgast.extract_tables(tree) -> list[str]`
+
+Extract table names from a parse tree.
+
+```python
+tree = postgast.parse("SELECT u.id FROM users u JOIN orders o ON u.id = o.user_id")
+postgast.extract_tables(tree)  # ["users", "orders"]
+```
+
+### `postgast.extract_columns(tree) -> list[str]`
+
+Extract column references from a parse tree.
+
+```python
+postgast.extract_columns(tree)  # ["u.id", "u.id", "o.user_id"]
+```
+
+### `postgast.extract_functions(tree) -> list[str]`
+
+Extract function names from a parse tree.
+
+```python
+tree = postgast.parse("SELECT upper(name), count(*) FROM users")
+postgast.extract_functions(tree)  # ['upper', 'count']
+```
+
+### `postgast.extract_function_identity(sql) -> FunctionIdentity`
+
+Extract function identity (name, schema, argument types) from a CREATE FUNCTION statement.
+
+### `postgast.extract_trigger_identity(sql) -> TriggerIdentity`
+
+Extract trigger identity (name, table) from a CREATE TRIGGER statement.
+
+## DDL Helpers
+
+### `postgast.to_drop(sql) -> str`
+
+Generate a `DROP` statement from `CREATE` DDL.
+
+```python
+postgast.to_drop("CREATE FUNCTION public.add(a int, b int) RETURNS int LANGUAGE sql AS $$ SELECT a + b $$")
+# => "DROP FUNCTION public.add(int, int)"
+
+postgast.to_drop("CREATE VIEW active_users AS SELECT * FROM users WHERE active")
+# => "DROP VIEW active_users"
+
+postgast.to_drop("CREATE TRIGGER audit_trg BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION audit()")
+# => "DROP TRIGGER audit_trg ON users"
+```
+
+### `postgast.set_or_replace(tree)` / `postgast.ensure_or_replace(sql) -> str`
+
+Rewrite `CREATE` to `CREATE OR REPLACE`. `set_or_replace` mutates the tree in-place; `ensure_or_replace` takes and returns SQL text.
+
+```python
+postgast.ensure_or_replace("CREATE VIEW active_users AS SELECT * FROM users WHERE active")
+# => "CREATE OR REPLACE VIEW active_users AS SELECT * FROM users WHERE active = true"
+```
+
+### `postgast.ensure_if_exists(sql) -> str` / `postgast.set_if_exists(tree)`
+
+Add `IF EXISTS` to DDL statements (e.g., `DROP TABLE IF EXISTS`).
+
+### `postgast.ensure_if_not_exists(sql) -> str` / `postgast.set_if_not_exists(tree)`
+
+Add `IF NOT EXISTS` to DDL statements (e.g., `CREATE TABLE IF NOT EXISTS`).
+
+## Utilities
+
+### `postgast.format_sql(sql_or_tree) -> str`
+
+Format SQL via a parse/deparse round-trip. Accepts either a SQL string or a `ParseResult`.
+
+```python
+ugly = "select u.id,u.name from users u where u.active=true"
+print(postgast.format_sql(ugly))
+```
+
+### `postgast.parse_plpgsql(sql) -> list`
+
+Parse PL/pgSQL function bodies into a structured representation including declarations, assignments, and control flow. Returns a list of dicts.
+
+```python
+import json
+sql = """
+    CREATE FUNCTION greet(name text) RETURNS text LANGUAGE plpgsql AS $$
+    DECLARE
+        result text;
+    BEGIN
+        result := 'Hello, ' || name;
+        RETURN result;
+    END;
+    $$
+"""
+parsed = postgast.parse_plpgsql(sql)
+print(json.dumps(parsed, indent=2))
+```
+
+### `postgast.classify_statement(sql) -> StatementInfo`
+
+Classify a SQL statement (returns a `StatementInfo` object).
+
+### `postgast.precedence_of(node) -> Precedence`
+
+Get operator precedence for a node.
+
+### `postgast.needs_parens(parent, child, side) -> bool`
+
+Check whether parentheses are needed around a child expression.
+
+## Types
+
+- **`ParseResult`** — Protobuf parse result (from `pg_query_pb2`). Contains `.stmts` list of `RawStmt`.
+- **`FingerprintResult`** — Fingerprint result with `.fingerprint` (uint64) and `.hex` (str).
+- **`FunctionIdentity`** — Identity object for functions (name, schema, argument types).
+- **`TriggerIdentity`** — Identity object for triggers (name, table).
+- **`StatementInfo`** — Statement classification result.
+- **`PgQueryError`** — Exception raised on invalid SQL, with `.message` and `.cursorpos`.
+- **`AstNode`** — Wrapped AST node helper for typed attribute access.
+
+## Error Handling
+
+All functions raise `PgQueryError` on invalid SQL:
+
+```python
+try:
+    postgast.parse("SELECT * FORM users")
+except postgast.PgQueryError as e:
+    print(e.message)   # "syntax error at or near \"users\""
+    print(e.cursorpos)  # 15
+```
+
+Use `parse` as a fast syntax validator:
+
+```python
+def is_valid_sql(sql: str) -> bool:
+    try:
+        postgast.parse(sql)
+        return True
+    except postgast.PgQueryError:
+        return False
+```
+
+## Working with the Protobuf AST
+
+The parse tree is a standard protobuf `Message`. Navigate it using protobuf APIs:
+
+```python
+tree = postgast.parse("SELECT id, name FROM users WHERE active = true")
+raw_stmt = tree.stmts[0]
+select = raw_stmt.stmt.select_stmt
+
+# Target list (SELECT columns)
+for target in select.target_list:
+    col = target.res_target.val.column_ref
+    name = col.fields[0].string.sval
+    print(f"Column: {name}")
+
+# FROM clause
+table = select.from_clause[0].range_var
+print(f"Table: {table.relname}")  # 'users'
+```

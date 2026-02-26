@@ -53,5 +53,6 @@ These files follow the `llms.txt standard <https://llmstxt.org/>`_.
    guide
    examples
    api
+   architecture
    upgrade-policy
    contributing

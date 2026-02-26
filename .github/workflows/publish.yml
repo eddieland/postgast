@@ -28,6 +28,7 @@ jobs:
         with:
           version: "0.10.2"
           enable-cache: true
+          cache-dependency-glob: "uv.lock"
           python-version: "3.14"
 
       - name: Set up Python
@@ -106,6 +107,8 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           version: "0.10.2"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       - name: Build SDist
         run: uv build --sdist
@@ -135,6 +138,7 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           version: "0.10.2"
+          enable-cache: false
 
       - name: Publish to PyPI
         run: uv publish --trusted-publishing always dist/*

@@ -58,6 +58,12 @@ fit neatly into a `make` target or one-liner.
 - Keep scripts focused: one script, one job. If a script grows complex, it probably belongs in the library or a Makefile
   target instead.
 
+## cibuildwheel Test Dependencies
+
+`[tool.cibuildwheel]` in `pyproject.toml` has its own `test-requires` list, separate from the `test` dependency group.
+When adding a new test dependency, add it to **both** the `[dependency-groups] test` list and `test-requires` under
+`[tool.cibuildwheel]`, otherwise publish workflow wheel tests will fail with `ModuleNotFoundError`.
+
 ## README Feature Matrix
 
 Keep the feature matrix in `README.md` in sync. Update after finishing apply or archiving a change — set status to

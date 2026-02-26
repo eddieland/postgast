@@ -16,7 +16,7 @@ footprint — just `protobuf` and the vendored C library.
 
 <br/>
 <p align="center">
-  <img src="docs/logo.png" width="700"/>
+  <img src="docs/logo.png" width="350" alt="postgast logo"/>
   <br/>
   <em>postgast</em>
 </p>

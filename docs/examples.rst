@@ -4,10 +4,6 @@ Common Usage Patterns
 This page demonstrates practical patterns for common tasks. For API
 fundamentals, see the :doc:`guide`.
 
-.. contents:: On this page
-   :local:
-   :depth: 2
-
 Query Analysis
 --------------
 

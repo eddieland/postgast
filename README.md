@@ -14,7 +14,13 @@ as a standalone C library.
 Parse, deparse, normalize, fingerprint, split, and scan PostgreSQL SQL statements from Python with a minimal dependency
 footprint — just `protobuf` and the vendored C library.
 
-<img src="docs/logo.png" width="250" />
+<br/>
+<p align="center">
+  <img src="docs/logo.png" width="700"/>
+  <br/>
+  <em>postgast</em>
+</p>
+<br/>
 
 ## Features
 

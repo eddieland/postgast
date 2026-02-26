@@ -11,7 +11,7 @@ from postgast.deparse import deparse
 from postgast.parse import parse
 from postgast.precedence import Side, needs_parens
 from postgast.scan import scan as _scan
-from postgast.walk import Visitor, _unwrap_node  # pyright: ignore[reportPrivateUsage]
+from postgast.walk import Visitor, unwrap_node
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
@@ -91,7 +91,7 @@ def format_sql(sql: str | ParseResult) -> str:
     formatter = _SqlFormatter()
     parts: list[str] = []
     for raw_stmt in tree.stmts:
-        stmt = _unwrap_node(raw_stmt.stmt)
+        stmt = unwrap_node(raw_stmt.stmt)
         formatter.reset()
         formatter.visit(stmt)
         parts.append(formatter.get_output())
@@ -153,7 +153,7 @@ class _SqlFormatter(Visitor):
 
     def _emit_string_or_visit(self, node: Any, *, quote: bool = False) -> None:
         """If *node* unwraps to a String, emit its sval (optionally quoted); else visit."""
-        inner = _unwrap_node(node)
+        inner = unwrap_node(node)
         if isinstance(inner, pb.String):
             self._emit(_quote_ident(inner.sval) if quote else inner.sval)
         else:
@@ -226,7 +226,7 @@ class _SqlFormatter(Visitor):
     def visit_ColumnRef(self, node: pb.ColumnRef) -> None:
         parts: list[str] = []
         for field_node in node.fields:
-            inner = _unwrap_node(field_node)
+            inner = unwrap_node(field_node)
             if isinstance(inner, pb.String):
                 parts.append(_quote_ident(inner.sval))
             elif isinstance(inner, pb.A_Star):
@@ -236,7 +236,7 @@ class _SqlFormatter(Visitor):
     def visit_A_Expr(self, node: pb.A_Expr) -> None:
         op_name = ""
         if node.name:
-            op_name = cast("pb.String", _unwrap_node(node.name[0])).sval
+            op_name = cast("pb.String", unwrap_node(node.name[0])).sval
 
         kind = node.kind
 
@@ -255,7 +255,7 @@ class _SqlFormatter(Visitor):
             # op_name is "=" for IN, "<>" for NOT IN in the AST
             in_kw = "NOT IN" if op_name == "<>" else "IN"
             self._emit(f" {in_kw} (")
-            inner = _unwrap_node(node.rexpr)
+            inner = unwrap_node(node.rexpr)
             if isinstance(inner, pb.List):
                 for i, item in enumerate(inner.items):
                     if i > 0:
@@ -275,7 +275,7 @@ class _SqlFormatter(Visitor):
             self._visit_expr(node, node.lexpr, side=Side.LEFT)
             kw = "BETWEEN" if kind == pb.AEXPR_BETWEEN else "NOT BETWEEN"
             self._emit(f" {kw} ")
-            args = _unwrap_node(node.rexpr)
+            args = unwrap_node(node.rexpr)
             if isinstance(args, pb.List) and len(args.items) == 2:
                 self._visit_node(args.items[0])
                 self._emit(" AND ")
@@ -358,7 +358,7 @@ class _SqlFormatter(Visitor):
                     self._visit_node(arg)
 
     def visit_FuncCall(self, node: pb.FuncCall) -> None:
-        name_parts = [cast("pb.String", _unwrap_node(n)).sval for n in node.funcname]
+        name_parts = [cast("pb.String", unwrap_node(n)).sval for n in node.funcname]
         display_parts = name_parts[1:] if len(name_parts) > 1 and name_parts[0] == "pg_catalog" else name_parts
         self._emit(".".join(display_parts))
         self._emit("(")
@@ -463,7 +463,7 @@ class _SqlFormatter(Visitor):
         self._visit_type_name(node.type_name)
 
     def _visit_type_name(self, tn: pb.TypeName) -> None:
-        names = [cast("pb.String", _unwrap_node(n)).sval for n in tn.names]
+        names = [cast("pb.String", unwrap_node(n)).sval for n in tn.names]
         # Filter out 'pg_catalog' schema prefix for built-in types
         display_names = [n for n in names if n != "pg_catalog"]
         type_str = ".".join(display_names)
@@ -516,7 +516,7 @@ class _SqlFormatter(Visitor):
         elif stype in (pb.ANY_SUBLINK, pb.ALL_SUBLINK):
             quantifier = "ANY" if stype == pb.ANY_SUBLINK else "ALL"
             self._visit_node(node.testexpr)
-            op = cast("pb.String", _unwrap_node(node.oper_name[0])).sval if node.oper_name else "="
+            op = cast("pb.String", unwrap_node(node.oper_name[0])).sval if node.oper_name else "="
             self._emit(f" {op} {quantifier}(")
             self._newline()
             self._indent()
@@ -579,7 +579,7 @@ class _SqlFormatter(Visitor):
     def visit_A_Indirection(self, node: pb.A_Indirection) -> None:
         self._visit_node(node.arg)
         for ind in node.indirection:
-            inner = _unwrap_node(ind)
+            inner = unwrap_node(ind)
             if isinstance(inner, pb.String):
                 self._emit(f".{inner.sval}")
             elif isinstance(inner, pb.A_Indices):
@@ -628,7 +628,7 @@ class _SqlFormatter(Visitor):
                 if i > 0:
                     self._emit(",")
                     self._newline()
-                vals = _unwrap_node(vals_node)
+                vals = unwrap_node(vals_node)
                 self._emit("(")
                 if isinstance(vals, pb.List):
                     for j, v in enumerate(vals.items):
@@ -655,15 +655,13 @@ class _SqlFormatter(Visitor):
                 self._emit(")")
 
         # Target list — inline when a single, single-line target
-        if len(node.target_list) == 1 and "\n" not in self._fmt(
-            cast("pb.ResTarget", _unwrap_node(node.target_list[0]))
-        ):
+        if len(node.target_list) == 1 and "\n" not in self._fmt(cast("pb.ResTarget", unwrap_node(node.target_list[0]))):
             self._emit(" ")
-            self._visit_res_target(_unwrap_node(node.target_list[0]))
+            self._visit_res_target(unwrap_node(node.target_list[0]))
         else:
             self._newline()
             self._indent()
-            self._emit_multiline_list(node.target_list, visit=lambda t: self._visit_res_target(_unwrap_node(t)))
+            self._emit_multiline_list(node.target_list, visit=lambda t: self._visit_res_target(unwrap_node(t)))
             self._dedent()
 
         # FROM — inline when a single non-join item
@@ -719,7 +717,7 @@ class _SqlFormatter(Visitor):
 
         # Locking (FOR UPDATE/SHARE/NO KEY UPDATE/KEY SHARE)
         for lock in node.locking_clause:
-            lc = cast("pb.LockingClause", _unwrap_node(lock))
+            lc = cast("pb.LockingClause", unwrap_node(lock))
             self._newline()
             strength_map = {
                 pb.LCS_FORKEYSHARE: "FOR KEY SHARE",
@@ -751,7 +749,7 @@ class _SqlFormatter(Visitor):
     # ── FROM clause helpers ───────────────────────────────────────
 
     def _visit_from_list(self, from_clause: Sequence[Any]) -> None:
-        self._emit_multiline_list(from_clause, visit=lambda item: self._visit_node(_unwrap_node(item)))
+        self._emit_multiline_list(from_clause, visit=lambda item: self._visit_node(unwrap_node(item)))
 
     def visit_RangeVar(self, node: pb.RangeVar) -> None:
         parts: list[str] = []
@@ -815,7 +813,7 @@ class _SqlFormatter(Visitor):
 
     def _emit_filter_clause(self, keyword: str, expr: Message) -> None:
         """Emit a WHERE/HAVING-style clause.  Inline for simple expressions, multiline for AND/OR."""
-        inner = _unwrap_node(expr)
+        inner = unwrap_node(expr)
         is_compound = isinstance(inner, pb.BoolExpr) and inner.boolop in (pb.AND_EXPR, pb.OR_EXPR)
         self._newline()
         self._emit(keyword)
@@ -835,9 +833,9 @@ class _SqlFormatter(Visitor):
     def _emit_from_clause(self, keyword: str, from_list: Sequence[Any]) -> None:
         """Emit a FROM/USING clause.  Inline for a single non-join item, multiline otherwise."""
         self._emit(keyword)
-        if len(from_list) == 1 and not isinstance(_unwrap_node(from_list[0]), pb.JoinExpr):
+        if len(from_list) == 1 and not isinstance(unwrap_node(from_list[0]), pb.JoinExpr):
             self._emit(" ")
-            self._visit_node(_unwrap_node(from_list[0]))
+            self._visit_node(unwrap_node(from_list[0]))
         else:
             self._newline()
             self._indent()
@@ -850,11 +848,11 @@ class _SqlFormatter(Visitor):
         self._emit("RETURNING")
         if len(returning_list) == 1:
             self._emit(" ")
-            self._visit_res_target(_unwrap_node(returning_list[0]))
+            self._visit_res_target(unwrap_node(returning_list[0]))
         else:
             self._newline()
             self._indent()
-            self._emit_multiline_list(returning_list, visit=lambda t: self._visit_res_target(_unwrap_node(t)))
+            self._emit_multiline_list(returning_list, visit=lambda t: self._visit_res_target(unwrap_node(t)))
             self._dedent()
 
     def _emit_alias_colnames(self, colnames: Sequence[Any]) -> None:
@@ -878,7 +876,7 @@ class _SqlFormatter(Visitor):
 
     def _visit_set_assignment(self, item: Any) -> None:
         """Emit a single ``col = expr`` assignment inside a SET clause."""
-        rt = _unwrap_node(item)
+        rt = unwrap_node(item)
         if isinstance(rt, pb.ResTarget):
             self._emit(f"{rt.name} = ")
             self._visit_node(rt.val)
@@ -906,7 +904,7 @@ class _SqlFormatter(Visitor):
             self._emit(" RECURSIVE")
         self._newline()
         self._indent()
-        self._emit_multiline_list(wc.ctes, visit=lambda cte_node: self._visit_cte(_unwrap_node(cte_node)))
+        self._emit_multiline_list(wc.ctes, visit=lambda cte_node: self._visit_cte(unwrap_node(cte_node)))
         self._dedent()
         self._newline()
 
@@ -937,7 +935,7 @@ class _SqlFormatter(Visitor):
             for i, col in enumerate(node.cols):
                 if i > 0:
                     self._emit(", ")
-                rt = _unwrap_node(col)
+                rt = unwrap_node(col)
                 if isinstance(rt, pb.ResTarget):
                     self._emit(rt.name)
                 else:
@@ -946,7 +944,7 @@ class _SqlFormatter(Visitor):
 
         if node.HasField("select_stmt"):
             self._newline()
-            select = _unwrap_node(node.select_stmt)
+            select = unwrap_node(node.select_stmt)
             self._visit_node(select)
 
         if node.HasField("on_conflict_clause"):
@@ -1028,7 +1026,7 @@ class _SqlFormatter(Visitor):
             if i > 0:
                 self._emit(",")
                 self._newline()
-            inner = _unwrap_node(elt)
+            inner = unwrap_node(elt)
             if isinstance(inner, pb.ColumnDef):
                 self._visit_column_def(inner)
             elif isinstance(inner, pb.Constraint):
@@ -1047,7 +1045,7 @@ class _SqlFormatter(Visitor):
         self._emit(f"{node.colname} ")
         self._visit_type_name(node.type_name)
         for cons in node.constraints:
-            inner = _unwrap_node(cons)
+            inner = unwrap_node(cons)
             if isinstance(inner, pb.Constraint):
                 self._emit(" ")
                 self._visit_inline_constraint(inner)
@@ -1191,7 +1189,7 @@ class _SqlFormatter(Visitor):
                 self._emit(",")
             self._newline()
             self._indent()
-            cmd = _unwrap_node(cmd_node)
+            cmd = unwrap_node(cmd_node)
             self._visit_alter_table_cmd(cmd)
             self._dedent()
 
@@ -1201,7 +1199,7 @@ class _SqlFormatter(Visitor):
         if subtype == pb.AT_AddColumn:
             self._emit("ADD COLUMN ")
             if cmd.HasField("def"):
-                inner = _unwrap_node(getattr(cmd, "def"))
+                inner = unwrap_node(getattr(cmd, "def"))
                 if isinstance(inner, pb.ColumnDef):
                     self._visit_column_def(inner)
                 else:
@@ -1215,7 +1213,7 @@ class _SqlFormatter(Visitor):
         elif subtype == pb.AT_AlterColumnType:
             self._emit(f"ALTER COLUMN {cmd.name} TYPE ")
             if cmd.HasField("def"):
-                inner = _unwrap_node(getattr(cmd, "def"))
+                inner = unwrap_node(getattr(cmd, "def"))
                 if isinstance(inner, pb.ColumnDef):
                     self._visit_type_name(inner.type_name)
                     if inner.HasField("raw_default"):
@@ -1234,7 +1232,7 @@ class _SqlFormatter(Visitor):
         elif subtype == pb.AT_AddConstraint:
             self._emit("ADD ")
             if cmd.HasField("def"):
-                inner = _unwrap_node(getattr(cmd, "def"))
+                inner = unwrap_node(getattr(cmd, "def"))
                 if isinstance(inner, pb.Constraint):
                     self._visit_constraint(inner)
                 else:
@@ -1264,10 +1262,10 @@ class _SqlFormatter(Visitor):
         for i, obj_node in enumerate(node.objects):
             if i > 0:
                 self._emit(", ")
-            inner = _unwrap_node(obj_node)
+            inner = unwrap_node(obj_node)
             if isinstance(inner, pb.List):
                 # Multi-part name like schema.table
-                parts = [cast("pb.String", _unwrap_node(n)).sval for n in inner.items]
+                parts = [cast("pb.String", unwrap_node(n)).sval for n in inner.items]
                 self._emit(".".join(parts))
             elif isinstance(inner, pb.String):
                 self._emit(inner.sval)
@@ -1293,7 +1291,7 @@ class _SqlFormatter(Visitor):
         if node.lateral:
             self._emit("LATERAL ")
         for func_item in node.functions:
-            inner = _unwrap_node(func_item)
+            inner = unwrap_node(func_item)
             if isinstance(inner, pb.List) and inner.items:
                 self._visit_node(inner.items[0])
             else:
@@ -1324,7 +1322,7 @@ class _SqlFormatter(Visitor):
     def visit_RangeTableSample(self, node: pb.RangeTableSample) -> None:
         self._visit_node(node.relation)
         self._emit(" TABLESAMPLE ")
-        method_parts = [cast("pb.String", _unwrap_node(m)).sval for m in node.method]
+        method_parts = [cast("pb.String", unwrap_node(m)).sval for m in node.method]
         self._emit(".".join(method_parts))
         self._emit("(")
         self._emit_inline_list(node.args)

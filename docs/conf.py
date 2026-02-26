@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 
 project = "postgast"
 author = "Edward Jones"
-copyright = "2025, Edward Jones"  # noqa: A001
+copyright = "2026, eddie.land"  # noqa: A001
 
 extensions = [
     "sphinx.ext.autodoc",

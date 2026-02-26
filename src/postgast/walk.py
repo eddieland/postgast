@@ -5,11 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from google.protobuf.descriptor import FieldDescriptor
+from google.protobuf.message import Message
 
 if TYPE_CHECKING:
     from collections.abc import Generator
-
-    from google.protobuf.message import Message
 
     from postgast.nodes.base import AstNode
 
@@ -55,11 +54,11 @@ def _iter_children(node: Message) -> Generator[tuple[str, Message], None, None]:
     for fd, value in node.ListFields():
         if fd.type != FieldDescriptor.TYPE_MESSAGE:
             continue
-        if getattr(fd, "label", None) == FieldDescriptor.LABEL_REPEATED:
+        if isinstance(value, Message):
+            yield fd.name, unwrap_node(value)
+        else:
             for item in value:
                 yield fd.name, unwrap_node(item)
-        else:
-            yield fd.name, unwrap_node(value)
 
 
 def walk(node: Message) -> Generator[tuple[str, Message], None, None]:

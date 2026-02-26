@@ -71,6 +71,7 @@ docs = [
     "sphinx-copybutton>=0.5",
     "sphinx-autodoc-typehints>=2.0",
     "sphinx-llm>=0.3",
+    "sphinxext-opengraph>=0.9",
 ]
 recipes = [
     "marimo>=0.10",

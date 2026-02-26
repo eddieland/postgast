@@ -18,6 +18,7 @@ extensions = [
     "sphinx_autodoc_typehints",
     "sphinx_copybutton",
     "sphinx_llm.txt",
+    "sphinxext.opengraph",
 ]
 
 # Napoleon (Google-style docstrings)
@@ -42,6 +43,11 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "protobuf": ("https://googleapis.dev/python/protobuf/latest/", None),
 }
+
+# OpenGraph
+ogp_site_url = "https://postgast.readthedocs.io/"
+ogp_site_name = "postgast"
+ogp_description_length = 200
 
 # General
 exclude_patterns = ["_build"]

@@ -32,7 +32,7 @@ from postgast.plpgsql import parse_plpgsql
 from postgast.precedence import Assoc, Precedence, Side, needs_parens, precedence_of
 from postgast.scan import scan
 from postgast.split import split
-from postgast.walk import TypedVisitor, Visitor, walk, walk_typed
+from postgast.walk import TypedVisitor, Visitor, unwrap_node, walk, walk_typed
 
 __all__ = [
     "Assoc",
@@ -71,6 +71,7 @@ __all__ = [
     "to_drop",
     "TriggerIdentity",
     "TypedVisitor",
+    "unwrap_node",
     "Visitor",
     "walk_typed",
     "walk",

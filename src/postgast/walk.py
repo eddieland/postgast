@@ -16,8 +16,32 @@ if TYPE_CHECKING:
 _NODE_ONEOF = "node"
 
 
-def _unwrap_node(node: Message) -> Message:
-    """If *node* is a ``Node`` oneof wrapper, return the inner concrete message; otherwise return *node* unchanged."""
+def unwrap_node(node: Message) -> Message:
+    """If *node* is a ``Node`` oneof wrapper, return the inner concrete message; otherwise return *node* unchanged.
+
+    In libpg_query's protobuf schema every child reference is wrapped in a generic ``Node`` message that contains a
+    single ``oneof node`` field.  This helper peels that wrapper so you can work with the concrete message type
+    (``SelectStmt``, ``ColumnRef``, etc.) directly.
+
+    If *node* is already a concrete message (not a ``Node`` wrapper), it is returned as-is, making this safe to call
+    unconditionally.
+
+    Args:
+        node: Any protobuf ``Message`` — typically a ``pg_query_pb2.Node``, but concrete messages are accepted too.
+
+    Returns:
+        The inner concrete message if *node* was a ``Node`` wrapper, otherwise *node* itself.
+
+    Example:
+        >>> from postgast import parse
+        >>> from postgast.walk import unwrap_node
+        >>> tree = parse("SELECT 1")
+        >>> raw_stmt = tree.stmts[0]
+        >>> # raw_stmt.stmt is a Node wrapper — unwrap to get the SelectStmt
+        >>> select = unwrap_node(raw_stmt.stmt)
+        >>> type(select).__name__
+        'SelectStmt'
+    """
     oneofs = type(node).DESCRIPTOR.oneofs
     if len(oneofs) == 1 and oneofs[0].name == _NODE_ONEOF:
         which = node.WhichOneof(_NODE_ONEOF)
@@ -33,9 +57,9 @@ def _iter_children(node: Message) -> Generator[tuple[str, Message], None, None]:
             continue
         if getattr(fd, "label", None) == FieldDescriptor.LABEL_REPEATED:
             for item in value:
-                yield fd.name, _unwrap_node(item)
+                yield fd.name, unwrap_node(item)
         else:
-            yield fd.name, _unwrap_node(value)
+            yield fd.name, unwrap_node(value)
 
 
 def walk(node: Message) -> Generator[tuple[str, Message], None, None]:
@@ -64,7 +88,7 @@ def walk(node: Message) -> Generator[tuple[str, Message], None, None]:
         val: A_Const
         ival: Integer
     """
-    node = _unwrap_node(node)
+    node = unwrap_node(node)
     yield "", node
     stack: list[tuple[str, Message]] = list(reversed(list(_iter_children(node))))
     while stack:
@@ -132,7 +156,7 @@ class Visitor:
         Args:
             node: Any protobuf ``Message`` instance.
         """
-        node = _unwrap_node(node)
+        node = unwrap_node(node)
         type_name = type(node).DESCRIPTOR.name
         handler = getattr(self, f"visit_{type_name}", self.generic_visit)
         handler(node)

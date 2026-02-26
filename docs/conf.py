@@ -28,6 +28,11 @@ napoleon_numpy_docstring = False
 # Theme
 html_theme = "furo"
 html_title = "postgast"
+html_theme_options = {
+    "source_repository": "https://github.com/eddieland/postgast",
+    "source_branch": "main",
+    "source_directory": "docs/",
+}
 
 # Autodoc
 autodoc_member_order = "bysource"

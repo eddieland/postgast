@@ -1,6 +1,8 @@
 postgast
 ========
 
+`GitHub <https://github.com/eddieland/postgast>`_ | `PyPI <https://pypi.org/project/postgast/>`_
+
 BSD-licensed Python bindings to `libpg_query <https://github.com/pganalyze/libpg_query>`_,
 the PostgreSQL parser extracted as a standalone C library.
 

@@ -15,7 +15,7 @@ Parse, deparse, normalize, fingerprint, split, and scan PostgreSQL SQL statement
 footprint — just `protobuf` and the vendored C library.
 
 <p align="center">
-  <img src="docs/logo.png" width="350" alt="postgast logo"/>
+  <img src="https://raw.githubusercontent.com/eddieland/postgast/main/docs/logo.png" width="350" alt="postgast logo"/>
 </p>
 
 ## Features

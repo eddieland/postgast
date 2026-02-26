@@ -36,6 +36,16 @@ Installation
 
    pip install postgast
 
+LLM-Friendly Docs
+------------------
+
+Machine-readable documentation is available for AI coding assistants:
+
+- `llms.txt </llms.txt>`_ — concise overview
+- `llms-full.txt </llms-full.txt>`_ — complete documentation in a single file
+
+These files follow the `llms.txt standard <https://llmstxt.org/>`_.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents

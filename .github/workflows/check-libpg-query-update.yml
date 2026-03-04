@@ -14,6 +14,10 @@ on:
         required: false
         type: string
 
+concurrency:
+  group: libpg-query-update
+  cancel-in-progress: false
+
 permissions:
   contents: read
   issues: write
@@ -79,12 +83,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LATEST_TAG: ${{ steps.versions.outputs.latest_tag }}
         run: |
+          # Only suppress if there is already an open issue for this exact tag.
           open_issues=$(
             gh issue list \
               --label "libpg_query-update" \
               --state open \
               --json number,title \
-              --jq 'length'
+              --jq "[.[] | select(.title == \"Update libpg_query to ${LATEST_TAG}\")] | length"
           )
           echo "open_count=${open_issues}" >> "$GITHUB_OUTPUT"
 
@@ -97,10 +102,12 @@ jobs:
           CURRENT_TAG: ${{ steps.versions.outputs.current_tag }}
           SUBMODULE_SHA: ${{ steps.versions.outputs.submodule_sha }}
         run: |
-          gh label create "libpg_query-update" \
-            --description "Tracking issue for a new libpg_query release" \
-            --color "1d76db" \
-            --force
+          # Create the label only if it doesn't already exist.
+          if ! gh label list --json name --jq '.[].name' | grep -qx 'libpg_query-update'; then
+            gh label create "libpg_query-update" \
+              --description "Tracking issue for a new libpg_query release" \
+              --color "1d76db"
+          fi
 
           gh issue create \
             --title "Update libpg_query to ${LATEST_TAG}" \

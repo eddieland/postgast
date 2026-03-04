@@ -1,0 +1,143 @@
+name: Check libpg_query updates
+
+on:
+  schedule:
+    # Run daily at 08:00 UTC (Monday–Friday).
+    - cron: "0 8 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      simulate_latest_tag:
+        description: >
+          Fake "latest upstream tag" for testing. When set, the workflow
+          uses this value instead of querying the real upstream repo, so
+          you can trigger an issue without waiting for an actual release.
+        required: false
+        type: string
+
+concurrency:
+  group: libpg-query-update
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-upstream:
+    name: Check for new libpg_query release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with submodule metadata)
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+          fetch-depth: 1
+
+      - name: Detect current and latest versions
+        id: versions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SIMULATE_TAG: ${{ inputs.simulate_latest_tag }}
+        run: |
+          # --- current submodule commit ----------------------------------
+          submodule_sha=$(git -C vendor/libpg_query rev-parse HEAD)
+          echo "submodule_sha=${submodule_sha}" >> "$GITHUB_OUTPUT"
+
+          # Tag(s) that point at the submodule commit (may be empty).
+          current_tag=$(git -C vendor/libpg_query tag --points-at HEAD | head -n1)
+          echo "current_tag=${current_tag:-<untagged>}" >> "$GITHUB_OUTPUT"
+
+          # --- latest upstream tag ---------------------------------------
+          if [[ -n "${SIMULATE_TAG}" ]]; then
+            latest_tag="${SIMULATE_TAG}"
+            echo "::notice::Using simulated tag: ${latest_tag}"
+          else
+            latest_tag=$(
+              gh api repos/pganalyze/libpg_query/releases/latest \
+                --jq '.tag_name'
+            )
+          fi
+          echo "latest_tag=${latest_tag}" >> "$GITHUB_OUTPUT"
+
+          # --- is the submodule already at (or past) the latest tag? -----
+          # Fetch just the tag ref so we can compare commits.
+          git -C vendor/libpg_query fetch --quiet origin "refs/tags/${latest_tag}:refs/tags/${latest_tag}" 2>/dev/null || true
+          latest_tag_sha=$(git -C vendor/libpg_query rev-parse "refs/tags/${latest_tag}^{}" 2>/dev/null || echo "")
+
+          if [[ -z "${latest_tag_sha}" ]]; then
+            # Tag doesn't exist in the repo — simulated or pre-release.
+            echo "up_to_date=false" >> "$GITHUB_OUTPUT"
+            echo "latest_tag_sha=unknown" >> "$GITHUB_OUTPUT"
+          elif git -C vendor/libpg_query merge-base --is-ancestor "${latest_tag_sha}" HEAD 2>/dev/null; then
+            echo "up_to_date=true" >> "$GITHUB_OUTPUT"
+            echo "latest_tag_sha=${latest_tag_sha}" >> "$GITHUB_OUTPUT"
+          else
+            echo "up_to_date=false" >> "$GITHUB_OUTPUT"
+            echo "latest_tag_sha=${latest_tag_sha}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check for existing tracking issue
+        if: steps.versions.outputs.up_to_date == 'false'
+        id: existing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LATEST_TAG: ${{ steps.versions.outputs.latest_tag }}
+        run: |
+          # Only suppress if there is already an open issue for this exact tag.
+          open_issues=$(
+            gh issue list \
+              --label "libpg_query-update" \
+              --state open \
+              --json number,title \
+              --jq "[.[] | select(.title == \"Update libpg_query to ${LATEST_TAG}\")] | length"
+          )
+          echo "open_count=${open_issues}" >> "$GITHUB_OUTPUT"
+
+      - name: Create tracking issue
+        if: steps.versions.outputs.up_to_date == 'false' && steps.existing.outputs.open_count == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LATEST_TAG: ${{ steps.versions.outputs.latest_tag }}
+          LATEST_SHA: ${{ steps.versions.outputs.latest_tag_sha }}
+          CURRENT_TAG: ${{ steps.versions.outputs.current_tag }}
+          SUBMODULE_SHA: ${{ steps.versions.outputs.submodule_sha }}
+        run: |
+          # Create the label only if it doesn't already exist.
+          if ! gh label list --json name --jq '.[].name' | grep -qx 'libpg_query-update'; then
+            gh label create "libpg_query-update" \
+              --description "Tracking issue for a new libpg_query release" \
+              --color "1d76db"
+          fi
+
+          gh issue create \
+            --title "Update libpg_query to ${LATEST_TAG}" \
+            --label "libpg_query-update" \
+            --body "$(cat <<EOF
+          A new [libpg_query](https://github.com/pganalyze/libpg_query) release is available.
+
+          | | Version | Commit |
+          |---|---|---|
+          | **Current** | \`${CURRENT_TAG}\` | \`${SUBMODULE_SHA}\` |
+          | **Latest** | \`${LATEST_TAG}\` | \`${LATEST_SHA}\` |
+
+          ### Upgrade checklist
+
+          - [ ] Update the submodule: \`git -C vendor/libpg_query fetch && git -C vendor/libpg_query checkout ${LATEST_TAG}\`
+          - [ ] Regenerate protobuf bindings: \`make proto\`
+          - [ ] Regenerate typed node wrappers: \`uv run scripts/generate_nodes.py\`
+          - [ ] Run the full test suite: \`make all\`
+          - [ ] Update the README if the PostgreSQL major version changed
+
+          [Release notes](https://github.com/pganalyze/libpg_query/releases/tag/${LATEST_TAG})
+          EOF
+          )"
+
+      - name: Summary
+        run: |
+          echo "### libpg_query update check" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Key | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-----|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Current submodule | \`${{ steps.versions.outputs.current_tag }}\` (\`${{ steps.versions.outputs.submodule_sha }}\`) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Latest upstream | \`${{ steps.versions.outputs.latest_tag }}\` (\`${{ steps.versions.outputs.latest_tag_sha }}\`) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Up to date? | \`${{ steps.versions.outputs.up_to_date }}\` |" >> "$GITHUB_STEP_SUMMARY"

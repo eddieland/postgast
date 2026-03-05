@@ -8,11 +8,17 @@
 [![Docs](https://readthedocs.org/projects/postgast/badge/?version=latest)](https://postgast.readthedocs.io)
 [![Downloads](https://img.shields.io/pypi/dm/postgast)](https://pypi.org/project/postgast/)
 
-BSD-licensed Python bindings to [libpg_query](https://github.com/pganalyze/libpg_query), the PostgreSQL parser extracted
-as a standalone C library.
+BSD-licensed Python bindings to [libpg_query](https://github.com/pganalyze/libpg_query), the real PostgreSQL parser
+extracted as a standalone C library by [pganalyze](https://pganalyze.com/).
 
-Parse, deparse, normalize, fingerprint, split, and scan PostgreSQL SQL statements from Python with a minimal dependency
-footprint — just `protobuf` and the vendored C library.
+`libpg_query` is the foundation of this library. It contains the actual PostgreSQL parser source code, pulled directly
+from the PostgreSQL codebase and packaged so it can be used outside the server. Every operation postgast provides
+(parsing, deparsing, normalization, fingerprinting, splitting, and scanning) is performed by calling into
+`libpg_query`'s C functions. This means postgast always produces the same parse tree that PostgreSQL itself would, with
+full coverage of PostgreSQL syntax, not a hand-written approximation.
+
+Only two runtime dependencies are needed: `protobuf` (for deserializing parse results) and the vendored `libpg_query`
+shared library itself.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/eddieland/postgast/main/docs/logo.png" width="350" alt="postgast logo"/>
@@ -84,7 +90,7 @@ print(formatted)
 #   name;
 ```
 
-**Caveats:** Because the formatter operates on the parsed AST, it strips comments — the PostgreSQL parser discards them
+**Caveats:** Because the formatter operates on the parsed AST, it strips comments. The PostgreSQL parser discards them
 during parsing, so they are not present in the tree. Whitespace and stylistic choices from the original SQL are also not
 preserved.
 
@@ -101,9 +107,14 @@ and the dependency footprint small.
 
 ## How It Works
 
-`postgast` calls `libpg_query`'s C functions directly through Python's `ctypes` module. Parse results are returned as
-protobuf messages, deserialized into Python objects. There is no Cython, no Rust, and no C extension module to compile —
-just a vendored shared library and pure Python on top.
+`libpg_query` is included as a Git submodule under `vendor/libpg_query`. At build time, a custom hatchling build hook
+compiles it into a platform-specific shared library (`libpg_query.so`, `.dylib`, or `.dll`) and bundles it inside the
+wheel. Pre-built wheels are published to PyPI for common platforms, so most users never need a C compiler.
+
+At runtime, `postgast` loads the vendored shared library and calls `libpg_query`'s C functions directly through Python's
+`ctypes` module. Parse results come back as serialized protobuf, which postgast deserializes into Python objects using
+the standard `protobuf` library. There is no Cython, no Rust, and no C extension module to compile, just a vendored
+shared library and pure Python on top.
 
 ## License
 

@@ -61,9 +61,16 @@ def load_yaml_cases(cases_dir: Path) -> list[dict[str, Any]]:
     yaml = YAML(typ="safe")
     cases: list[dict[str, Any]] = []
     for yaml_file in sorted(cases_dir.glob("*.yaml")):
-        entries = yaml.load(yaml_file.read_text())  # pyright: ignore[reportUnknownMemberType]
-        if entries:
-            cases.extend(entries)
+        raw = yaml.load(yaml_file.read_text())  # pyright: ignore[reportUnknownMemberType]
+        if not raw:
+            continue
+        if not isinstance(raw, list):
+            raise AssertionError(f"YAML file {yaml_file} must contain a top-level list of cases")
+        entries: list[dict[str, Any]] = []
+        for entry in raw:  # pyright: ignore[reportUnknownVariableType]
+            assert isinstance(entry, dict), f"Each YAML entry in {yaml_file} must be a mapping"
+            entries.append(entry)  # pyright: ignore[reportUnknownArgumentType]
+        cases.extend(entries)
     return cases
 
 

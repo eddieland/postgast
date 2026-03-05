@@ -231,7 +231,7 @@ $$ LANGUAGE plpgsql;"""
 
     # -- Control characters (cannot represent in YAML) -----------------------
 
-    @pytest.mark.parametrize("char", [c for c, _ in _CONTROL_CHARS], ids=[n for _, n in _CONTROL_CHARS])
+    @pytest.mark.parametrize("char", [c for _, c in _CONTROL_CHARS], ids=[n for n, _ in _CONTROL_CHARS])
     def test_control_char_in_body_no_crash(self, char: str) -> None:
         sql = f"""\
 CREATE FUNCTION f() RETURNS void AS $$

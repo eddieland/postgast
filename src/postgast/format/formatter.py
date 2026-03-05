@@ -1,77 +1,42 @@
-"""SQL pretty-printer that walks the protobuf AST and emits formatted SQL."""
+"""SQL formatter class and entry point."""
 
 from __future__ import annotations
 
-import functools
-import re
-from typing import TYPE_CHECKING, Any, Final, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import postgast.pg_query_pb2 as pb
 from postgast.deparse import deparse
+from postgast.format.constants import (
+    _FRAMEOPTION_BETWEEN,
+    _FRAMEOPTION_END_CURRENT_ROW,
+    _FRAMEOPTION_END_OFFSET_FOLLOWING,
+    _FRAMEOPTION_END_OFFSET_PRECEDING,
+    _FRAMEOPTION_END_UNBOUNDED_FOLLOWING,
+    _FRAMEOPTION_END_UNBOUNDED_PRECEDING,
+    _FRAMEOPTION_EXCLUDE_CURRENT_ROW,
+    _FRAMEOPTION_EXCLUDE_GROUP,
+    _FRAMEOPTION_EXCLUDE_TIES,
+    _FRAMEOPTION_GROUPS,
+    _FRAMEOPTION_NONDEFAULT,
+    _FRAMEOPTION_ROWS,
+    _FRAMEOPTION_START_CURRENT_ROW,
+    _FRAMEOPTION_START_OFFSET_FOLLOWING,
+    _FRAMEOPTION_START_OFFSET_PRECEDING,
+    _FRAMEOPTION_START_UNBOUNDED_PRECEDING,
+    _GROUPING_SET_KW,
+    _TYPE_MAP,
+)
+from postgast.format.utils import _pascal_to_snake, _quote_ident
 from postgast.parse import parse
 from postgast.precedence import Side, needs_parens
-from postgast.scan import scan as _scan
 from postgast.walk import Visitor, unwrap_node
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping, Sequence
+    from collections.abc import Callable, Sequence
 
     from google.protobuf.message import Message
 
     from postgast.pg_query_pb2 import ParseResult
-
-# ── Window frame bitmask constants (PostgreSQL parsenodes.h) ──────
-
-_FRAMEOPTION_NONDEFAULT: Final = 0x00001
-_FRAMEOPTION_RANGE: Final = 0x00002
-_FRAMEOPTION_ROWS: Final = 0x00004
-_FRAMEOPTION_GROUPS: Final = 0x00008
-_FRAMEOPTION_BETWEEN: Final = 0x00010
-_FRAMEOPTION_START_UNBOUNDED_PRECEDING: Final = 0x00020
-_FRAMEOPTION_END_UNBOUNDED_PRECEDING: Final = 0x00040
-_FRAMEOPTION_START_UNBOUNDED_FOLLOWING: Final = 0x00080
-_FRAMEOPTION_END_UNBOUNDED_FOLLOWING: Final = 0x00100
-_FRAMEOPTION_START_CURRENT_ROW: Final = 0x00200
-_FRAMEOPTION_END_CURRENT_ROW: Final = 0x00400
-_FRAMEOPTION_START_OFFSET_PRECEDING: Final = 0x00800
-_FRAMEOPTION_END_OFFSET_PRECEDING: Final = 0x01000
-_FRAMEOPTION_START_OFFSET_FOLLOWING: Final = 0x02000
-_FRAMEOPTION_END_OFFSET_FOLLOWING: Final = 0x04000
-_FRAMEOPTION_EXCLUDE_CURRENT_ROW: Final = 0x08000
-_FRAMEOPTION_EXCLUDE_GROUP: Final = 0x10000
-_FRAMEOPTION_EXCLUDE_TIES: Final = 0x20000
-
-#: A mapping of built-in type names to their canonical SQL representations for formatting. Types not in this map are
-#: emitted as-is.
-_TYPE_MAP: Final[Mapping[str, str]] = {
-    "int4": "INTEGER",
-    "int8": "BIGINT",
-    "int2": "SMALLINT",
-    "float4": "REAL",
-    "float8": "DOUBLE PRECISION",
-    "bool": "BOOLEAN",
-    "varchar": "VARCHAR",
-    "bpchar": "CHARACTER",
-    "numeric": "NUMERIC",
-    "text": "TEXT",
-    "timestamp": "TIMESTAMP",
-    "timestamptz": "TIMESTAMPTZ",
-    "date": "DATE",
-    "time": "TIME",
-    "timetz": "TIMETZ",
-    "interval": "INTERVAL",
-    "uuid": "UUID",
-    "json": "JSON",
-    "jsonb": "JSONB",
-    "bytea": "BYTEA",
-    "xml": "XML",
-}
-
-_GROUPING_SET_KW: Final[Mapping[int, str]] = {
-    pb.GROUPING_SET_ROLLUP: "ROLLUP(",
-    pb.GROUPING_SET_CUBE: "CUBE(",
-    pb.GROUPING_SET_SETS: "GROUPING SETS (",
-}
 
 
 def format_sql(sql: str | ParseResult) -> str:
@@ -1341,33 +1306,3 @@ class _SqlFormatter(Visitor):
             self._emit("(")
         self._emit_inline_list(node.args)
         self._emit(")")
-
-
-_SIMPLE_IDENT_RE: Final = re.compile(r"^[a-z_][a-z0-9_]*$")
-
-
-@functools.lru_cache(maxsize=256)
-def _needs_quoting(name: str) -> bool:
-    if not _SIMPLE_IDENT_RE.match(name):
-        return True
-    result = _scan(f"SELECT {name}")
-    tokens = list(result.tokens)
-    return len(tokens) >= 2 and tokens[1].keyword_kind == pb.RESERVED_KEYWORD
-
-
-def _quote_ident(name: str) -> str:
-    if _needs_quoting(name):
-        escaped = name.replace('"', '""')
-        return f'"{escaped}"'
-    return name
-
-
-@functools.lru_cache(maxsize=256)
-def _pascal_to_snake(name: str) -> str:
-    """Convert PascalCase to snake_case (e.g. ``SelectStmt`` → ``select_stmt``).
-
-    The regex only splits at lowercase/digit → uppercase boundaries, so leading acronyms stay grouped
-    (``SQLValueFunction`` → ``sqlvalue_function``).  This intentionally matches protobuf's own field-name
-    convention in ``Node.__slots__``.
-    """
-    return re.sub(r"(?<=[a-z0-9])([A-Z])", r"_\1", name).lower()

@@ -1,6 +1,6 @@
 [project]
 name = "postgast"
-description = "Python bindings to libpg_query — parse, deparse, normalize, fingerprint, split, and scan PostgreSQL SQL"
+description = "Python bindings to libpg_query: parse, deparse, normalize, fingerprint, split, and scan PostgreSQL SQL"
 authors = [
     { name = "Edward Jones", email = "edwardrjones97@gmail.com" },
 ]

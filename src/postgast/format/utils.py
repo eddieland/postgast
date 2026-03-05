@@ -21,7 +21,7 @@ def _needs_quoting(name: str) -> bool:
     return len(tokens) >= 2 and tokens[1].keyword_kind == pb.RESERVED_KEYWORD
 
 
-def _quote_ident(name: str) -> str:
+def quote_ident(name: str) -> str:
     if _needs_quoting(name):
         escaped = name.replace('"', '""')
         return f'"{escaped}"'
@@ -29,7 +29,7 @@ def _quote_ident(name: str) -> str:
 
 
 @functools.lru_cache(maxsize=256)
-def _pascal_to_snake(name: str) -> str:
+def pascal_to_snake(name: str) -> str:
     """Convert PascalCase to snake_case (e.g. ``SelectStmt`` → ``select_stmt``).
 
     The regex only splits at lowercase/digit → uppercase boundaries, so leading acronyms stay grouped

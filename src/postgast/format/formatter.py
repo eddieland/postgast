@@ -7,26 +7,26 @@ from typing import TYPE_CHECKING, Any, cast
 import postgast.pg_query_pb2 as pb
 from postgast.deparse import deparse
 from postgast.format.constants import (
-    _FRAMEOPTION_BETWEEN,
-    _FRAMEOPTION_END_CURRENT_ROW,
-    _FRAMEOPTION_END_OFFSET_FOLLOWING,
-    _FRAMEOPTION_END_OFFSET_PRECEDING,
-    _FRAMEOPTION_END_UNBOUNDED_FOLLOWING,
-    _FRAMEOPTION_END_UNBOUNDED_PRECEDING,
-    _FRAMEOPTION_EXCLUDE_CURRENT_ROW,
-    _FRAMEOPTION_EXCLUDE_GROUP,
-    _FRAMEOPTION_EXCLUDE_TIES,
-    _FRAMEOPTION_GROUPS,
-    _FRAMEOPTION_NONDEFAULT,
-    _FRAMEOPTION_ROWS,
-    _FRAMEOPTION_START_CURRENT_ROW,
-    _FRAMEOPTION_START_OFFSET_FOLLOWING,
-    _FRAMEOPTION_START_OFFSET_PRECEDING,
-    _FRAMEOPTION_START_UNBOUNDED_PRECEDING,
-    _GROUPING_SET_KW,
-    _TYPE_MAP,
+    FRAMEOPTION_BETWEEN,
+    FRAMEOPTION_END_CURRENT_ROW,
+    FRAMEOPTION_END_OFFSET_FOLLOWING,
+    FRAMEOPTION_END_OFFSET_PRECEDING,
+    FRAMEOPTION_END_UNBOUNDED_FOLLOWING,
+    FRAMEOPTION_END_UNBOUNDED_PRECEDING,
+    FRAMEOPTION_EXCLUDE_CURRENT_ROW,
+    FRAMEOPTION_EXCLUDE_GROUP,
+    FRAMEOPTION_EXCLUDE_TIES,
+    FRAMEOPTION_GROUPS,
+    FRAMEOPTION_NONDEFAULT,
+    FRAMEOPTION_ROWS,
+    FRAMEOPTION_START_CURRENT_ROW,
+    FRAMEOPTION_START_OFFSET_FOLLOWING,
+    FRAMEOPTION_START_OFFSET_PRECEDING,
+    FRAMEOPTION_START_UNBOUNDED_PRECEDING,
+    GROUPING_SET_KW,
+    TYPE_MAP,
 )
-from postgast.format.utils import _pascal_to_snake, _quote_ident
+from postgast.format.utils import pascal_to_snake, quote_ident
 from postgast.parse import parse
 from postgast.precedence import Side, needs_parens
 from postgast.walk import Visitor, unwrap_node
@@ -120,7 +120,7 @@ class _SqlFormatter(Visitor):
         """If *node* unwraps to a String, emit its sval (optionally quoted); else visit."""
         inner = unwrap_node(node)
         if isinstance(inner, pb.String):
-            self._emit(_quote_ident(inner.sval) if quote else inner.sval)
+            self._emit(quote_ident(inner.sval) if quote else inner.sval)
         else:
             self._visit_node(node)
 
@@ -158,7 +158,7 @@ class _SqlFormatter(Visitor):
         """Deparse a single node via libpg_query as a fallback."""
         tree = pb.ParseResult()
         raw = tree.stmts.add()
-        snake = _pascal_to_snake(type(node).DESCRIPTOR.name)
+        snake = pascal_to_snake(type(node).DESCRIPTOR.name)
         getattr(raw.stmt, snake).CopyFrom(node)
         return deparse(tree)
 
@@ -193,7 +193,7 @@ class _SqlFormatter(Visitor):
         for field_node in node.fields:
             inner = unwrap_node(field_node)
             if isinstance(inner, pb.String):
-                parts.append(_quote_ident(inner.sval))
+                parts.append(quote_ident(inner.sval))
             elif isinstance(inner, pb.A_Star):
                 parts.append("*")
         self._emit(".".join(parts))
@@ -364,7 +364,7 @@ class _SqlFormatter(Visitor):
             self._emit("ORDER BY ")
             self._emit_inline_list(wdef.order_clause)
             parts_emitted = True
-        if wdef.frame_options & _FRAMEOPTION_NONDEFAULT:
+        if wdef.frame_options & FRAMEOPTION_NONDEFAULT:
             if parts_emitted:
                 self._emit(" ")
             self._visit_window_frame(wdef)
@@ -373,53 +373,53 @@ class _SqlFormatter(Visitor):
     def _visit_window_frame(self, wdef: pb.WindowDef) -> None:
         fopts = wdef.frame_options
         # Mode
-        if fopts & _FRAMEOPTION_ROWS:
+        if fopts & FRAMEOPTION_ROWS:
             self._emit("ROWS")
-        elif fopts & _FRAMEOPTION_GROUPS:
+        elif fopts & FRAMEOPTION_GROUPS:
             self._emit("GROUPS")
         else:
             self._emit("RANGE")
 
-        has_between = bool(fopts & _FRAMEOPTION_BETWEEN)
+        has_between = bool(fopts & FRAMEOPTION_BETWEEN)
         if has_between:
             self._emit(" BETWEEN ")
         else:
             self._emit(" ")
 
         # Start bound
-        if fopts & _FRAMEOPTION_START_UNBOUNDED_PRECEDING:
+        if fopts & FRAMEOPTION_START_UNBOUNDED_PRECEDING:
             self._emit("UNBOUNDED PRECEDING")
-        elif fopts & _FRAMEOPTION_START_CURRENT_ROW:
+        elif fopts & FRAMEOPTION_START_CURRENT_ROW:
             self._emit("CURRENT ROW")
-        elif fopts & _FRAMEOPTION_START_OFFSET_PRECEDING:
+        elif fopts & FRAMEOPTION_START_OFFSET_PRECEDING:
             self._visit_node(wdef.start_offset)
             self._emit(" PRECEDING")
-        elif fopts & _FRAMEOPTION_START_OFFSET_FOLLOWING:
+        elif fopts & FRAMEOPTION_START_OFFSET_FOLLOWING:
             self._visit_node(wdef.start_offset)
             self._emit(" FOLLOWING")
 
         if has_between:
             self._emit(" AND ")
             # End bound
-            if fopts & _FRAMEOPTION_END_UNBOUNDED_FOLLOWING:
+            if fopts & FRAMEOPTION_END_UNBOUNDED_FOLLOWING:
                 self._emit("UNBOUNDED FOLLOWING")
-            elif fopts & _FRAMEOPTION_END_CURRENT_ROW:
+            elif fopts & FRAMEOPTION_END_CURRENT_ROW:
                 self._emit("CURRENT ROW")
-            elif fopts & _FRAMEOPTION_END_OFFSET_PRECEDING:
+            elif fopts & FRAMEOPTION_END_OFFSET_PRECEDING:
                 self._visit_node(wdef.end_offset)
                 self._emit(" PRECEDING")
-            elif fopts & _FRAMEOPTION_END_OFFSET_FOLLOWING:
+            elif fopts & FRAMEOPTION_END_OFFSET_FOLLOWING:
                 self._visit_node(wdef.end_offset)
                 self._emit(" FOLLOWING")
-            elif fopts & _FRAMEOPTION_END_UNBOUNDED_PRECEDING:
+            elif fopts & FRAMEOPTION_END_UNBOUNDED_PRECEDING:
                 self._emit("UNBOUNDED PRECEDING")
 
         # EXCLUDE options
-        if fopts & _FRAMEOPTION_EXCLUDE_CURRENT_ROW:
+        if fopts & FRAMEOPTION_EXCLUDE_CURRENT_ROW:
             self._emit(" EXCLUDE CURRENT ROW")
-        elif fopts & _FRAMEOPTION_EXCLUDE_GROUP:
+        elif fopts & FRAMEOPTION_EXCLUDE_GROUP:
             self._emit(" EXCLUDE GROUP")
-        elif fopts & _FRAMEOPTION_EXCLUDE_TIES:
+        elif fopts & FRAMEOPTION_EXCLUDE_TIES:
             self._emit(" EXCLUDE TIES")
 
     def visit_TypeCast(self, node: pb.TypeCast) -> None:
@@ -432,7 +432,7 @@ class _SqlFormatter(Visitor):
         # Filter out 'pg_catalog' schema prefix for built-in types
         display_names = [n for n in names if n != "pg_catalog"]
         type_str = ".".join(display_names)
-        type_str = _TYPE_MAP.get(type_str, type_str)
+        type_str = TYPE_MAP.get(type_str, type_str)
         self._emit(type_str)
         if tn.typmods:
             self._emit("(")
@@ -719,11 +719,11 @@ class _SqlFormatter(Visitor):
     def visit_RangeVar(self, node: pb.RangeVar) -> None:
         parts: list[str] = []
         if node.schemaname:
-            parts.append(_quote_ident(node.schemaname))
-        parts.append(_quote_ident(node.relname))
+            parts.append(quote_ident(node.schemaname))
+        parts.append(quote_ident(node.relname))
         self._emit(".".join(parts))
         if node.HasField("alias"):
-            self._emit(f" {_quote_ident(node.alias.aliasname)}")
+            self._emit(f" {quote_ident(node.alias.aliasname)}")
 
     def visit_RangeSubselect(self, node: pb.RangeSubselect) -> None:
         if node.lateral:
@@ -736,7 +736,7 @@ class _SqlFormatter(Visitor):
         self._dedent()
         self._emit(")")
         if node.HasField("alias"):
-            self._emit(f" AS {_quote_ident(node.alias.aliasname)}")
+            self._emit(f" AS {quote_ident(node.alias.aliasname)}")
             if node.alias.colnames:
                 self._emit_alias_colnames(node.alias.colnames)
 
@@ -1262,7 +1262,7 @@ class _SqlFormatter(Visitor):
             else:
                 self._visit_node(func_item)
         if node.HasField("alias"):
-            self._emit(f" AS {_quote_ident(node.alias.aliasname)}")
+            self._emit(f" AS {quote_ident(node.alias.aliasname)}")
             if node.alias.colnames:
                 self._emit_alias_colnames(node.alias.colnames)
 
@@ -1277,8 +1277,8 @@ class _SqlFormatter(Visitor):
             self._emit("()")
         elif kind == pb.GROUPING_SET_SIMPLE:
             self._emit_inline_list(node.content)
-        elif kind in _GROUPING_SET_KW:
-            self._emit(_GROUPING_SET_KW[kind])
+        elif kind in GROUPING_SET_KW:
+            self._emit(GROUPING_SET_KW[kind])
             self._emit_inline_list(node.content)
             self._emit(")")
 

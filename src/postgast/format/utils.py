@@ -22,6 +22,7 @@ def _needs_quoting(name: str) -> bool:
 
 
 def quote_ident(name: str) -> str:
+    """Quote a SQL identifier if it needs quoting, otherwise return it as-is."""
     if _needs_quoting(name):
         escaped = name.replace('"', '""')
         return f'"{escaped}"'

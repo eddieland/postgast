@@ -30,6 +30,7 @@ footprint — just `protobuf` and the vendored C library.
 | **Scan**         | [Available](openspec/specs/operations/)     | Tokenize SQL with keyword classification                                   |
 | **Tree Walking** | [Available](openspec/specs/ast-navigation/) | Walk/visit AST nodes with depth-first traversal and visitor pattern        |
 | **AST Helpers**  | [Available](openspec/specs/ast-navigation/) | Extract tables, columns, functions; generate DROP from CREATE DDL          |
+| **Pretty Print** | [Available](openspec/specs/pretty-print/)   | Rudimentary SQL formatting via AST round-trip (strips comments)            |
 
 Built on `libpg_query` 17-latest (PostgreSQL 17 parser).
 
@@ -61,6 +62,35 @@ fp = postgast.fingerprint("SELECT * FROM users WHERE id = 42")
 stmts = postgast.split("SELECT 1; SELECT 2;")
 # => ["SELECT 1", "SELECT 2"]
 ```
+
+## Pretty Printing
+
+`postgast` includes a rudimentary SQL pretty-printer via `format_sql`. It works by parsing SQL into a protobuf AST and
+walking it back out with uppercase keywords, clause-per-line layout, and indented bodies:
+
+```python
+import postgast
+
+formatted = postgast.format_sql("select id, name from users where active = true order by name")
+print(formatted)
+# SELECT
+#   id,
+#   name
+# FROM
+#   users
+# WHERE
+#   active = true
+# ORDER BY
+#   name;
+```
+
+**Caveats:** Because the formatter operates on the parsed AST, it strips comments — the PostgreSQL parser discards them
+during parsing, so they are not present in the tree. Whitespace and stylistic choices from the original SQL are also not
+preserved.
+
+This is the area of the library most likely to evolve over time as our needs and user stories change. The current
+implementation covers the common cases, but the formatting rules, output style, and supported syntax should be
+considered unstable. If you depend on exact output, pin your version.
 
 ## Motivation
 

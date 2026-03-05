@@ -79,15 +79,10 @@ import postgast
 
 formatted = postgast.format_sql("select id, name from users where active = true order by name")
 print(formatted)
-# SELECT
-#   id,
-#   name
-# FROM
-#   users
-# WHERE
-#   active = true
-# ORDER BY
-#   name;
+# SELECT id, name
+# FROM users
+# WHERE active = TRUE
+# ORDER BY name;
 ```
 
 **Caveats:** Because the formatter operates on the parsed AST, it strips comments. The PostgreSQL parser discards them

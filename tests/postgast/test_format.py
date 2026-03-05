@@ -134,6 +134,131 @@ ROUND_TRIP_CASES = [
     "SELECT * FROM (VALUES (1, 2), (3, 4)) AS t(a, b)",
     "SELECT * FROM generate_series(1, 10) AS g(n)",
     'SELECT * FROM (VALUES (1)) AS t("Order", "MyCol")',
+    # ── LATERAL ──
+    "SELECT * FROM t, LATERAL (SELECT * FROM s WHERE s.id = t.id) AS sub",
+    "SELECT * FROM t, LATERAL generate_series(1, t.n) AS g(n)",
+    # ── Recursive CTEs ──
+    "WITH RECURSIVE cte AS (SELECT 1 AS n UNION ALL SELECT n + 1 FROM cte WHERE n < 10) SELECT * FROM cte",
+    # ── ON CONFLICT with WHERE ──
+    "INSERT INTO t (a, b) VALUES (1, 2) ON CONFLICT (a) DO UPDATE SET b = EXCLUDED.b WHERE t.b <> EXCLUDED.b",
+    # ── ON CONFLICT ON CONSTRAINT ──
+    "INSERT INTO t (a, b) VALUES (1, 2) ON CONFLICT ON CONSTRAINT t_pkey DO NOTHING",
+    # ── Chained set operations ──
+    "SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3",
+    "SELECT 1 INTERSECT ALL SELECT 1",
+    "SELECT 1 EXCEPT ALL SELECT 2",
+    # ── UPDATE with FROM ──
+    "UPDATE t SET a = s.a FROM s WHERE t.id = s.id",
+    "UPDATE t SET a = 1, b = 2, c = 3 WHERE id = 1",
+    # ── DELETE with USING ──
+    "DELETE FROM t USING s WHERE t.id = s.id",
+    # ── Array subscripts and slices ──
+    "SELECT arr[1] FROM t",
+    "SELECT arr[1:3] FROM t",
+    # ── Aggregate ORDER BY ──
+    "SELECT array_agg(x ORDER BY x DESC) FROM t",
+    "SELECT string_agg(name, ', ' ORDER BY name) FROM t",
+    "SELECT array_agg(name ORDER BY last_name, first_name) FROM users",
+    # ── Multiple FILTER clauses ──
+    "SELECT a, count(*) FILTER (WHERE b > 0), sum(c) FILTER (WHERE d = 1) FROM t GROUP BY a",
+    # ── IS DISTINCT FROM / IS NOT DISTINCT FROM ──
+    "SELECT * FROM t WHERE a IS DISTINCT FROM b",
+    "SELECT * FROM t WHERE a IS NOT DISTINCT FROM b",
+    # ── ANY / ALL sublinks ──
+    "SELECT * FROM t WHERE x = ANY(SELECT id FROM s)",
+    "SELECT * FROM t WHERE x > ALL(SELECT id FROM s)",
+    # ── ANY with array ──
+    "SELECT * FROM t WHERE x > ANY(ARRAY[1, 2, 3])",
+    # ── ILIKE ──
+    "SELECT * FROM t WHERE name ILIKE '%foo%'",
+    # ── NOT BETWEEN ──
+    "SELECT * FROM t WHERE x NOT BETWEEN 1 AND 10",
+    # ── String concatenation ──
+    "SELECT a || b FROM t",
+    # ── Boolean IS UNKNOWN ──
+    "SELECT * FROM t WHERE x IS UNKNOWN",
+    "SELECT * FROM t WHERE x IS NOT UNKNOWN",
+    "SELECT * FROM t WHERE x IS NOT TRUE",
+    "SELECT * FROM t WHERE x IS FALSE",
+    # ── JOIN varieties ──
+    "SELECT * FROM a FULL JOIN b ON a.id = b.id",
+    "SELECT * FROM a RIGHT JOIN b ON a.id = b.id",
+    "SELECT * FROM a JOIN b USING (id)",
+    "SELECT * FROM a LEFT JOIN b ON a.id = b.a_id LEFT JOIN c ON b.id = c.b_id",
+    # ── Subquery in SELECT (scalar sublink) ──
+    "SELECT (SELECT count(*) FROM s) AS cnt FROM t",
+    # ── Multiple RETURNING targets ──
+    "DELETE FROM t WHERE id = 1 RETURNING id, name, created_at",
+    "INSERT INTO t (a) VALUES (1) RETURNING id, a + 1 AS next_a",
+    # ── DROP varieties ──
+    "DROP SCHEMA IF EXISTS myschema CASCADE",
+    "DROP TABLE IF EXISTS a, b CASCADE",
+    "DROP VIEW IF EXISTS v CASCADE",
+    "DROP INDEX IF EXISTS idx CASCADE",
+    "DROP FUNCTION IF EXISTS myfunc CASCADE",
+    "DROP MATERIALIZED VIEW IF EXISTS mv CASCADE",
+    # ── Window frame EXCLUDE GROUP / CURRENT ROW ──
+    "SELECT sum(x) OVER (ORDER BY y ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING EXCLUDE GROUP) FROM t",
+    "SELECT sum(x) OVER (ORDER BY y ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING EXCLUDE CURRENT ROW) FROM t",
+    # ── CASE with argument (searched CASE) ──
+    "SELECT CASE x WHEN 1 THEN 'a' WHEN 2 THEN 'b' ELSE 'c' END FROM t",
+    # ── Nested CASE ──
+    "SELECT CASE WHEN a = 1 THEN CASE WHEN b = 2 THEN 'x' ELSE 'y' END ELSE 'z' END FROM t",
+    # ── Nested subqueries ──
+    "SELECT * FROM (SELECT * FROM (SELECT 1 AS x) AS inner_sub) AS outer_sub",
+    # ── Subquery in FROM with JOIN ──
+    "SELECT * FROM (SELECT id FROM t) AS sub JOIN s ON sub.id = s.id",
+    # ── Multiple CTEs ──
+    "WITH a AS (SELECT 1 AS x), b AS (SELECT 2 AS y) SELECT * FROM a, b",
+    # ── CTE wrapping INSERT ──
+    "WITH cte AS (INSERT INTO t (a) VALUES (1) RETURNING *) SELECT * FROM cte",
+    # ── INSERT with multiple value rows ──
+    "INSERT INTO t (a, b) VALUES (1, 2), (3, 4), (5, 6)",
+    # ── Multiple FROM items ──
+    "SELECT * FROM a, b WHERE a.id = b.a_id",
+    # ── Complex WHERE with subquery ──
+    "SELECT * FROM t WHERE x IN (1, 2, 3) AND y > (SELECT avg(y) FROM t)",
+    # ── Many-clause WHERE ──
+    "SELECT * FROM t WHERE a = 1 AND b = 2 AND c = 3 AND d = 4 AND e = 5",
+    # ── Boolean expressions in SELECT list ──
+    "SELECT a > b AS is_greater, a = b OR a IS NULL AS matches FROM t",
+    # ── Type precision and arrays ──
+    "SELECT 1::numeric(10, 2)",
+    "CREATE TABLE t (tags text[])",
+    "CREATE TABLE t (matrix integer[][])",
+    # ── CREATE TABLE with various constraints ──
+    "CREATE TABLE t (id serial PRIMARY KEY, name text DEFAULT 'unknown')",
+    "CREATE TABLE t (age integer CHECK (age > 0))",
+    "CREATE TABLE t (a integer, b integer, UNIQUE (a, b))",
+    "CREATE TABLE t (user_id integer REFERENCES users (id))",
+    "CREATE TABLE orders (id integer, user_id integer, FOREIGN KEY (user_id) REFERENCES users (id))",
+    "CREATE TABLE t (a integer, CONSTRAINT positive_a CHECK (a > 0))",
+    "CREATE TABLE t (a integer NULL)",
+    # ── GENERATED identity columns ──
+    "CREATE TABLE t (id integer GENERATED ALWAYS AS IDENTITY)",
+    "CREATE TABLE t (id integer GENERATED BY DEFAULT AS IDENTITY)",
+    # ── Table inheritance ──
+    "CREATE TABLE child (extra text) INHERITS (parent)",
+    # ── CREATE INDEX varieties ──
+    "CREATE INDEX idx_name ON t USING gin (tags)",
+    "CREATE INDEX idx_lower ON t (lower(name))",
+    "CREATE INDEX CONCURRENTLY idx_name ON t (name)",
+    # ── CREATE VIEW with column aliases ──
+    "CREATE VIEW v (col1, col2) AS SELECT a, b FROM t",
+    "CREATE OR REPLACE VIEW v AS SELECT a, b FROM t WHERE a > 0",
+    # ── ALTER TABLE varieties ──
+    "ALTER TABLE t ALTER COLUMN x SET NOT NULL",
+    "ALTER TABLE t ALTER COLUMN x DROP NOT NULL",
+    "ALTER TABLE t ADD CONSTRAINT t_pkey PRIMARY KEY (id)",
+    "ALTER TABLE t ADD CONSTRAINT positive_a CHECK (a > 0)",
+    "ALTER TABLE t DROP COLUMN x CASCADE",
+    "ALTER TABLE t ALTER COLUMN x TYPE text USING x::text",
+    # ── Parenthesized SELECT ──
+    "(SELECT 1)",
+    # ── GREATEST / LEAST with more args ──
+    "SELECT GREATEST(a, b, c) FROM t",
+    # ── Negative literal ──
+    "SELECT -1",
 ]
 
 

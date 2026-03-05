@@ -384,6 +384,413 @@ _CLASS_DOCSTRINGS: dict[str, str] = {
 }
 
 
+# ---- Property/field docstrings ---- #
+# Maps field name → docstring.  When a field name appears across many wrapper
+# classes the same docstring is reused.  Class-specific overrides live in
+# ``_CLASS_FIELD_DOCSTRINGS`` keyed by ``(ClassName, field_name)``.
+
+_FIELD_DOCSTRINGS: dict[str, str] = {
+    # -- common structural fields --
+    "location": "Character offset of this node in the source SQL, or ``-1`` if unknown.",
+    "stmt_location": "Character offset of the statement start in the source SQL.",
+    "stmt_len": "Length of the statement in characters (``0`` means 'rest of string').",
+    "xpr": "Expression type information (planner internal).",
+    # -- identifiers / names --
+    "name": "Name of the object.",
+    "relname": "Relation (table/view) name.",
+    "schemaname": "Schema name, or empty string if unqualified.",
+    "catalogname": "Catalog (database) name, or empty string if unqualified.",
+    "aliasname": "Alias name.",
+    "colname": "Column name.",
+    "indexname": "Index name.",
+    "servername": "Foreign server name.",
+    "dbname": "Database name.",
+    "rolename": "Role name.",
+    "policy_name": "Policy name.",
+    "polname": "Policy name.",
+    "conname": "Constraint name.",
+    "ctename": "CTE (common table expression) name.",
+    "funcname": "Function name components.",
+    "opername": "Operator name.",
+    "extname": "Extension name.",
+    "fdwname": "Foreign data wrapper name.",
+    "amname": "Access method name.",
+    "label": "Statement label (e.g. for savepoints).",
+    "comment": "Comment text.",
+    "provider": "Security label provider name.",
+    "pubname": "Publication name.",
+    # -- relations / targets --
+    "relation": "Target relation (table or view reference).",
+    "relations": "List of target relations.",
+    "target_list": "Target list (result columns or assignments).",
+    "returning_list": "``RETURNING`` clause target list.",
+    # -- clauses --
+    "where_clause": "``WHERE`` clause qualification expression.",
+    "having_clause": "``HAVING`` clause qualification expression.",
+    "from_clause": "``FROM`` clause entries.",
+    "sort_clause": "``ORDER BY`` clause entries.",
+    "group_clause": "``GROUP BY`` clause entries.",
+    "distinct_clause": "``DISTINCT`` clause entries.",
+    "locking_clause": "``FOR UPDATE/SHARE`` locking clause.",
+    "window_clause": "``WINDOW`` clause entries.",
+    "with_clause": "``WITH`` clause containing CTEs.",
+    "limit_count": "``LIMIT`` count expression.",
+    "limit_offset": "``OFFSET`` expression.",
+    "on_conflict_clause": "``ON CONFLICT`` clause.",
+    "values_lists": "``VALUES`` lists for ``INSERT`` or ``VALUES`` clause.",
+    "partition_clause": "``PARTITION BY`` clause for a window definition.",
+    "order_clause": "``ORDER BY`` clause for a window or aggregate.",
+    "cte_list": "List of ``WITH`` clause CTE definitions.",
+    # -- arguments / expressions --
+    "args": "List of argument nodes.",
+    "arg": "Argument expression.",
+    "lexpr": "Left-hand expression.",
+    "rexpr": "Right-hand expression.",
+    "expr": "Expression node.",
+    "larg": "Left argument (e.g. left side of a set operation).",
+    "rarg": "Right argument (e.g. right side of a set operation).",
+    "testexpr": "Test expression (the value being tested).",
+    "defresult": "Default result expression (``ELSE`` clause).",
+    "quals": "Join qualification expression.",
+    "qual": "Qualification expression.",
+    # -- type info --
+    "type_name": "Data type specification.",
+    "typmod": "Type modifier (e.g. precision, length), or ``-1`` if none.",
+    "type_oid": "OID of the data type.",
+    "resulttype": "OID of the result type.",
+    "resultcollid": "OID of the result collation.",
+    "resulttypmod": "Type modifier for the result, or ``-1``.",
+    "collation": "Collation specification.",
+    # -- options / flags --
+    "options": "List of option definitions (``DefElem`` nodes).",
+    "missing_ok": "If true, suppress error when the object doesn't exist.",
+    "if_not_exists": "If true, suppress error when the object already exists.",
+    "behavior": "Drop behavior (``RESTRICT`` or ``CASCADE``).",
+    "concurrent": "If true, use ``CONCURRENTLY`` mode.",
+    "replace": "If true, use ``CREATE OR REPLACE`` semantics.",
+    "inh": "If true, include inherited/child tables.",
+    "kind": "Node subtype or variant kind.",
+    "objtype": "Object type identifier.",
+    "override": "Override value for generated columns (``DEFAULT`` or ``USER VALUE``).",
+    "skip_data": "If true, do not copy data (e.g. ``WITH NO DATA``).",
+    "is_grant": "True for ``GRANT``, false for ``REVOKE``.",
+    "nowait": "If true, use ``NOWAIT`` option.",
+    "deferrable": "If true, the constraint is deferrable.",
+    "initdeferred": "If true, the constraint is initially deferred.",
+    "is_local": "If true, the constraint is defined locally (not inherited).",
+    "is_natural": "If true, this is a ``NATURAL`` join.",
+    "lateral": "If true, this is a ``LATERAL`` subquery or function.",
+    "recursive": "If true, the ``WITH`` clause uses ``RECURSIVE``.",
+    # -- alias / join --
+    "alias": "Alias for this range table entry.",
+    "jointype": "Join type (``INNER``, ``LEFT``, ``RIGHT``, ``FULL``, ``CROSS``).",
+    # -- aggregates (planner) --
+    "aggfnoid": "OID of the aggregate function.",
+    "aggtype": "OID of the aggregate's result type.",
+    "aggcollid": "OID of the aggregate's result collation.",
+    "aggstar": "True for ``agg(*)`` (no arguments).",
+    "aggvariadic": "True if the aggregate was called with ``VARIADIC``.",
+    "aggkind": "Aggregate kind character (normal, ordered-set, or hypothetical).",
+    "agglevelsup": "Number of query levels up to find the aggregate's defining query.",
+    "aggsplit": "Expected partial-aggregation mode (planner internal).",
+    "aggno": "Aggregate number within the query (planner internal).",
+    "aggtransno": "Aggregate transition state number (planner internal).",
+    "aggdirectargs": "Direct arguments for ordered-set aggregates.",
+    "aggargtypes": "OID list of argument types for the aggregate.",
+    "aggorder": "``ORDER BY`` clause within the aggregate.",
+    "aggdistinct": "``DISTINCT`` entries within the aggregate.",
+    "aggfilter": "``FILTER (WHERE …)`` expression for the aggregate.",
+    "inputcollid": "OID of the input collation.",
+    "inputcollids": "List of input collation OIDs.",
+    # -- Var fields (planner) --
+    "varno": "Range table index of the relation.",
+    "varattno": "Attribute number (column index) within the relation.",
+    "vartype": "OID of the variable's data type.",
+    "vartypmod": "Type modifier for the variable, or ``-1``.",
+    "varcollid": "OID of the variable's collation.",
+    "varlevelsup": "Number of query levels up to the defining query.",
+    # -- SubLink / SubPlan --
+    "sub_link_type": "Type of sub-link (``EXISTS``, ``ANY``, ``ALL``, scalar, etc.).",
+    "subselect": "The sub-``SELECT`` query.",
+    # -- Param --
+    "paramid": "Parameter index or slot number.",
+    "paramtype": "OID of the parameter's data type.",
+    "paramtypmod": "Type modifier for the parameter, or ``-1``.",
+    "paramcollid": "OID of the parameter's collation.",
+    "paramkind": "Parameter kind (external, internal, etc.).",
+    # -- sort / group --
+    "sortby_dir": "Sort direction (``ASC``, ``DESC``, ``USING``, or default).",
+    "sortby_nulls": "``NULLS FIRST`` / ``NULLS LAST`` / default.",
+    "use_op": "Operator to use for ``ORDER BY … USING`` sorting.",
+    # -- scan / parse results --
+    "stmts": "List of raw statement nodes.",
+    "tokens": "List of scan tokens.",
+    "version": "Parse tree version number.",
+    # -- INSERT / UPDATE / DELETE --
+    "cols": "Target column list (e.g. for ``INSERT``).",
+    "select_stmt": "``SELECT`` or ``VALUES`` clause providing rows.",
+    # -- CREATE TABLE --
+    "table_elts": "List of column definitions and table constraints.",
+    "inh_relations": "List of inherited parent tables.",
+    "tablespacename": "Tablespace name.",
+    "on_commit": "``ON COMMIT`` action for temporary tables.",
+    "constraints": "List of constraint definitions.",
+    # -- functions / procedures --
+    "parameters": "List of function parameter definitions.",
+    "return_type": "Return type of the function.",
+    "func_options": "List of function option definitions.",
+    "sql_body": "SQL function body (parsed statement list).",
+    # -- COPY --
+    "filename": "Source or destination file name, or ``None`` for stdin/stdout.",
+    "is_from": "True for ``COPY FROM``, false for ``COPY TO``.",
+    "is_program": "True if *filename* is a shell command (``PROGRAM``).",
+    # -- trigger --
+    "trigname": "Trigger name.",
+    # -- column definition --
+    "cooked_default": "Pre-cooked default expression (planner internal).",
+    "raw_default": "Raw default expression (before cooking).",
+    "identity_type": "Identity column type (``ALWAYS`` or ``BY DEFAULT``), or NUL character if none.",
+    "generated": "Generated column kind (``STORED``), or NUL character if not generated.",
+    "compression": "Column compression method name.",
+    "storage": "Storage strategy name (``PLAIN``, ``EXTENDED``, etc.).",
+    "inhcount": "Number of times the column is inherited.",
+    "is_not_null": "If true, the column has a ``NOT NULL`` constraint.",
+    # -- MERGE --
+    "source_relation": "Source relation for a ``MERGE`` statement.",
+    "merge_when_clauses": "List of ``WHEN MATCHED/NOT MATCHED`` clauses.",
+    "join_condition": "Join condition for the ``MERGE``.",
+    # -- JSON --
+    "format": "JSON format specification.",
+    "encoding": "JSON encoding specification.",
+    "output": "JSON output type clause.",
+    # -- misc common --
+    "stmt": "The wrapped statement node.",
+    "query": "The query tree or query string.",
+    "object": "Object name or identifier.",
+    "indirection": "Indirection chain (field selections and subscripts).",
+    "fields": "List of field names in a column reference.",
+    "elements": "List of elements.",
+    "columns": "List of column specifications.",
+    "items": "List of items.",
+    "action": "Action specification.",
+    "roles": "List of role specifications.",
+    "privileges": "List of privilege specifications.",
+    "grantees": "List of grantee role specifications.",
+    "objects": "List of object identifiers.",
+    "definition": "List of definition items.",
+    "actions": "List of action clauses.",
+    "event": "Event type (``INSERT``, ``UPDATE``, ``DELETE``, ``TRUNCATE``).",
+    "condition": "Condition expression.",
+    "subname": "Sub-object name.",
+    "newname": "New name in a ``RENAME`` operation.",
+    "newowner": "New owner role specification.",
+    "newschema": "New schema name in a ``SET SCHEMA`` operation.",
+    # -- common misc fields --
+    "colnames": "List of column name nodes.",
+    "collname": "Collation name components.",
+    "setstmt": "``SET``/``RESET`` variable sub-statement.",
+    "defnames": "Definition name components.",
+    "func": "Function call or definition node.",
+    "cfgname": "Text search configuration name components.",
+    "conninfo": "Connection info string for subscriptions.",
+    "publication": "Publication name.",
+    "opfamilyname": "Operator family name components.",
+    "funcid": "OID of the function.",
+    "funccollid": "OID of the function's result collation.",
+    "funcresulttype": "OID of the function's result type.",
+    "funcretset": "True if the function returns a set.",
+    "funcvariadic": "True if the function was called with ``VARIADIC``.",
+    "funcformat": "Function display format (explicit, implicit, etc.).",
+    "opno": "OID of the operator.",
+    "opcollid": "OID of the operator's result collation.",
+    "opresulttype": "OID of the operator's result type.",
+    "opretset": "True if the operator returns a set.",
+    "relpersistence": "Persistence: ``p`` permanent, ``u`` unlogged, ``t`` temporary.",
+    "subtype": "Sub-command type.",
+    "tgenabled": "Trigger enabled state character.",
+    "table": "Table specification.",
+    "pubobjects": "Publication object specifications.",
+    "role": "Role specification.",
+    "database": "Database name.",
+    "pubtable": "Publication table specification.",
+    "pubobjtype": "Publication object type.",
+    "func_name": "Function name components.",
+    "sequence": "Sequence relation specification.",
+    "defnamespace": "Definition namespace.",
+    "stxcomment": "Comment for the statistics object.",
+    "stxstattarget": "Statistics target value.",
+    "remove": "True for removal operations.",
+    "remove_type": "Type of object to remove.",
+    "rename_type": "Type of object to rename.",
+    "result": "Result expression or value.",
+    "node": "Child node.",
+    "coerceformat": "Coercion display format.",
+    "coercion": "Coercion specification.",
+    "row": "Row expression.",
+    "row_format": "Row format specification.",
+    "def_": "Definition expression.",
+}
+
+# Class-specific field docstrings override the generic ones above.
+_CLASS_FIELD_DOCSTRINGS: dict[tuple[str, str], str] = {
+    ("A_Const", "isnull"): "True if this is a ``NULL`` constant.",
+    ("A_Const", "val"): "The constant's value (string, integer, float, or bit-string node).",
+    ("A_Expr", "kind"): "Expression kind (``=``, ``<>``, ``AND``, ``OR``, ``LIKE``, etc.).",
+    ("A_Expr", "name"): "Operator name components.",
+    ("A_Indices", "is_slice"): "True for a slice (``[lo:hi]``), false for a single subscript.",
+    ("A_Indices", "lidx"): "Lower bound expression (for slices), or ``None``.",
+    ("A_Indices", "uidx"): "Upper bound expression or single subscript expression.",
+    ("A_Indirection", "arg"): "Base expression being subscripted or field-selected.",
+    ("BoolExpr", "boolop"): "Boolean operator (``AND``, ``OR``, ``NOT``).",
+    ("BoolExpr", "args"): "Operand expressions.",
+    ("CaseExpr", "arg"): "Implicit equality comparison argument, or ``None`` for searched ``CASE``.",
+    ("CaseExpr", "args"): "List of ``WHEN … THEN …`` clauses.",
+    ("CaseExpr", "defresult"): "``ELSE`` expression, or ``None`` if no ``ELSE``.",
+    ("CaseWhen", "expr"): "``WHEN`` condition expression.",
+    ("CaseWhen", "result"): "``THEN`` result expression.",
+    ("ColumnRef", "fields"): "Column name components (e.g. ``[schema, table, column]``).",
+    ("CommonTableExpr", "ctequery"): "The CTE's query (``SELECT``, ``INSERT``, etc.).",
+    ("CommonTableExpr", "ctename"): "Name of the common table expression.",
+    ("CommonTableExpr", "aliascolnames"): "Optional column alias list.",
+    ("DeleteStmt", "relation"): "Target table to delete from.",
+    ("DeleteStmt", "using_clause"): "``USING`` clause entries.",
+    ("FuncCall", "funcname"): "Function name components (e.g. ``[schema, func]``).",
+    ("FuncCall", "args"): "List of argument expressions.",
+    ("FuncCall", "agg_order"): "``ORDER BY`` within an aggregate call.",
+    ("FuncCall", "agg_filter"): "``FILTER (WHERE …)`` clause for an aggregate.",
+    ("FuncCall", "agg_within_group"): "True for ordered-set (``WITHIN GROUP``) aggregates.",
+    ("FuncCall", "agg_star"): "True for ``func(*)``.",
+    ("FuncCall", "agg_distinct"): "True for ``func(DISTINCT …)``.",
+    ("FuncCall", "over"): "``OVER`` clause (window specification).",
+    ("FuncCall", "func_variadic"): "True if last argument uses ``VARIADIC``.",
+    ("InsertStmt", "relation"): "Target table to insert into.",
+    ("InsertStmt", "cols"): "Target column list, or empty for all columns.",
+    ("InsertStmt", "select_stmt"): "``SELECT``, ``VALUES``, or ``DEFAULT VALUES`` source.",
+    ("InsertStmt", "on_conflict_clause"): "``ON CONFLICT`` clause, or ``None``.",
+    ("JoinExpr", "larg"): "Left-hand relation.",
+    ("JoinExpr", "rarg"): "Right-hand relation.",
+    ("JoinExpr", "quals"): "``ON`` clause qualification, or ``None``.",
+    ("JoinExpr", "using_clause"): "``USING`` clause column list, or ``None``.",
+    ("MergeStmt", "relation"): "Target table to merge into.",
+    ("RangeVar", "relname"): "Table or view name.",
+    ("RangeVar", "schemaname"): "Schema name, or empty if unqualified.",
+    ("RangeVar", "catalogname"): "Catalog name, or empty if unqualified.",
+    ("RangeVar", "inh"): "If true, include child tables (inheritance).",
+    ("RangeVar", "relpersistence"): "Persistence: ``p`` permanent, ``u`` unlogged, ``t`` temporary.",
+    ("RangeVar", "alias"): "Table alias, or ``None``.",
+    ("RawStmt", "stmt"): "The parsed statement node.",
+    ("RawStmt", "stmt_location"): "Byte offset of the statement start in the source SQL.",
+    ("RawStmt", "stmt_len"): "Statement length in bytes (``0`` means rest of string).",
+    ("ResTarget", "name"): "Column name for ``INSERT`` target, alias for ``SELECT``, or ``None``.",
+    ("ResTarget", "val"): "Value expression.",
+    ("ResTarget", "indirection"): "Subscripts/field selections on the target column.",
+    ("SelectStmt", "target_list"): "``SELECT`` target list (result columns).",
+    ("SelectStmt", "from_clause"): "``FROM`` clause entries.",
+    ("SelectStmt", "where_clause"): "``WHERE`` clause, or ``None``.",
+    ("SelectStmt", "group_clause"): "``GROUP BY`` clause entries.",
+    ("SelectStmt", "having_clause"): "``HAVING`` clause, or ``None``.",
+    ("SelectStmt", "sort_clause"): "``ORDER BY`` clause entries.",
+    ("SelectStmt", "larg"): "Left input for set operations (``UNION``, etc.).",
+    ("SelectStmt", "rarg"): "Right input for set operations.",
+    ("SelectStmt", "op"): "Set operation type (``UNION``, ``INTERSECT``, ``EXCEPT``, or ``NONE``).",
+    ("SelectStmt", "all"): "True for ``ALL`` (no duplicate elimination in set ops).",
+    ("SortBy", "node"): "Expression to sort by.",
+    ("SortBy", "sortby_dir"): "Sort direction (``ASC``, ``DESC``, ``USING``, or default).",
+    ("SortBy", "sortby_nulls"): "``NULLS FIRST`` / ``NULLS LAST`` / default.",
+    ("SortBy", "use_op"): "Operator for ``ORDER BY … USING``.",
+    ("SubLink", "sub_link_type"): "Subquery type (``EXISTS``, ``ANY``, ``ALL``, ``EXPR``, etc.).",
+    ("SubLink", "testexpr"): "Left-hand test expression (for ``ANY``/``ALL``), or ``None``.",
+    ("SubLink", "subselect"): "The sub-``SELECT`` query.",
+    ("TypeCast", "arg"): "Expression to cast.",
+    ("TypeCast", "type_name"): "Target data type.",
+    ("TypeName", "names"): "Type name components (e.g. ``[pg_catalog, int4]``).",
+    ("TypeName", "typmods"): "Type modifiers (e.g. precision, scale).",
+    ("TypeName", "array_bounds"): "Array dimension bounds (``-1`` for unspecified).",
+    ("TypeName", "setof"): "True if ``SETOF`` type.",
+    ("TypeName", "pct_type"): "True if ``%TYPE`` reference.",
+    ("UpdateStmt", "relation"): "Target table to update.",
+    ("UpdateStmt", "target_list"): "``SET`` clause assignments.",
+    ("UpdateStmt", "from_clause"): "``FROM`` clause entries.",
+    ("WindowDef", "name"): "Window name (for ``WINDOW`` clause), or empty for inline.",
+    ("WindowDef", "refname"): "Name of a referenced existing window definition.",
+    ("WindowDef", "partition_clause"): "``PARTITION BY`` expressions.",
+    ("WindowDef", "order_clause"): "``ORDER BY`` entries.",
+    ("WindowDef", "frame_options"): "Frame option bit flags.",
+    ("WindowDef", "start_offset"): "Frame start offset expression.",
+    ("WindowDef", "end_offset"): "Frame end offset expression.",
+    ("Constraint", "contype"): "Constraint type (``CHECK``, ``UNIQUE``, ``PRIMARY KEY``, ``FOREIGN KEY``, etc.).",
+    ("Constraint", "conname"): "Constraint name, or empty for unnamed.",
+    ("Constraint", "raw_expr"): "``CHECK`` expression (raw parse tree).",
+    ("Constraint", "keys"): "List of key column names.",
+    ("Constraint", "fk_attrs"): "Foreign key column names in the referencing table.",
+    ("Constraint", "pk_attrs"): "Referenced column names in the target table.",
+    ("Constraint", "pktable"): "Referenced table for a foreign key.",
+    ("ColumnDef", "colname"): "Column name.",
+    ("ColumnDef", "type_name"): "Column data type.",
+    ("ColumnDef", "constraints"): "Column constraints (``NOT NULL``, ``CHECK``, etc.).",
+    ("ColumnDef", "raw_default"): "Default value expression (raw parse tree).",
+    ("DefElem", "defname"): "Option name.",
+    ("DefElem", "arg"): "Option value expression, or ``None`` for a bare keyword.",
+    ("DefElem", "defaction"): "Action (``SET``, ``ADD``, ``DROP``).",
+    ("DefElem", "defnamespace"): "Option namespace (rarely used).",
+    ("IndexElem", "name"): "Column name, or ``None`` for an expression index.",
+    ("IndexElem", "expr"): "Index expression, or ``None`` for a simple column.",
+    ("IndexElem", "indexcolname"): "Column name for index references.",
+    ("IndexElem", "opclass"): "Operator class names.",
+    ("IndexElem", "ordering"): "Sort ordering (``ASC`` or ``DESC``).",
+    ("IndexElem", "nulls_ordering"): "``NULLS FIRST`` or ``NULLS LAST``.",
+    ("CreateStmt", "relation"): "Table name and schema.",
+    ("CreateStmt", "table_elts"): "Column definitions and table constraints.",
+    ("CreateStmt", "inh_relations"): "``INHERITS`` parent table list.",
+    ("CreateStmt", "partspec"): "``PARTITION BY`` specification, or ``None``.",
+    ("CreateStmt", "partbound"): "Partition bound, or ``None``.",
+    ("CreateStmt", "tablespacename"): "Tablespace name, or empty for default.",
+    ("CreateStmt", "on_commit"): "``ON COMMIT`` action for temporary tables.",
+    ("IndexStmt", "idxname"): "Index name.",
+    ("IndexStmt", "relation"): "Table to create the index on.",
+    ("IndexStmt", "access_method"): "Index access method (e.g. ``btree``, ``hash``).",
+    ("IndexStmt", "index_params"): "List of index column/expression elements.",
+    ("IndexStmt", "unique"): "True for a ``UNIQUE`` index.",
+    ("IndexStmt", "concurrent"): "True for ``CREATE INDEX CONCURRENTLY``.",
+    ("IndexStmt", "where_clause"): "Partial index predicate, or ``None``.",
+    ("ParseResult", "stmts"): "List of raw statement wrappers from the parsed SQL.",
+    ("ParseResult", "version"): "Parse tree version number.",
+    ("ScanResult", "tokens"): "List of scanner tokens.",
+    ("ScanResult", "version"): "Scanner version number.",
+    ("ScanToken", "start"): "Byte offset of the token start.",
+    ("ScanToken", "end"): "Byte offset past the token end.",
+    ("ScanToken", "token"): "Token kind identifier.",
+    ("ScanToken", "keyword_kind"): "Keyword classification (reserved, unreserved, etc.).",
+}
+
+
+def _humanize_field(field_name: str) -> str:
+    """Convert a snake_case field name into a brief human-readable description."""
+    # Handle is_/has_ boolean prefixes
+    if field_name.startswith("is_"):
+        rest = field_name[3:].replace("_", " ")
+        return f"Whether this is {rest}."
+    if field_name.startswith("has_"):
+        rest = field_name[4:].replace("_", " ")
+        return f"Whether this has {rest}."
+    # Generic: replace underscores, capitalize first letter
+    words = field_name.replace("_", " ")
+    return words[0].upper() + words[1:] + "."
+
+
+def _field_docstring(class_name: str, field_name: str, python_type: str) -> str:
+    """Return the docstring for a generated property."""
+    # 1. Class-specific override
+    key = (class_name, field_name)
+    if key in _CLASS_FIELD_DOCSTRINGS:
+        return _CLASS_FIELD_DOCSTRINGS[key]
+    # 2. Generic field name
+    if field_name in _FIELD_DOCSTRINGS:
+        return _FIELD_DOCSTRINGS[field_name]
+    # 3. Auto-generated fallback
+    return _humanize_field(field_name)
+
+
 def _is_node_oneof(desc: Descriptor) -> bool:
     """Check if a message descriptor is the Node oneof wrapper."""
     return len(desc.oneofs) == 1 and desc.oneofs[0].name == "node"
@@ -460,11 +867,14 @@ def _field_body(fd: FieldDescriptor) -> str:
     return f"return {attr}"
 
 
-def _generate_oneof_property(oneof_name: str, oneof_fields: list[FieldDescriptor]) -> str:
+def _generate_oneof_property(class_name: str, oneof_name: str, oneof_fields: list[FieldDescriptor]) -> str:
     """Generate a property for a non-Node oneof (like A_Const.val)."""
+    ptype = "AstNode | int | float | bool | str | None"
+    doc = _field_docstring(class_name, oneof_name, ptype)
     lines = []
     lines.append("    @property")
-    lines.append(f"    def {oneof_name}(self) -> AstNode | int | float | bool | str | None:")
+    lines.append(f"    def {oneof_name}(self) -> {ptype}:")
+    lines.append(f'        """{doc}"""')
     lines.append(f"        which = self._pb.WhichOneof({oneof_name!r})")
     lines.append("        if which is None:")
     lines.append("            return None")
@@ -526,15 +936,17 @@ def _generate_class(desc: Descriptor) -> str:
         ptype = _field_python_type(fd)
         body = _field_body(fd)
         prop_name = _safe_name(fd.name)
+        doc = _field_docstring(name, fd.name, ptype)
         lines.append("")
         lines.append("    @property")
         lines.append(f"    def {prop_name}(self) -> {ptype}:")
+        lines.append(f'        """{doc}"""')
         lines.append(f"        {body}")
 
     # Oneof properties (like A_Const.val)
     for oneof_name, oneof_fields in non_node_oneofs:
         lines.append("")
-        lines.append(_generate_oneof_property(oneof_name, oneof_fields))
+        lines.append(_generate_oneof_property(name, oneof_name, oneof_fields))
 
     # If no fields at all, add pass
     if not regular_fields and not non_node_oneofs:
@@ -551,7 +963,7 @@ def _generate_generated(all_descs: list[Descriptor]) -> str:
     parts.append(
         textwrap.dedent("""\
         # DO NOT EDIT — generated by scripts/generate_nodes.py
-        # ruff: noqa: D100,D101,D102,D105,D107,F821,PIE790
+        # ruff: noqa: D100,D101,D105,D107,F821,PIE790
         #
         # Typed AST wrapper classes for all protobuf node types.
         # Regenerate with: uv run python scripts/generate_nodes.py

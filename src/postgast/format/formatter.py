@@ -105,6 +105,8 @@ class _SqlFormatter(Visitor):
     @property
     def _current_line_length(self) -> int:
         """Length of the current (possibly incomplete) line being built."""
+        if self._at_line_start:
+            return 2 * self._depth
         length = 0
         for part in reversed(self._parts):
             nl = part.rfind("\n")
@@ -112,8 +114,6 @@ class _SqlFormatter(Visitor):
                 length += len(part) - nl - 1
                 break
             length += len(part)
-        if self._at_line_start:
-            length = 2 * self._depth
         return length
 
     def _fits_inline(
@@ -147,12 +147,13 @@ class _SqlFormatter(Visitor):
         self._parts = []
         self._depth = 0
         self._at_line_start = True
-        fn(item)
-        result = "".join(self._parts)
-        self._parts = saved_parts
-        self._depth = saved_depth
-        self._at_line_start = saved_at_line_start
-        return result
+        try:
+            fn(item)
+            return "".join(self._parts)
+        finally:
+            self._parts = saved_parts
+            self._depth = saved_depth
+            self._at_line_start = saved_at_line_start
 
     def _emit_clause_body(
         self,
@@ -161,6 +162,8 @@ class _SqlFormatter(Visitor):
         visit: Callable[[Any], None] | None = None,
     ) -> None:
         """Emit a list of items: inline if they fit within the line budget, multiline otherwise."""
+        if not items:
+            return
         if self._fits_inline(items, visit=visit):
             self._emit(" ")
             self._emit_inline_list(items, visit=visit)
@@ -205,12 +208,13 @@ class _SqlFormatter(Visitor):
         self._parts = []
         self._depth = 0
         self._at_line_start = True
-        self.visit(node)
-        result = "".join(self._parts)
-        self._parts = saved_parts
-        self._depth = saved_depth
-        self._at_line_start = saved_at_line_start
-        return result
+        try:
+            self.visit(node)
+            return "".join(self._parts)
+        finally:
+            self._parts = saved_parts
+            self._depth = saved_depth
+            self._at_line_start = saved_at_line_start
 
     def _visit_node(self, node: Message) -> None:
         """Visit a node in the current output context."""

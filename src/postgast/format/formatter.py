@@ -1,77 +1,42 @@
-"""SQL pretty-printer that walks the protobuf AST and emits formatted SQL."""
+"""SQL formatter class and entry point."""
 
 from __future__ import annotations
 
-import functools
-import re
-from typing import TYPE_CHECKING, Any, Final, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import postgast.pg_query_pb2 as pb
 from postgast.deparse import deparse
+from postgast.format.constants import (
+    FRAMEOPTION_BETWEEN,
+    FRAMEOPTION_END_CURRENT_ROW,
+    FRAMEOPTION_END_OFFSET_FOLLOWING,
+    FRAMEOPTION_END_OFFSET_PRECEDING,
+    FRAMEOPTION_END_UNBOUNDED_FOLLOWING,
+    FRAMEOPTION_END_UNBOUNDED_PRECEDING,
+    FRAMEOPTION_EXCLUDE_CURRENT_ROW,
+    FRAMEOPTION_EXCLUDE_GROUP,
+    FRAMEOPTION_EXCLUDE_TIES,
+    FRAMEOPTION_GROUPS,
+    FRAMEOPTION_NONDEFAULT,
+    FRAMEOPTION_ROWS,
+    FRAMEOPTION_START_CURRENT_ROW,
+    FRAMEOPTION_START_OFFSET_FOLLOWING,
+    FRAMEOPTION_START_OFFSET_PRECEDING,
+    FRAMEOPTION_START_UNBOUNDED_PRECEDING,
+    GROUPING_SET_KW,
+    TYPE_MAP,
+)
+from postgast.format.utils import pascal_to_snake, quote_ident
 from postgast.parse import parse
 from postgast.precedence import Side, needs_parens
-from postgast.scan import scan as _scan
 from postgast.walk import Visitor, unwrap_node
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping, Sequence
+    from collections.abc import Callable, Sequence
 
     from google.protobuf.message import Message
 
     from postgast.pg_query_pb2 import ParseResult
-
-# ── Window frame bitmask constants (PostgreSQL parsenodes.h) ──────
-
-_FRAMEOPTION_NONDEFAULT: Final = 0x00001
-_FRAMEOPTION_RANGE: Final = 0x00002
-_FRAMEOPTION_ROWS: Final = 0x00004
-_FRAMEOPTION_GROUPS: Final = 0x00008
-_FRAMEOPTION_BETWEEN: Final = 0x00010
-_FRAMEOPTION_START_UNBOUNDED_PRECEDING: Final = 0x00020
-_FRAMEOPTION_END_UNBOUNDED_PRECEDING: Final = 0x00040
-_FRAMEOPTION_START_UNBOUNDED_FOLLOWING: Final = 0x00080
-_FRAMEOPTION_END_UNBOUNDED_FOLLOWING: Final = 0x00100
-_FRAMEOPTION_START_CURRENT_ROW: Final = 0x00200
-_FRAMEOPTION_END_CURRENT_ROW: Final = 0x00400
-_FRAMEOPTION_START_OFFSET_PRECEDING: Final = 0x00800
-_FRAMEOPTION_END_OFFSET_PRECEDING: Final = 0x01000
-_FRAMEOPTION_START_OFFSET_FOLLOWING: Final = 0x02000
-_FRAMEOPTION_END_OFFSET_FOLLOWING: Final = 0x04000
-_FRAMEOPTION_EXCLUDE_CURRENT_ROW: Final = 0x08000
-_FRAMEOPTION_EXCLUDE_GROUP: Final = 0x10000
-_FRAMEOPTION_EXCLUDE_TIES: Final = 0x20000
-
-#: A mapping of built-in type names to their canonical SQL representations for formatting. Types not in this map are
-#: emitted as-is.
-_TYPE_MAP: Final[Mapping[str, str]] = {
-    "int4": "INTEGER",
-    "int8": "BIGINT",
-    "int2": "SMALLINT",
-    "float4": "REAL",
-    "float8": "DOUBLE PRECISION",
-    "bool": "BOOLEAN",
-    "varchar": "VARCHAR",
-    "bpchar": "CHARACTER",
-    "numeric": "NUMERIC",
-    "text": "TEXT",
-    "timestamp": "TIMESTAMP",
-    "timestamptz": "TIMESTAMPTZ",
-    "date": "DATE",
-    "time": "TIME",
-    "timetz": "TIMETZ",
-    "interval": "INTERVAL",
-    "uuid": "UUID",
-    "json": "JSON",
-    "jsonb": "JSONB",
-    "bytea": "BYTEA",
-    "xml": "XML",
-}
-
-_GROUPING_SET_KW: Final[Mapping[int, str]] = {
-    pb.GROUPING_SET_ROLLUP: "ROLLUP(",
-    pb.GROUPING_SET_CUBE: "CUBE(",
-    pb.GROUPING_SET_SETS: "GROUPING SETS (",
-}
 
 
 def format_sql(sql: str | ParseResult) -> str:
@@ -155,7 +120,7 @@ class _SqlFormatter(Visitor):
         """If *node* unwraps to a String, emit its sval (optionally quoted); else visit."""
         inner = unwrap_node(node)
         if isinstance(inner, pb.String):
-            self._emit(_quote_ident(inner.sval) if quote else inner.sval)
+            self._emit(quote_ident(inner.sval) if quote else inner.sval)
         else:
             self._visit_node(node)
 
@@ -193,7 +158,7 @@ class _SqlFormatter(Visitor):
         """Deparse a single node via libpg_query as a fallback."""
         tree = pb.ParseResult()
         raw = tree.stmts.add()
-        snake = _pascal_to_snake(type(node).DESCRIPTOR.name)
+        snake = pascal_to_snake(type(node).DESCRIPTOR.name)
         getattr(raw.stmt, snake).CopyFrom(node)
         return deparse(tree)
 
@@ -228,7 +193,7 @@ class _SqlFormatter(Visitor):
         for field_node in node.fields:
             inner = unwrap_node(field_node)
             if isinstance(inner, pb.String):
-                parts.append(_quote_ident(inner.sval))
+                parts.append(quote_ident(inner.sval))
             elif isinstance(inner, pb.A_Star):
                 parts.append("*")
         self._emit(".".join(parts))
@@ -399,7 +364,7 @@ class _SqlFormatter(Visitor):
             self._emit("ORDER BY ")
             self._emit_inline_list(wdef.order_clause)
             parts_emitted = True
-        if wdef.frame_options & _FRAMEOPTION_NONDEFAULT:
+        if wdef.frame_options & FRAMEOPTION_NONDEFAULT:
             if parts_emitted:
                 self._emit(" ")
             self._visit_window_frame(wdef)
@@ -408,53 +373,53 @@ class _SqlFormatter(Visitor):
     def _visit_window_frame(self, wdef: pb.WindowDef) -> None:
         fopts = wdef.frame_options
         # Mode
-        if fopts & _FRAMEOPTION_ROWS:
+        if fopts & FRAMEOPTION_ROWS:
             self._emit("ROWS")
-        elif fopts & _FRAMEOPTION_GROUPS:
+        elif fopts & FRAMEOPTION_GROUPS:
             self._emit("GROUPS")
         else:
             self._emit("RANGE")
 
-        has_between = bool(fopts & _FRAMEOPTION_BETWEEN)
+        has_between = bool(fopts & FRAMEOPTION_BETWEEN)
         if has_between:
             self._emit(" BETWEEN ")
         else:
             self._emit(" ")
 
         # Start bound
-        if fopts & _FRAMEOPTION_START_UNBOUNDED_PRECEDING:
+        if fopts & FRAMEOPTION_START_UNBOUNDED_PRECEDING:
             self._emit("UNBOUNDED PRECEDING")
-        elif fopts & _FRAMEOPTION_START_CURRENT_ROW:
+        elif fopts & FRAMEOPTION_START_CURRENT_ROW:
             self._emit("CURRENT ROW")
-        elif fopts & _FRAMEOPTION_START_OFFSET_PRECEDING:
+        elif fopts & FRAMEOPTION_START_OFFSET_PRECEDING:
             self._visit_node(wdef.start_offset)
             self._emit(" PRECEDING")
-        elif fopts & _FRAMEOPTION_START_OFFSET_FOLLOWING:
+        elif fopts & FRAMEOPTION_START_OFFSET_FOLLOWING:
             self._visit_node(wdef.start_offset)
             self._emit(" FOLLOWING")
 
         if has_between:
             self._emit(" AND ")
             # End bound
-            if fopts & _FRAMEOPTION_END_UNBOUNDED_FOLLOWING:
+            if fopts & FRAMEOPTION_END_UNBOUNDED_FOLLOWING:
                 self._emit("UNBOUNDED FOLLOWING")
-            elif fopts & _FRAMEOPTION_END_CURRENT_ROW:
+            elif fopts & FRAMEOPTION_END_CURRENT_ROW:
                 self._emit("CURRENT ROW")
-            elif fopts & _FRAMEOPTION_END_OFFSET_PRECEDING:
+            elif fopts & FRAMEOPTION_END_OFFSET_PRECEDING:
                 self._visit_node(wdef.end_offset)
                 self._emit(" PRECEDING")
-            elif fopts & _FRAMEOPTION_END_OFFSET_FOLLOWING:
+            elif fopts & FRAMEOPTION_END_OFFSET_FOLLOWING:
                 self._visit_node(wdef.end_offset)
                 self._emit(" FOLLOWING")
-            elif fopts & _FRAMEOPTION_END_UNBOUNDED_PRECEDING:
+            elif fopts & FRAMEOPTION_END_UNBOUNDED_PRECEDING:
                 self._emit("UNBOUNDED PRECEDING")
 
         # EXCLUDE options
-        if fopts & _FRAMEOPTION_EXCLUDE_CURRENT_ROW:
+        if fopts & FRAMEOPTION_EXCLUDE_CURRENT_ROW:
             self._emit(" EXCLUDE CURRENT ROW")
-        elif fopts & _FRAMEOPTION_EXCLUDE_GROUP:
+        elif fopts & FRAMEOPTION_EXCLUDE_GROUP:
             self._emit(" EXCLUDE GROUP")
-        elif fopts & _FRAMEOPTION_EXCLUDE_TIES:
+        elif fopts & FRAMEOPTION_EXCLUDE_TIES:
             self._emit(" EXCLUDE TIES")
 
     def visit_TypeCast(self, node: pb.TypeCast) -> None:
@@ -467,7 +432,7 @@ class _SqlFormatter(Visitor):
         # Filter out 'pg_catalog' schema prefix for built-in types
         display_names = [n for n in names if n != "pg_catalog"]
         type_str = ".".join(display_names)
-        type_str = _TYPE_MAP.get(type_str, type_str)
+        type_str = TYPE_MAP.get(type_str, type_str)
         self._emit(type_str)
         if tn.typmods:
             self._emit("(")
@@ -754,11 +719,11 @@ class _SqlFormatter(Visitor):
     def visit_RangeVar(self, node: pb.RangeVar) -> None:
         parts: list[str] = []
         if node.schemaname:
-            parts.append(_quote_ident(node.schemaname))
-        parts.append(_quote_ident(node.relname))
+            parts.append(quote_ident(node.schemaname))
+        parts.append(quote_ident(node.relname))
         self._emit(".".join(parts))
         if node.HasField("alias"):
-            self._emit(f" {_quote_ident(node.alias.aliasname)}")
+            self._emit(f" {quote_ident(node.alias.aliasname)}")
 
     def visit_RangeSubselect(self, node: pb.RangeSubselect) -> None:
         if node.lateral:
@@ -771,7 +736,7 @@ class _SqlFormatter(Visitor):
         self._dedent()
         self._emit(")")
         if node.HasField("alias"):
-            self._emit(f" AS {_quote_ident(node.alias.aliasname)}")
+            self._emit(f" AS {quote_ident(node.alias.aliasname)}")
             if node.alias.colnames:
                 self._emit_alias_colnames(node.alias.colnames)
 
@@ -1297,7 +1262,7 @@ class _SqlFormatter(Visitor):
             else:
                 self._visit_node(func_item)
         if node.HasField("alias"):
-            self._emit(f" AS {_quote_ident(node.alias.aliasname)}")
+            self._emit(f" AS {quote_ident(node.alias.aliasname)}")
             if node.alias.colnames:
                 self._emit_alias_colnames(node.alias.colnames)
 
@@ -1312,8 +1277,8 @@ class _SqlFormatter(Visitor):
             self._emit("()")
         elif kind == pb.GROUPING_SET_SIMPLE:
             self._emit_inline_list(node.content)
-        elif kind in _GROUPING_SET_KW:
-            self._emit(_GROUPING_SET_KW[kind])
+        elif kind in GROUPING_SET_KW:
+            self._emit(GROUPING_SET_KW[kind])
             self._emit_inline_list(node.content)
             self._emit(")")
 
@@ -1341,33 +1306,3 @@ class _SqlFormatter(Visitor):
             self._emit("(")
         self._emit_inline_list(node.args)
         self._emit(")")
-
-
-_SIMPLE_IDENT_RE: Final = re.compile(r"^[a-z_][a-z0-9_]*$")
-
-
-@functools.lru_cache(maxsize=256)
-def _needs_quoting(name: str) -> bool:
-    if not _SIMPLE_IDENT_RE.match(name):
-        return True
-    result = _scan(f"SELECT {name}")
-    tokens = list(result.tokens)
-    return len(tokens) >= 2 and tokens[1].keyword_kind == pb.RESERVED_KEYWORD
-
-
-def _quote_ident(name: str) -> str:
-    if _needs_quoting(name):
-        escaped = name.replace('"', '""')
-        return f'"{escaped}"'
-    return name
-
-
-@functools.lru_cache(maxsize=256)
-def _pascal_to_snake(name: str) -> str:
-    """Convert PascalCase to snake_case (e.g. ``SelectStmt`` → ``select_stmt``).
-
-    The regex only splits at lowercase/digit → uppercase boundaries, so leading acronyms stay grouped
-    (``SQLValueFunction`` → ``sqlvalue_function``).  This intentionally matches protobuf's own field-name
-    convention in ``Node.__slots__``.
-    """
-    return re.sub(r"(?<=[a-z0-9])([A-Z])", r"_\1", name).lower()

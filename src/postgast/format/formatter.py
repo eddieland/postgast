@@ -39,11 +39,13 @@ if TYPE_CHECKING:
     from postgast.pg_query_pb2 import ParseResult
 
 
-def format_sql(sql: str | ParseResult) -> str:
+def format_sql(sql: str | ParseResult, *, line_width: int = 88) -> str:
     """Format a SQL string or ParseResult into a canonical, readable layout.
 
     Args:
         sql: A SQL string or an already-parsed ``ParseResult``.
+        line_width: Target maximum line width (default 88).  Lists that fit within the
+            budget are rendered inline; longer ones are expanded to one-item-per-line.
 
     Returns:
         A pretty-printed SQL string with uppercase keywords, clause-per-line layout, and indented bodies. Each statement
@@ -53,7 +55,7 @@ def format_sql(sql: str | ParseResult) -> str:
         PgQueryError: If *sql* is a string that cannot be parsed.
     """
     tree: ParseResult = parse(sql) if isinstance(sql, str) else sql
-    formatter = _SqlFormatter()
+    formatter = _SqlFormatter(line_width=line_width)
     parts: list[str] = []
     for raw_stmt in tree.stmts:
         stmt = unwrap_node(raw_stmt.stmt)
@@ -66,7 +68,8 @@ def format_sql(sql: str | ParseResult) -> str:
 class _SqlFormatter(Visitor):
     """AST visitor that emits formatted SQL."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, line_width: int = 88) -> None:
+        self._line_width = line_width
         self._parts: list[str] = []
         self._depth: int = 0
         self._at_line_start: bool = True
@@ -98,6 +101,77 @@ class _SqlFormatter(Visitor):
 
     def _dedent(self) -> None:
         self._depth -= 1
+
+    @property
+    def _current_line_length(self) -> int:
+        """Length of the current (possibly incomplete) line being built."""
+        if self._at_line_start:
+            return 2 * self._depth
+        length = 0
+        for part in reversed(self._parts):
+            nl = part.rfind("\n")
+            if nl != -1:
+                length += len(part) - nl - 1
+                break
+            length += len(part)
+        return length
+
+    def _fits_inline(
+        self,
+        items: Sequence[Any],
+        *,
+        visit: Callable[[Any], None] | None = None,
+        prefix: str = " ",
+    ) -> bool:
+        """Check if rendering *items* as a comma-separated inline list fits in the line budget.
+
+        The check accounts for the current line position, *prefix* (e.g. ``" "``), and
+        the rendered width of each item.  Returns ``False`` when any single item contains
+        a newline (e.g. a subquery) regardless of width.
+        """
+        fn = visit or self._visit_node
+        rendered: list[str] = []
+        for item in items:
+            text = self._fmt_with(fn, item)
+            if "\n" in text:
+                return False
+            rendered.append(text)
+        inline = prefix + ", ".join(rendered)
+        return self._current_line_length + len(inline) <= self._line_width
+
+    def _fmt_with(self, fn: Callable[[Any], None], item: Any) -> str:
+        """Render *item* via *fn* into a throwaway buffer and return the text."""
+        saved_parts = self._parts
+        saved_depth = self._depth
+        saved_at_line_start = self._at_line_start
+        self._parts = []
+        self._depth = 0
+        self._at_line_start = True
+        try:
+            fn(item)
+            return "".join(self._parts)
+        finally:
+            self._parts = saved_parts
+            self._depth = saved_depth
+            self._at_line_start = saved_at_line_start
+
+    def _emit_clause_body(
+        self,
+        items: Sequence[Any],
+        *,
+        visit: Callable[[Any], None] | None = None,
+    ) -> None:
+        """Emit a list of items: inline if they fit within the line budget, multiline otherwise."""
+        if not items:
+            return
+        if self._fits_inline(items, visit=visit):
+            self._emit(" ")
+            self._emit_inline_list(items, visit=visit)
+        else:
+            self._newline()
+            self._indent()
+            self._emit_multiline_list(items, visit=visit)
+            self._dedent()
 
     def _emit_inline_list(self, items: Sequence[Any], *, visit: Callable[[Any], None] | None = None) -> None:
         """Emit items separated by ``', '``.  Uses *visit* (default ``_visit_node``) per item."""
@@ -134,12 +208,13 @@ class _SqlFormatter(Visitor):
         self._parts = []
         self._depth = 0
         self._at_line_start = True
-        self.visit(node)
-        result = "".join(self._parts)
-        self._parts = saved_parts
-        self._depth = saved_depth
-        self._at_line_start = saved_at_line_start
-        return result
+        try:
+            self.visit(node)
+            return "".join(self._parts)
+        finally:
+            self._parts = saved_parts
+            self._depth = saved_depth
+            self._at_line_start = saved_at_line_start
 
     def _visit_node(self, node: Message) -> None:
         """Visit a node in the current output context."""
@@ -619,15 +694,11 @@ class _SqlFormatter(Visitor):
                 self._emit_inline_list(node.distinct_clause)
                 self._emit(")")
 
-        # Target list — inline when a single, single-line target
-        if len(node.target_list) == 1 and "\n" not in self._fmt(cast("pb.ResTarget", unwrap_node(node.target_list[0]))):
-            self._emit(" ")
-            self._visit_res_target(unwrap_node(node.target_list[0]))
-        else:
-            self._newline()
-            self._indent()
-            self._emit_multiline_list(node.target_list, visit=lambda t: self._visit_res_target(unwrap_node(t)))
-            self._dedent()
+        # Target list — inline when items fit within the line budget
+        self._emit_clause_body(
+            node.target_list,
+            visit=lambda t: self._visit_res_target(unwrap_node(t)),
+        )
 
         # FROM — inline when a single non-join item
         if node.from_clause:
@@ -638,35 +709,21 @@ class _SqlFormatter(Visitor):
         if node.HasField("where_clause"):
             self._emit_where(node.where_clause)
 
-        # GROUP BY — inline when a single item
+        # GROUP BY — inline when items fit within the line budget
         if node.group_clause:
             self._newline()
             self._emit("GROUP BY")
-            if len(node.group_clause) == 1:
-                self._emit(" ")
-                self._visit_node(node.group_clause[0])
-            else:
-                self._newline()
-                self._indent()
-                self._emit_multiline_list(node.group_clause)
-                self._dedent()
+            self._emit_clause_body(node.group_clause)
 
         # HAVING — inline for simple expressions, multiline for AND/OR
         if node.HasField("having_clause"):
             self._emit_filter_clause("HAVING", node.having_clause)
 
-        # ORDER BY — inline when a single item
+        # ORDER BY — inline when items fit within the line budget
         if node.sort_clause:
             self._newline()
             self._emit("ORDER BY")
-            if len(node.sort_clause) == 1:
-                self._emit(" ")
-                self._visit_node(node.sort_clause[0])
-            else:
-                self._newline()
-                self._indent()
-                self._emit_multiline_list(node.sort_clause)
-                self._dedent()
+            self._emit_clause_body(node.sort_clause)
 
         # LIMIT — always inline (single scalar value)
         if node.HasField("limit_count"):
@@ -796,11 +853,12 @@ class _SqlFormatter(Visitor):
         self._emit_filter_clause("WHERE", where_clause)
 
     def _emit_from_clause(self, keyword: str, from_list: Sequence[Any]) -> None:
-        """Emit a FROM/USING clause.  Inline for a single non-join item, multiline otherwise."""
+        """Emit a FROM/USING clause.  Inline when items fit in the line budget, multiline otherwise."""
+        visit_fn: Callable[[Any], None] = lambda item: self._visit_node(unwrap_node(item))
         self._emit(keyword)
-        if len(from_list) == 1 and not isinstance(unwrap_node(from_list[0]), pb.JoinExpr):
+        if self._fits_inline(from_list, visit=visit_fn):
             self._emit(" ")
-            self._visit_node(unwrap_node(from_list[0]))
+            self._emit_inline_list(from_list, visit=visit_fn)
         else:
             self._newline()
             self._indent()
@@ -808,17 +866,11 @@ class _SqlFormatter(Visitor):
             self._dedent()
 
     def _emit_returning(self, returning_list: Sequence[Any]) -> None:
-        """Emit a RETURNING clause.  Inline for a single target, multiline otherwise."""
+        """Emit a RETURNING clause.  Inline when items fit in the line budget, multiline otherwise."""
+        visit_fn: Callable[[Any], None] = lambda t: self._visit_res_target(unwrap_node(t))
         self._newline()
         self._emit("RETURNING")
-        if len(returning_list) == 1:
-            self._emit(" ")
-            self._visit_res_target(unwrap_node(returning_list[0]))
-        else:
-            self._newline()
-            self._indent()
-            self._emit_multiline_list(returning_list, visit=lambda t: self._visit_res_target(unwrap_node(t)))
-            self._dedent()
+        self._emit_clause_body(returning_list, visit=visit_fn)
 
     def _emit_alias_colnames(self, colnames: Sequence[Any]) -> None:
         """Emit parenthesised column-name list for an alias (quoted identifiers)."""
@@ -827,17 +879,10 @@ class _SqlFormatter(Visitor):
         self._emit(")")
 
     def _emit_set_clause(self, target_list: Sequence[Any]) -> None:
-        """Emit a SET clause.  Inline for a single assignment, multiline otherwise."""
+        """Emit a SET clause.  Inline when items fit in the line budget, multiline otherwise."""
         self._newline()
         self._emit("SET")
-        if len(target_list) == 1:
-            self._emit(" ")
-            self._visit_set_assignment(target_list[0])
-        else:
-            self._newline()
-            self._indent()
-            self._emit_multiline_list(target_list, visit=self._visit_set_assignment)
-            self._dedent()
+        self._emit_clause_body(target_list, visit=self._visit_set_assignment)
 
     def _visit_set_assignment(self, item: Any) -> None:
         """Emit a single ``col = expr`` assignment inside a SET clause."""

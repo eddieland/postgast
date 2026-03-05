@@ -13,10 +13,7 @@
   inputs:
   - SELECT a, b, count(*) FROM t GROUP BY ROLLUP (a, b)
   pretty: |-
-    SELECT
-      a,
-      b,
-      count(*)
+    SELECT a, b, count(*)
     FROM t
     GROUP BY ROLLUP(a, b);
 
@@ -24,10 +21,7 @@
   inputs:
   - SELECT a, b, count(*) FROM t GROUP BY CUBE (a, b)
   pretty: |-
-    SELECT
-      a,
-      b,
-      count(*)
+    SELECT a, b, count(*)
     FROM t
     GROUP BY CUBE(a, b);
 
@@ -35,9 +29,7 @@
   inputs:
   - SELECT a, count(*) FROM t GROUP BY GROUPING SETS ((a), ())
   pretty: |-
-    SELECT
-      a,
-      count(*)
+    SELECT a, count(*)
     FROM t
     GROUP BY GROUPING SETS (a, ());
 
@@ -75,27 +67,30 @@
   - SELECT * FROM (VALUES (1, 2), (3, 4)) AS t(a, b)
   pretty: |-
     SELECT *
-    FROM (
-      VALUES
-        (1, 2),
-        (3, 4)
-    ) AS t(a, b);
+    FROM
+      (
+        VALUES
+          (1, 2),
+          (3, 4)
+      ) AS t(a, b);
 
 - label: subquery_no_colnames
   inputs:
   - SELECT * FROM (SELECT 1) AS sub
   pretty: |-
     SELECT *
-    FROM (
-      SELECT 1
-    ) AS sub;
+    FROM
+      (
+        SELECT 1
+      ) AS sub;
 
 - label: subquery_quoted_colnames
   inputs:
   - SELECT * FROM (VALUES (1)) AS t("Order", "MyCol")
   pretty: |-
     SELECT *
-    FROM (
-      VALUES
-        (1)
-    ) AS t("Order", "MyCol");
+    FROM
+      (
+        VALUES
+          (1)
+      ) AS t("Order", "MyCol");

@@ -23,9 +23,7 @@
   - UPDATE users SET name = 'foo', active = false WHERE id = 1
   pretty: |-
     UPDATE users
-    SET
-      name = 'foo',
-      active = FALSE
+    SET name = 'foo', active = FALSE
     WHERE id = 1;
 
 # DELETE formatting

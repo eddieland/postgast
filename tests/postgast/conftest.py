@@ -3,11 +3,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import pytest
+from ruamel.yaml import YAML
 
 from postgast import ParseResult, PgQueryError, deparse, parse
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from pathlib import Path
 
 # -- Parse-result fixtures (function scope for independent protobuf instances) --
 
@@ -48,6 +50,28 @@ def assert_roundtrip(sql: str) -> None:
     assert canonical == canonical2, (
         f"Canonical form not stable:\n  original:   {sql}\n  canonical:  {canonical}\n  canonical2: {canonical2}"
     )
+
+
+def load_yaml_cases(cases_dir: Path) -> list[dict[str, Any]]:
+    """Load all YAML case entries from ``*.yaml`` files in *cases_dir*.
+
+    Each YAML file must be a top-level list of mappings.  All entries from every
+    file are concatenated into a single flat list, sorted by filename.
+    """
+    yaml = YAML(typ="safe")
+    cases: list[dict[str, Any]] = []
+    for yaml_file in sorted(cases_dir.glob("*.yaml")):
+        raw = yaml.load(yaml_file.read_text())  # pyright: ignore[reportUnknownMemberType]
+        if not raw:
+            continue
+        if not isinstance(raw, list):
+            raise AssertionError(f"YAML file {yaml_file} must contain a top-level list of cases")
+        entries: list[dict[str, Any]] = []
+        for entry in raw:  # pyright: ignore[reportUnknownVariableType]
+            assert isinstance(entry, dict), f"Each YAML entry in {yaml_file} must be a mapping"
+            entries.append(entry)  # pyright: ignore[reportUnknownArgumentType]
+        cases.extend(entries)
+    return cases
 
 
 def assert_pg_query_error(fn: Callable[..., Any], sql: str, *, check_cursorpos: bool = False) -> None:

@@ -1,6 +1,11 @@
-from postgast import parse_plpgsql
+import contextlib
+from pathlib import Path
 
-from .conftest import assert_pg_query_error
+import pytest
+
+from postgast import PgQueryError, parse_plpgsql
+
+from .conftest import assert_pg_query_error, load_yaml_cases
 
 # Simple PL/pgSQL function used across multiple tests.
 SIMPLE_FUNC = """\
@@ -124,6 +129,23 @@ class TestParsePlpgsql:
         assert callable(imported_func)
 
 
+# -- YAML-driven error / edge-case data -------------------------------------
+
+_CASES_DIR = Path(__file__).parent / "plpgsql_error_cases"
+_YAML_CASES = load_yaml_cases(_CASES_DIR)
+_ERROR_CASES = [(c["label"], c["sql"]) for c in _YAML_CASES if c["expect"] == "error"]
+_NO_CRASH_CASES = [(c["label"], c["sql"]) for c in _YAML_CASES if c["expect"] == "no_crash"]
+
+# Control characters cannot be represented in YAML, so they stay in Python.
+_CONTROL_CHARS: list[tuple[str, str]] = [
+    ("tab", "\t"),
+    ("vertical_tab", "\v"),
+    ("form_feed", "\f"),
+    ("backspace", "\b"),
+    ("bell", "\a"),
+]
+
+
 class TestParsePlpgsqlErrors:
     def test_invalid_plpgsql_raises_error(self):
         sql = """\
@@ -144,3 +166,78 @@ $$ LANGUAGE plpgsql;
         result = parse_plpgsql(sql)
         assert isinstance(result, list)
         assert result == [{"PLpgSQL_function": {"datums": []}}]
+
+    # -- YAML-driven: malformed PL/pgSQL (must error) ------------------------
+
+    @pytest.mark.parametrize("sql", [s for _, s in _ERROR_CASES], ids=[n for n, _ in _ERROR_CASES])
+    def test_malformed_plpgsql_raises_error(self, sql: str) -> None:
+        assert_pg_query_error(parse_plpgsql, sql)
+
+    # -- YAML-driven: edge cases (must not crash) ----------------------------
+
+    @pytest.mark.parametrize("sql", [s for _, s in _NO_CRASH_CASES], ids=[n for n, _ in _NO_CRASH_CASES])
+    def test_edge_case_no_crash(self, sql: str) -> None:
+        with contextlib.suppress(PgQueryError):
+            parse_plpgsql(sql)
+
+    # -- Error attribute verification ----------------------------------------
+
+    def test_error_has_truthy_message(self) -> None:
+        sql = """\
+CREATE FUNCTION my_broken_func() RETURNS void AS $$
+BEGIN
+    IF true THEN
+END;
+$$ LANGUAGE plpgsql;"""
+        with pytest.raises(PgQueryError) as exc_info:
+            parse_plpgsql(sql)
+        err = exc_info.value
+        assert err.message
+        # PL/pgSQL errors typically include context about which function was compiled
+        if err.context is not None:
+            assert "my_broken_func" in err.context
+
+    # -- Error resilience ----------------------------------------------------
+
+    def test_parse_plpgsql_succeeds_after_error(self) -> None:
+        bad_sql = """\
+CREATE FUNCTION f() RETURNS void AS $$
+BEGIN
+    IF true THEN
+END;
+$$ LANGUAGE plpgsql;"""
+        with pytest.raises(PgQueryError):
+            parse_plpgsql(bad_sql)
+        # Must still work after error — no leaked C state
+        result = parse_plpgsql(SIMPLE_FUNC)
+        assert isinstance(result, list)
+        assert len(result) >= 1
+        assert "PLpgSQL_function" in result[0]
+
+    # -- Null bytes (cannot represent in YAML) -------------------------------
+
+    def test_embedded_null_byte(self) -> None:
+        sql = SIMPLE_FUNC.replace("RETURN", "RETURN\x00")
+        with contextlib.suppress(PgQueryError):
+            parse_plpgsql(sql)
+
+    def test_leading_null_byte(self) -> None:
+        with contextlib.suppress(PgQueryError):
+            parse_plpgsql("\x00" + SIMPLE_FUNC)
+
+    def test_trailing_null_byte(self) -> None:
+        with contextlib.suppress(PgQueryError):
+            parse_plpgsql(SIMPLE_FUNC + "\x00")
+
+    # -- Control characters (cannot represent in YAML) -----------------------
+
+    @pytest.mark.parametrize("char", [c for _, c in _CONTROL_CHARS], ids=[n for n, _ in _CONTROL_CHARS])
+    def test_control_char_in_body_no_crash(self, char: str) -> None:
+        sql = f"""\
+CREATE FUNCTION f() RETURNS void AS $$
+BEGIN
+    RETURN;{char}
+END;
+$$ LANGUAGE plpgsql;"""
+        with contextlib.suppress(PgQueryError):
+            parse_plpgsql(sql)

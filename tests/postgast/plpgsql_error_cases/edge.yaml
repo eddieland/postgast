@@ -1,0 +1,25 @@
+# Edge-case inputs — must not crash (may raise PgQueryError or succeed).
+- label: empty_string
+  sql: ""
+  expect: no_crash
+
+- label: whitespace_only
+  sql: "   \n\t  "
+  expect: no_crash
+
+- label: semicolons_only
+  sql: ";;;"
+  expect: no_crash
+
+- label: plain_select
+  sql: SELECT 1
+  expect: no_crash
+
+- label: unicode_in_body
+  sql: |
+    CREATE FUNCTION f() RETURNS text AS $$
+    BEGIN
+        RETURN '🚀日本語';
+    END;
+    $$ LANGUAGE plpgsql;
+  expect: no_crash

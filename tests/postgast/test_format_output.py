@@ -10,31 +10,29 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from ruamel.yaml import YAML
 
 from postgast import format_sql
 
+from .conftest import load_yaml_cases
+
 _CASES_DIR = Path(__file__).parent / "format_cases"
-_yaml = YAML(typ="safe")
 
 
 def _load_format_cases() -> list[tuple[str, str, str]]:
-    """Read every ``*.yaml`` file in *format_cases/* and flatten into pytest params.
+    """Flatten YAML entries into (label, input_sql, expected) triples.
 
-    Returns (label, input_sql, expected) triples — one per input string so that
-    each variant shows up as its own test id.
+    One triple per input string so that each variant shows up as its own test id.
     """
     cases: list[tuple[str, str, str]] = []
-    for yaml_file in sorted(_CASES_DIR.glob("*.yaml")):
-        for entry in _yaml.load(yaml_file.read_text()):  # pyright: ignore[reportUnknownMemberType]
-            label: str = entry["label"]
-            pretty: str = entry["pretty"]
-            inputs: list[str] = entry["inputs"]
-            if len(inputs) == 1:
-                cases.append((label, inputs[0], pretty))
-            else:
-                for idx, sql in enumerate(inputs):
-                    cases.append((f"{label}[{idx}]", sql, pretty))
+    for entry in load_yaml_cases(_CASES_DIR):
+        label: str = entry["label"]
+        pretty: str = entry["pretty"]
+        inputs: list[str] = entry["inputs"]
+        if len(inputs) == 1:
+            cases.append((label, inputs[0], pretty))
+        else:
+            for idx, sql in enumerate(inputs):
+                cases.append((f"{label}[{idx}]", sql, pretty))
     return cases
 
 

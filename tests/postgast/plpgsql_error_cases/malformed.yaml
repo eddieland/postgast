@@ -1,0 +1,56 @@
+# Malformed PL/pgSQL function bodies — all must raise PgQueryError.
+- label: missing_begin
+  sql: |
+    CREATE FUNCTION f() RETURNS void AS $$
+        RETURN;
+    END;
+    $$ LANGUAGE plpgsql;
+  expect: error
+
+- label: missing_end
+  sql: |
+    CREATE FUNCTION f() RETURNS void AS $$
+    BEGIN
+        RETURN;
+    $$ LANGUAGE plpgsql;
+  expect: error
+
+- label: unclosed_loop
+  sql: |
+    CREATE FUNCTION f() RETURNS void AS $$
+    BEGIN
+        LOOP
+            EXIT;
+    END;
+    $$ LANGUAGE plpgsql;
+  expect: error
+
+- label: missing_then
+  sql: |
+    CREATE FUNCTION f() RETURNS void AS $$
+    BEGIN
+        IF true
+            RETURN;
+        END IF;
+    END;
+    $$ LANGUAGE plpgsql;
+  expect: error
+
+- label: missing_semicolon_after_return
+  sql: |
+    CREATE FUNCTION f() RETURNS void AS $$
+    BEGIN
+        RETURN
+    END;
+    $$ LANGUAGE plpgsql;
+  expect: error
+
+- label: missing_end_if
+  sql: |
+    CREATE FUNCTION f() RETURNS void AS $$
+    BEGIN
+        IF true THEN
+            RETURN;
+    END;
+    $$ LANGUAGE plpgsql;
+  expect: error

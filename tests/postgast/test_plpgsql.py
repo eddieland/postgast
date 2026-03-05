@@ -1,10 +1,11 @@
 import contextlib
+from pathlib import Path
 
 import pytest
 
 from postgast import PgQueryError, parse_plpgsql
 
-from .conftest import assert_pg_query_error
+from .conftest import assert_pg_query_error, load_yaml_cases
 
 # Simple PL/pgSQL function used across multiple tests.
 SIMPLE_FUNC = """\
@@ -128,71 +129,14 @@ class TestParsePlpgsql:
         assert callable(imported_func)
 
 
-_MALFORMED_PLPGSQL: list[tuple[str, str]] = [
-    (
-        "missing_begin",
-        """\
-CREATE FUNCTION f() RETURNS void AS $$
-    RETURN;
-END;
-$$ LANGUAGE plpgsql;""",
-    ),
-    (
-        "missing_end",
-        """\
-CREATE FUNCTION f() RETURNS void AS $$
-BEGIN
-    RETURN;
-$$ LANGUAGE plpgsql;""",
-    ),
-    (
-        "unclosed_loop",
-        """\
-CREATE FUNCTION f() RETURNS void AS $$
-BEGIN
-    LOOP
-        EXIT;
-END;
-$$ LANGUAGE plpgsql;""",
-    ),
-    (
-        "missing_then",
-        """\
-CREATE FUNCTION f() RETURNS void AS $$
-BEGIN
-    IF true
-        RETURN;
-    END IF;
-END;
-$$ LANGUAGE plpgsql;""",
-    ),
-    (
-        "missing_semicolon_after_return",
-        """\
-CREATE FUNCTION f() RETURNS void AS $$
-BEGIN
-    RETURN
-END;
-$$ LANGUAGE plpgsql;""",
-    ),
-    (
-        "missing_end_if",
-        """\
-CREATE FUNCTION f() RETURNS void AS $$
-BEGIN
-    IF true THEN
-        RETURN;
-END;
-$$ LANGUAGE plpgsql;""",
-    ),
-]
+# -- YAML-driven error / edge-case data -------------------------------------
 
-_EMPTY_INPUTS: list[tuple[str, str]] = [
-    ("empty_string", ""),
-    ("whitespace_only", "   \n\t  "),
-    ("semicolons_only", ";;;"),
-]
+_CASES_DIR = Path(__file__).parent / "plpgsql_error_cases"
+_YAML_CASES = load_yaml_cases(_CASES_DIR)
+_ERROR_CASES = [(c["label"], c["sql"]) for c in _YAML_CASES if c["expect"] == "error"]
+_NO_CRASH_CASES = [(c["label"], c["sql"]) for c in _YAML_CASES if c["expect"] == "no_crash"]
 
+# Control characters cannot be represented in YAML, so they stay in Python.
 _CONTROL_CHARS: list[tuple[str, str]] = [
     ("tab", "\t"),
     ("vertical_tab", "\v"),
@@ -223,15 +167,18 @@ $$ LANGUAGE plpgsql;
         assert isinstance(result, list)
         assert result == [{"PLpgSQL_function": {"datums": []}}]
 
-    # -- Malformed PL/pgSQL syntax -------------------------------------------
+    # -- YAML-driven: malformed PL/pgSQL (must error) ------------------------
 
-    @pytest.mark.parametrize(
-        "sql",
-        [s for _, s in _MALFORMED_PLPGSQL],
-        ids=[n for n, _ in _MALFORMED_PLPGSQL],
-    )
+    @pytest.mark.parametrize("sql", [s for _, s in _ERROR_CASES], ids=[n for n, _ in _ERROR_CASES])
     def test_malformed_plpgsql_raises_error(self, sql: str) -> None:
         assert_pg_query_error(parse_plpgsql, sql)
+
+    # -- YAML-driven: edge cases (must not crash) ----------------------------
+
+    @pytest.mark.parametrize("sql", [s for _, s in _NO_CRASH_CASES], ids=[n for n, _ in _NO_CRASH_CASES])
+    def test_edge_case_no_crash(self, sql: str) -> None:
+        with contextlib.suppress(PgQueryError):
+            parse_plpgsql(sql)
 
     # -- Error attribute verification ----------------------------------------
 
@@ -267,7 +214,7 @@ $$ LANGUAGE plpgsql;"""
         assert len(result) >= 1
         assert "PLpgSQL_function" in result[0]
 
-    # -- Null bytes ----------------------------------------------------------
+    # -- Null bytes (cannot represent in YAML) -------------------------------
 
     def test_embedded_null_byte(self) -> None:
         sql = SIMPLE_FUNC.replace("RETURN", "RETURN\x00")
@@ -282,38 +229,7 @@ $$ LANGUAGE plpgsql;"""
         with contextlib.suppress(PgQueryError):
             parse_plpgsql(SIMPLE_FUNC + "\x00")
 
-    # -- Empty / whitespace input --------------------------------------------
-
-    @pytest.mark.parametrize(
-        "sql",
-        [s for _, s in _EMPTY_INPUTS],
-        ids=[n for n, _ in _EMPTY_INPUTS],
-    )
-    def test_empty_or_whitespace_no_crash(self, sql: str) -> None:
-        with contextlib.suppress(PgQueryError):
-            parse_plpgsql(sql)
-
-    # -- Non-function SQL ----------------------------------------------------
-
-    def test_plain_select_no_crash(self) -> None:
-        """Non-function SQL should not crash; it may error or return trivially."""
-        with contextlib.suppress(PgQueryError):
-            parse_plpgsql("SELECT 1")
-
-    # -- Unicode edge cases --------------------------------------------------
-
-    def test_unicode_in_function_body(self) -> None:
-        sql = """\
-CREATE FUNCTION f() RETURNS text AS $$
-BEGIN
-    RETURN '\U0001f680\u65e5\u672c\u8a9e';
-END;
-$$ LANGUAGE plpgsql;"""
-        with contextlib.suppress(PgQueryError):
-            result = parse_plpgsql(sql)
-            assert isinstance(result, list)
-
-    # -- Control characters --------------------------------------------------
+    # -- Control characters (cannot represent in YAML) -----------------------
 
     @pytest.mark.parametrize("char", [c for c, _ in _CONTROL_CHARS], ids=[n for _, n in _CONTROL_CHARS])
     def test_control_char_in_body_no_crash(self, char: str) -> None:

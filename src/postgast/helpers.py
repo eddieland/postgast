@@ -23,6 +23,7 @@ from postgast.pg_query_pb2 import (
     OBJECT_TRIGGER,
     OBJECT_TYPE,
     OBJECT_VIEW,
+    ROLESPEC_CSTRING,
     A_Star,
     ColumnRef,
     CreateExtensionStmt,
@@ -89,6 +90,57 @@ class TriggerIdentity(typing.NamedTuple):
     trigger: str
     schema: str | None
     table: str
+
+
+class ViewIdentity(typing.NamedTuple):
+    """Identity parts of a ``CREATE VIEW`` statement.
+
+    Attributes:
+        schema: Schema name, or ``None`` for unqualified views.
+        name: View name.
+    """
+
+    schema: str | None
+    name: str
+
+
+class IndexIdentity(typing.NamedTuple):
+    """Identity parts of a ``CREATE INDEX`` statement.
+
+    The schema is sourced from the index's target table relation (PostgreSQL places an index in the
+    same schema as its table).
+
+    Attributes:
+        schema: Schema name, or ``None`` for unqualified indexes.
+        name: Index name.
+    """
+
+    schema: str | None
+    name: str
+
+
+class SequenceIdentity(typing.NamedTuple):
+    """Identity parts of a ``CREATE SEQUENCE`` statement.
+
+    Attributes:
+        schema: Schema name, or ``None`` for unqualified sequences.
+        name: Sequence name.
+    """
+
+    schema: str | None
+    name: str
+
+
+class SchemaIdentity(typing.NamedTuple):
+    """Identity parts of a ``CREATE SCHEMA`` statement.
+
+    Schemas are top-level namespace objects and have no parent schema qualifier.
+
+    Attributes:
+        name: Schema name.
+    """
+
+    name: str
 
 
 def find_nodes(tree: Message, node_type: type[_M]) -> Generator[_M, None, None]:
@@ -265,6 +317,112 @@ def extract_trigger_identity(tree: Message) -> TriggerIdentity | None:
             schema=node.relation.schemaname or None,
             table=node.relation.relname,
         )
+    return None
+
+
+def extract_view_identity(tree: Message) -> ViewIdentity | None:
+    """Return the identity of the first ``CREATE VIEW`` statement in a parse tree.
+
+    Finds the first ``ViewStmt`` node and returns a :class:`ViewIdentity` with the schema and view
+    name. Modifiers such as ``CREATE OR REPLACE VIEW`` are ignored; only the name fields are read.
+
+    Args:
+        tree: Any protobuf ``Message`` (``ParseResult``, ``SelectStmt``, etc.).
+
+    Returns:
+        A :class:`ViewIdentity` or ``None`` if no matching node is found.
+
+    Example:
+        >>> from postgast import extract_view_identity, parse
+        >>> sql = "CREATE VIEW public.active_users AS SELECT id FROM users WHERE active"
+        >>> identity = extract_view_identity(parse(sql))
+        >>> identity.schema, identity.name
+        ('public', 'active_users')
+    """
+    for node in find_nodes(tree, ViewStmt):
+        return ViewIdentity(schema=node.view.schemaname or None, name=node.view.relname)
+    return None
+
+
+def extract_index_identity(tree: Message) -> IndexIdentity | None:
+    """Return the identity of the first ``CREATE INDEX`` statement in a parse tree.
+
+    Finds the first ``IndexStmt`` node and returns an :class:`IndexIdentity`. The schema is sourced
+    from the target table's relation (``IndexStmt.relation.schemaname``); the name is
+    ``IndexStmt.idxname``. Modifiers such as ``UNIQUE`` and ``CONCURRENTLY`` are ignored; only the
+    name fields are read.
+
+    Args:
+        tree: Any protobuf ``Message`` (``ParseResult``, ``SelectStmt``, etc.).
+
+    Returns:
+        An :class:`IndexIdentity` or ``None`` if no matching node is found.
+
+    Example:
+        >>> from postgast import extract_index_identity, parse
+        >>> sql = "CREATE INDEX idx_users_email ON public.users(email)"
+        >>> identity = extract_index_identity(parse(sql))
+        >>> identity.schema, identity.name
+        ('public', 'idx_users_email')
+    """
+    for node in find_nodes(tree, IndexStmt):
+        return IndexIdentity(schema=node.relation.schemaname or None, name=node.idxname)
+    return None
+
+
+def extract_sequence_identity(tree: Message) -> SequenceIdentity | None:
+    """Return the identity of the first ``CREATE SEQUENCE`` statement in a parse tree.
+
+    Finds the first ``CreateSeqStmt`` node and returns a :class:`SequenceIdentity` from
+    ``CreateSeqStmt.sequence.{schemaname,relname}``. Modifiers such as ``IF NOT EXISTS`` are
+    ignored; only the name fields are read.
+
+    Args:
+        tree: Any protobuf ``Message`` (``ParseResult``, ``SelectStmt``, etc.).
+
+    Returns:
+        A :class:`SequenceIdentity` or ``None`` if no matching node is found.
+
+    Example:
+        >>> from postgast import extract_sequence_identity, parse
+        >>> identity = extract_sequence_identity(parse("CREATE SEQUENCE public.order_id_seq"))
+        >>> identity.schema, identity.name
+        ('public', 'order_id_seq')
+    """
+    for node in find_nodes(tree, CreateSeqStmt):
+        return SequenceIdentity(schema=node.sequence.schemaname or None, name=node.sequence.relname)
+    return None
+
+
+def extract_schema_identity(tree: Message) -> SchemaIdentity | None:
+    """Return the identity of the first ``CREATE SCHEMA`` statement in a parse tree.
+
+    Finds the first ``CreateSchemaStmt`` node and returns a :class:`SchemaIdentity`. The name is
+    read from ``CreateSchemaStmt.schemaname`` when present. For ``CREATE SCHEMA AUTHORIZATION
+    rolename`` forms where ``schemaname`` is absent, the role name is used as the schema name
+    (matching PostgreSQL's own behaviour). For ``CREATE SCHEMA AUTHORIZATION CURRENT_USER`` /
+    ``SESSION_USER`` forms where the effective name is only known at runtime, ``None`` is returned.
+    Modifiers such as ``IF NOT EXISTS`` are ignored.
+
+    Args:
+        tree: Any protobuf ``Message`` (``ParseResult``, ``SelectStmt``, etc.).
+
+    Returns:
+        A :class:`SchemaIdentity` or ``None`` if no matching node is found, or if the schema name
+        cannot be determined statically.
+
+    Example:
+        >>> from postgast import extract_schema_identity, parse
+        >>> identity = extract_schema_identity(parse("CREATE SCHEMA analytics"))
+        >>> identity.name
+        'analytics'
+    """
+    for node in find_nodes(tree, CreateSchemaStmt):
+        if node.schemaname:
+            return SchemaIdentity(name=node.schemaname)
+        if node.authrole.roletype == ROLESPEC_CSTRING and node.authrole.rolename:
+            return SchemaIdentity(name=node.authrole.rolename)
+        return None
     return None
 
 

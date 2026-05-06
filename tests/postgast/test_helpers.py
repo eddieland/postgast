@@ -4,16 +4,24 @@ import pytest
 
 from postgast import (
     FunctionIdentity,
+    IndexIdentity,
     ParseResult,
+    SchemaIdentity,
+    SequenceIdentity,
     TriggerIdentity,
+    ViewIdentity,
     ensure_if_exists,
     ensure_if_not_exists,
     ensure_or_replace,
     extract_columns,
     extract_function_identity,
     extract_functions,
+    extract_index_identity,
+    extract_schema_identity,
+    extract_sequence_identity,
     extract_tables,
     extract_trigger_identity,
+    extract_view_identity,
     find_nodes,
     parse,
     set_if_exists,
@@ -431,3 +439,88 @@ class TestEnsureIfExists:
     def test_invalid_sql_raises(self):
         with pytest.raises(PgQueryError):
             ensure_if_exists("NOT VALID SQL !!!")
+
+
+class TestExtractViewIdentity:
+    def test_schema_qualified(self):
+        tree = parse("CREATE VIEW public.active_users AS SELECT id FROM users WHERE active")
+        result = extract_view_identity(tree)
+        assert result == ViewIdentity(schema="public", name="active_users")
+
+    def test_unqualified(self):
+        tree = parse("CREATE VIEW active_users AS SELECT 1")
+        result = extract_view_identity(tree)
+        assert result == ViewIdentity(schema=None, name="active_users")
+
+    def test_or_replace(self):
+        tree = parse("CREATE OR REPLACE VIEW v AS SELECT 1")
+        result = extract_view_identity(tree)
+        assert result == ViewIdentity(schema=None, name="v")
+
+    def test_no_match(self):
+        tree = parse("SELECT 1")
+        assert extract_view_identity(tree) is None
+
+    def test_returns_first_when_multiple(self):
+        tree = parse("CREATE VIEW v1 AS SELECT 1; CREATE VIEW v2 AS SELECT 2")
+        result = extract_view_identity(tree)
+        assert result == ViewIdentity(schema=None, name="v1")
+
+
+class TestExtractIndexIdentity:
+    def test_schema_qualified(self):
+        tree = parse("CREATE INDEX idx_users_email ON public.users(email)")
+        result = extract_index_identity(tree)
+        assert result == IndexIdentity(schema="public", name="idx_users_email")
+
+    def test_unqualified(self):
+        tree = parse("CREATE INDEX idx_name ON orders(total)")
+        result = extract_index_identity(tree)
+        assert result == IndexIdentity(schema=None, name="idx_name")
+
+    def test_no_match(self):
+        tree = parse("SELECT 1")
+        assert extract_index_identity(tree) is None
+
+
+class TestExtractSequenceIdentity:
+    def test_schema_qualified(self):
+        tree = parse("CREATE SEQUENCE public.order_id_seq")
+        result = extract_sequence_identity(tree)
+        assert result == SequenceIdentity(schema="public", name="order_id_seq")
+
+    def test_unqualified(self):
+        tree = parse("CREATE SEQUENCE order_id_seq")
+        result = extract_sequence_identity(tree)
+        assert result == SequenceIdentity(schema=None, name="order_id_seq")
+
+    def test_no_match(self):
+        tree = parse("SELECT 1")
+        assert extract_sequence_identity(tree) is None
+
+
+class TestExtractSchemaIdentity:
+    def test_plain_schema(self):
+        tree = parse("CREATE SCHEMA analytics")
+        result = extract_schema_identity(tree)
+        assert result == SchemaIdentity(name="analytics")
+
+    def test_if_not_exists(self):
+        tree = parse("CREATE SCHEMA IF NOT EXISTS analytics")
+        assert extract_schema_identity(tree) == SchemaIdentity(name="analytics")
+
+    def test_authorization_role(self):
+        tree = parse("CREATE SCHEMA AUTHORIZATION bob")
+        assert extract_schema_identity(tree) == SchemaIdentity(name="bob")
+
+    def test_authorization_current_user(self):
+        tree = parse("CREATE SCHEMA AUTHORIZATION CURRENT_USER")
+        assert extract_schema_identity(tree) is None
+
+    def test_authorization_session_user(self):
+        tree = parse("CREATE SCHEMA AUTHORIZATION SESSION_USER")
+        assert extract_schema_identity(tree) is None
+
+    def test_no_match(self):
+        tree = parse("SELECT 1")
+        assert extract_schema_identity(tree) is None

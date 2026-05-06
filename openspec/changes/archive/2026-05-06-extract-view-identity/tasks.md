@@ -13,7 +13,7 @@
 ## 2. Tests
 
 - [x] 2.1 Add unit tests for `extract_view_identity`: schema-qualified, unqualified, `CREATE OR REPLACE VIEW`, no view
-  returns `None`, multiple views returns first
+  returns `None`, multiple views return first
 - [x] 2.2 Add unit tests for `extract_index_identity`: schema-qualified, unqualified, no index returns `None`
 - [x] 2.3 Add unit tests for `extract_sequence_identity`: schema-qualified, unqualified, no sequence returns `None`
 - [x] 2.4 Add unit tests for `extract_schema_identity`: plain schema, no schema returns `None`

@@ -505,6 +505,22 @@ class TestExtractSchemaIdentity:
         result = extract_schema_identity(tree)
         assert result == SchemaIdentity(name="analytics")
 
+    def test_if_not_exists(self):
+        tree = parse("CREATE SCHEMA IF NOT EXISTS analytics")
+        assert extract_schema_identity(tree) == SchemaIdentity(name="analytics")
+
+    def test_authorization_role(self):
+        tree = parse("CREATE SCHEMA AUTHORIZATION bob")
+        assert extract_schema_identity(tree) == SchemaIdentity(name="bob")
+
+    def test_authorization_current_user(self):
+        tree = parse("CREATE SCHEMA AUTHORIZATION CURRENT_USER")
+        assert extract_schema_identity(tree) is None
+
+    def test_authorization_session_user(self):
+        tree = parse("CREATE SCHEMA AUTHORIZATION SESSION_USER")
+        assert extract_schema_identity(tree) is None
+
     def test_no_match(self):
         tree = parse("SELECT 1")
         assert extract_schema_identity(tree) is None

@@ -55,5 +55,11 @@ ogp_site_url = "https://postgast.readthedocs.io/"
 ogp_site_name = "postgast"
 ogp_description_length = 200
 
+# Read the Docs serves docs at /<lang>/<version>/, so absolute links generated
+# by sphinx_llms_txt (which prepend html_baseurl, defaulting to "/") would
+# point at the domain root and 404. Use the canonical URL provided by RTD so
+# llms.txt links resolve correctly across versions.
+html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
+
 # General
 exclude_patterns = ["_build"]

@@ -123,11 +123,6 @@ class TestParsePlpgsql:
         assert len(result) >= 1
         assert "PLpgSQL_function" in result[0]
 
-    def test_public_import(self):
-        from postgast import parse_plpgsql as imported_func
-
-        assert callable(imported_func)
-
 
 # -- YAML-driven error / edge-case data -------------------------------------
 

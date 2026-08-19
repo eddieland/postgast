@@ -14,16 +14,75 @@ if TYPE_CHECKING:
     import postgast.pg_query_pb2 as pg_query_pb2
 
 
+class ATAlterConstraint(AstNode):
+    __slots__ = ()
+    _pb: pg_query_pb2.ATAlterConstraint
+    __match_args__ = (
+        "conname",
+        "alter_enforceability",
+        "is_enforced",
+        "alter_deferrability",
+        "deferrable",
+        "initdeferred",
+        "alter_inheritability",
+        "noinherit",
+    )
+
+    @property
+    def conname(self) -> str:
+        return self._pb.conname
+
+    @property
+    def alter_enforceability(self) -> bool:
+        return self._pb.alter_enforceability
+
+    @property
+    def is_enforced(self) -> bool:
+        return self._pb.is_enforced
+
+    @property
+    def alter_deferrability(self) -> bool:
+        return self._pb.alter_deferrability
+
+    @property
+    def deferrable(self) -> bool:
+        return self._pb.deferrable
+
+    @property
+    def initdeferred(self) -> bool:
+        return self._pb.initdeferred
+
+    @property
+    def alter_inheritability(self) -> bool:
+        return self._pb.alter_inheritability
+
+    @property
+    def noinherit(self) -> bool:
+        return self._pb.noinherit
+
+
 class A_ArrayExpr(AstNode):
     """Array constructor expression (``ARRAY[...]``)."""
 
     __slots__ = ()
     _pb: pg_query_pb2.A_ArrayExpr
-    __match_args__ = ("elements",)
+    __match_args__ = (
+        "elements",
+        "list_start",
+        "list_end",
+    )
 
     @property
     def elements(self) -> list[AstNode]:
         return _wrap_list(self._pb.elements)
+
+    @property
+    def list_start(self) -> int:
+        return self._pb.list_start
+
+    @property
+    def list_end(self) -> int:
+        return self._pb.list_end
 
     @property
     def location(self) -> int:
@@ -67,6 +126,8 @@ class A_Expr(AstNode):
         "name",
         "lexpr",
         "rexpr",
+        "rexpr_list_start",
+        "rexpr_list_end",
     )
 
     @property
@@ -84,6 +145,14 @@ class A_Expr(AstNode):
     @property
     def rexpr(self) -> AstNode | None:
         return _wrap_node_optional(self._pb.rexpr)
+
+    @property
+    def rexpr_list_start(self) -> int:
+        return self._pb.rexpr_list_start
+
+    @property
+    def rexpr_list_end(self) -> int:
+        return self._pb.rexpr_list_end
 
     @property
     def location(self) -> int:
@@ -1267,6 +1336,8 @@ class ArrayExpr(AstNode):
         "element_typeid",
         "elements",
         "multidims",
+        "list_start",
+        "list_end",
     )
 
     @property
@@ -1292,6 +1363,14 @@ class ArrayExpr(AstNode):
     @property
     def multidims(self) -> bool:
         return self._pb.multidims
+
+    @property
+    def list_start(self) -> int:
+        return self._pb.list_start
+
+    @property
+    def list_end(self) -> int:
+        return self._pb.list_end
 
     @property
     def location(self) -> int:
@@ -2088,15 +2167,17 @@ class Constraint(AstNode):
         "conname",
         "deferrable",
         "initdeferred",
+        "is_enforced",
         "skip_validation",
         "initially_valid",
         "is_no_inherit",
         "raw_expr",
         "cooked_expr",
         "generated_when",
-        "inhcount",
+        "generated_kind",
         "nulls_not_distinct",
         "keys",
+        "without_overlaps",
         "including",
         "exclusions",
         "options",
@@ -2108,6 +2189,8 @@ class Constraint(AstNode):
         "pktable",
         "fk_attrs",
         "pk_attrs",
+        "fk_with_period",
+        "pk_with_period",
         "fk_matchtype",
         "fk_upd_action",
         "fk_del_action",
@@ -2131,6 +2214,10 @@ class Constraint(AstNode):
     @property
     def initdeferred(self) -> bool:
         return self._pb.initdeferred
+
+    @property
+    def is_enforced(self) -> bool:
+        return self._pb.is_enforced
 
     @property
     def skip_validation(self) -> bool:
@@ -2157,8 +2244,8 @@ class Constraint(AstNode):
         return self._pb.generated_when
 
     @property
-    def inhcount(self) -> int:
-        return self._pb.inhcount
+    def generated_kind(self) -> str:
+        return self._pb.generated_kind
 
     @property
     def nulls_not_distinct(self) -> bool:
@@ -2167,6 +2254,10 @@ class Constraint(AstNode):
     @property
     def keys(self) -> list[AstNode]:
         return _wrap_list(self._pb.keys)
+
+    @property
+    def without_overlaps(self) -> bool:
+        return self._pb.without_overlaps
 
     @property
     def including(self) -> list[AstNode]:
@@ -2211,6 +2302,14 @@ class Constraint(AstNode):
     @property
     def pk_attrs(self) -> list[AstNode]:
         return _wrap_list(self._pb.pk_attrs)
+
+    @property
+    def fk_with_period(self) -> bool:
+        return self._pb.fk_with_period
+
+    @property
+    def pk_with_period(self) -> bool:
+        return self._pb.pk_with_period
 
     @property
     def fk_matchtype(self) -> str:
@@ -3038,6 +3137,7 @@ class CreateStmt(AstNode):
         "partspec",
         "of_typename",
         "constraints",
+        "nnconstraints",
         "options",
         "oncommit",
         "tablespacename",
@@ -3072,6 +3172,10 @@ class CreateStmt(AstNode):
     @property
     def constraints(self) -> list[AstNode]:
         return _wrap_list(self._pb.constraints)
+
+    @property
+    def nnconstraints(self) -> list[AstNode]:
+        return _wrap_list(self._pb.nnconstraints)
 
     @property
     def options(self) -> list[AstNode]:
@@ -3513,7 +3617,7 @@ class DeleteStmt(AstNode):
         "relation",
         "using_clause",
         "where_clause",
-        "returning_list",
+        "returning_clause",
         "with_clause",
     )
 
@@ -3530,8 +3634,10 @@ class DeleteStmt(AstNode):
         return _wrap_node_optional(self._pb.where_clause)
 
     @property
-    def returning_list(self) -> list[AstNode]:
-        return _wrap_list(self._pb.returning_list)
+    def returning_clause(self) -> ReturningClause | None:
+        return (
+            _REGISTRY["ReturningClause"](self._pb.returning_clause) if self._pb.HasField("returning_clause") else None
+        )
 
     @property
     def with_clause(self) -> WithClause | None:
@@ -4093,6 +4199,10 @@ class FunctionParameter(AstNode):
     def defexpr(self) -> AstNode | None:
         return _wrap_node_optional(self._pb.defexpr)
 
+    @property
+    def location(self) -> int:
+        return self._pb.location
+
 
 class GrantRoleStmt(AstNode):
     """``GRANT/REVOKE`` role membership statement."""
@@ -4355,6 +4465,7 @@ class IndexStmt(AstNode):
         "nulls_not_distinct",
         "primary",
         "isconstraint",
+        "iswithoutoverlaps",
         "deferrable",
         "initdeferred",
         "transformed",
@@ -4434,6 +4545,10 @@ class IndexStmt(AstNode):
     @property
     def isconstraint(self) -> bool:
         return self._pb.isconstraint
+
+    @property
+    def iswithoutoverlaps(self) -> bool:
+        return self._pb.iswithoutoverlaps
 
     @property
     def deferrable(self) -> bool:
@@ -4556,7 +4671,7 @@ class InsertStmt(AstNode):
         "cols",
         "select_stmt",
         "on_conflict_clause",
-        "returning_list",
+        "returning_clause",
         "with_clause",
         "override",
     )
@@ -4582,8 +4697,10 @@ class InsertStmt(AstNode):
         )
 
     @property
-    def returning_list(self) -> list[AstNode]:
-        return _wrap_list(self._pb.returning_list)
+    def returning_clause(self) -> ReturningClause | None:
+        return (
+            _REGISTRY["ReturningClause"](self._pb.returning_clause) if self._pb.HasField("returning_clause") else None
+        )
 
     @property
     def with_clause(self) -> WithClause | None:
@@ -4659,8 +4776,8 @@ class IntoClause(AstNode):
         return self._pb.table_space_name
 
     @property
-    def view_query(self) -> AstNode | None:
-        return _wrap_node_optional(self._pb.view_query)
+    def view_query(self) -> Query | None:
+        return _REGISTRY["Query"](self._pb.view_query) if self._pb.HasField("view_query") else None
 
     @property
     def skip_data(self) -> bool:
@@ -5720,7 +5837,7 @@ class MergeStmt(AstNode):
         "source_relation",
         "join_condition",
         "merge_when_clauses",
-        "returning_list",
+        "returning_clause",
         "with_clause",
     )
 
@@ -5741,8 +5858,10 @@ class MergeStmt(AstNode):
         return _wrap_list(self._pb.merge_when_clauses)
 
     @property
-    def returning_list(self) -> list[AstNode]:
-        return _wrap_list(self._pb.returning_list)
+    def returning_clause(self) -> ReturningClause | None:
+        return (
+            _REGISTRY["ReturningClause"](self._pb.returning_clause) if self._pb.HasField("returning_clause") else None
+        )
 
     @property
     def with_clause(self) -> WithClause | None:
@@ -6569,6 +6688,7 @@ class Query(AstNode):
         "has_modifying_cte",
         "has_for_update",
         "has_row_security",
+        "has_group_rte",
         "is_return",
         "cte_list",
         "rtable",
@@ -6580,6 +6700,8 @@ class Query(AstNode):
         "target_list",
         "override",
         "on_conflict",
+        "returning_old_alias",
+        "returning_new_alias",
         "returning_list",
         "group_clause",
         "group_distinct",
@@ -6654,6 +6776,10 @@ class Query(AstNode):
         return self._pb.has_row_security
 
     @property
+    def has_group_rte(self) -> bool:
+        return self._pb.has_group_rte
+
+    @property
     def is_return(self) -> bool:
         return self._pb.is_return
 
@@ -6696,6 +6822,14 @@ class Query(AstNode):
     @property
     def on_conflict(self) -> OnConflictExpr | None:
         return _REGISTRY["OnConflictExpr"](self._pb.on_conflict) if self._pb.HasField("on_conflict") else None
+
+    @property
+    def returning_old_alias(self) -> str:
+        return self._pb.returning_old_alias
+
+    @property
+    def returning_new_alias(self) -> str:
+        return self._pb.returning_new_alias
 
     @property
     def returning_list(self) -> list[AstNode]:
@@ -7027,6 +7161,7 @@ class RangeTblEntry(AstNode):
         "colcollations",
         "enrname",
         "enrtuples",
+        "groupexprs",
         "lateral",
         "in_from_cl",
         "security_quals",
@@ -7147,6 +7282,10 @@ class RangeTblEntry(AstNode):
     @property
     def enrtuples(self) -> float:
         return self._pb.enrtuples
+
+    @property
+    def groupexprs(self) -> list[AstNode]:
+        return _wrap_list(self._pb.groupexprs)
 
     @property
     def lateral(self) -> bool:
@@ -7503,6 +7642,71 @@ class ReturnStmt(AstNode):
         return _wrap_node_optional(self._pb.returnval)
 
 
+class ReturningClause(AstNode):
+    __slots__ = ()
+    _pb: pg_query_pb2.ReturningClause
+    __match_args__ = (
+        "options",
+        "exprs",
+    )
+
+    @property
+    def options(self) -> list[AstNode]:
+        return _wrap_list(self._pb.options)
+
+    @property
+    def exprs(self) -> list[AstNode]:
+        return _wrap_list(self._pb.exprs)
+
+
+class ReturningExpr(AstNode):
+    __slots__ = ()
+    _pb: pg_query_pb2.ReturningExpr
+    __match_args__ = (
+        "xpr",
+        "retlevelsup",
+        "retold",
+        "retexpr",
+    )
+
+    @property
+    def xpr(self) -> AstNode | None:
+        return _wrap_node_optional(self._pb.xpr)
+
+    @property
+    def retlevelsup(self) -> int:
+        return self._pb.retlevelsup
+
+    @property
+    def retold(self) -> bool:
+        return self._pb.retold
+
+    @property
+    def retexpr(self) -> AstNode | None:
+        return _wrap_node_optional(self._pb.retexpr)
+
+
+class ReturningOption(AstNode):
+    __slots__ = ()
+    _pb: pg_query_pb2.ReturningOption
+    __match_args__ = (
+        "option",
+        "value",
+    )
+
+    @property
+    def option(self) -> int:
+        return self._pb.option
+
+    @property
+    def value(self) -> str:
+        return self._pb.value
+
+    @property
+    def location(self) -> int:
+        return self._pb.location
+
+
 class RoleSpec(AstNode):
     """Role specification (role name, ``CURRENT_USER``, ``SESSION_USER``, or ``PUBLIC``)."""
 
@@ -7533,7 +7737,7 @@ class RowCompareExpr(AstNode):
     _pb: pg_query_pb2.RowCompareExpr
     __match_args__ = (
         "xpr",
-        "rctype",
+        "cmptype",
         "opnos",
         "opfamilies",
         "inputcollids",
@@ -7546,8 +7750,8 @@ class RowCompareExpr(AstNode):
         return _wrap_node_optional(self._pb.xpr)
 
     @property
-    def rctype(self) -> int:
-        return self._pb.rctype
+    def cmptype(self) -> int:
+        return self._pb.cmptype
 
     @property
     def opnos(self) -> list[AstNode]:
@@ -8020,15 +8224,6 @@ class SetToDefault(AstNode):
         return self._pb.location
 
 
-class SinglePartitionSpec(AstNode):
-    """Single partition specification (internal)."""
-
-    __slots__ = ()
-    _pb: pg_query_pb2.SinglePartitionSpec
-    __match_args__ = ()
-    pass
-
-
 class SortBy(AstNode):
     """``ORDER BY`` sort specification."""
 
@@ -8071,6 +8266,7 @@ class SortGroupClause(AstNode):
         "tle_sort_group_ref",
         "eqop",
         "sortop",
+        "reverse_sort",
         "nulls_first",
         "hashable",
     )
@@ -8086,6 +8282,10 @@ class SortGroupClause(AstNode):
     @property
     def sortop(self) -> int:
         return self._pb.sortop
+
+    @property
+    def reverse_sort(self) -> bool:
+        return self._pb.reverse_sort
 
     @property
     def nulls_first(self) -> bool:
@@ -8837,7 +9037,7 @@ class UpdateStmt(AstNode):
         "target_list",
         "where_clause",
         "from_clause",
-        "returning_list",
+        "returning_clause",
         "with_clause",
     )
 
@@ -8858,8 +9058,10 @@ class UpdateStmt(AstNode):
         return _wrap_list(self._pb.from_clause)
 
     @property
-    def returning_list(self) -> list[AstNode]:
-        return _wrap_list(self._pb.returning_list)
+    def returning_clause(self) -> ReturningClause | None:
+        return (
+            _REGISTRY["ReturningClause"](self._pb.returning_clause) if self._pb.HasField("returning_clause") else None
+        )
 
     @property
     def with_clause(self) -> WithClause | None:
@@ -8928,6 +9130,7 @@ class Var(AstNode):
         "varcollid",
         "varnullingrels",
         "varlevelsup",
+        "varreturningtype",
     )
 
     @property
@@ -8963,6 +9166,10 @@ class Var(AstNode):
         return self._pb.varlevelsup
 
     @property
+    def varreturningtype(self) -> int:
+        return self._pb.varreturningtype
+
+    @property
     def location(self) -> int:
         return self._pb.location
 
@@ -8976,6 +9183,7 @@ class VariableSetStmt(AstNode):
         "kind",
         "name",
         "args",
+        "jumble_args",
         "is_local",
     )
 
@@ -8992,8 +9200,16 @@ class VariableSetStmt(AstNode):
         return _wrap_list(self._pb.args)
 
     @property
+    def jumble_args(self) -> bool:
+        return self._pb.jumble_args
+
+    @property
     def is_local(self) -> bool:
         return self._pb.is_local
+
+    @property
+    def location(self) -> int:
+        return self._pb.location
 
 
 class VariableShowStmt(AstNode):
@@ -9430,6 +9646,7 @@ class XmlSerialize(AstNode):
 
 
 _REGISTRY.update({
+    "ATAlterConstraint": ATAlterConstraint,
     "A_ArrayExpr": A_ArrayExpr,
     "A_Const": A_Const,
     "A_Expr": A_Expr,
@@ -9655,6 +9872,9 @@ _REGISTRY.update({
     "ReplicaIdentityStmt": ReplicaIdentityStmt,
     "ResTarget": ResTarget,
     "ReturnStmt": ReturnStmt,
+    "ReturningClause": ReturningClause,
+    "ReturningExpr": ReturningExpr,
+    "ReturningOption": ReturningOption,
     "RoleSpec": RoleSpec,
     "RowCompareExpr": RowCompareExpr,
     "RowExpr": RowExpr,
@@ -9668,7 +9888,6 @@ _REGISTRY.update({
     "SelectStmt": SelectStmt,
     "SetOperationStmt": SetOperationStmt,
     "SetToDefault": SetToDefault,
-    "SinglePartitionSpec": SinglePartitionSpec,
     "SortBy": SortBy,
     "SortGroupClause": SortGroupClause,
     "StatsElem": StatsElem,

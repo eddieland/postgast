@@ -190,6 +190,11 @@ ROUND_TRIP_CASES = [
     # ── Multiple RETURNING targets ──
     "DELETE FROM t WHERE id = 1 RETURNING id, name, created_at",
     "INSERT INTO t (a) VALUES (1) RETURNING id, a + 1 AS next_a",
+    # ── RETURNING WITH (OLD/NEW AS ...) (PostgreSQL 18) ──
+    "UPDATE t SET a = 1 RETURNING WITH (OLD AS o) o.a, a",
+    "UPDATE t SET a = 1 RETURNING WITH (OLD AS o, NEW AS n) o.a, n.a",
+    "INSERT INTO t (a) VALUES (1) RETURNING WITH (NEW AS n) n.a",
+    "DELETE FROM t WHERE id = 1 RETURNING WITH (OLD AS o) o.id",
     # ── DROP varieties ──
     "DROP SCHEMA IF EXISTS myschema CASCADE",
     "DROP TABLE IF EXISTS a, b CASCADE",

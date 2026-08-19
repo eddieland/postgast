@@ -865,12 +865,25 @@ class _SqlFormatter(Visitor):
             self._visit_from_list(from_list)
             self._dedent()
 
-    def _emit_returning(self, returning_list: Sequence[Any]) -> None:
+    def _emit_returning(self, returning: pb.ReturningClause) -> None:
         """Emit a RETURNING clause.  Inline when items fit in the line budget, multiline otherwise."""
         visit_fn: Callable[[Any], None] = lambda t: self._visit_res_target(unwrap_node(t))
         self._newline()
         self._emit("RETURNING")
-        self._emit_clause_body(returning_list, visit=visit_fn)
+        if returning.options:
+            self._emit(" WITH (")
+            self._emit_inline_list(returning.options, visit=self._emit_returning_option)
+            self._emit(")")
+        self._emit_clause_body(returning.exprs, visit=visit_fn)
+
+    def _emit_returning_option(self, option: Any) -> None:
+        """Emit a single ``OLD``/``NEW`` alias inside ``RETURNING WITH (...)``."""
+        opt = unwrap_node(option)
+        if not isinstance(opt, pb.ReturningOption):
+            self._visit_node(opt)
+            return
+        keyword = "NEW" if opt.option == pb.RETURNING_OPTION_NEW else "OLD"
+        self._emit(f"{keyword} AS {opt.value}")
 
     def _emit_alias_colnames(self, colnames: Sequence[Any]) -> None:
         """Emit parenthesised column-name list for an alias (quoted identifiers)."""
@@ -961,8 +974,8 @@ class _SqlFormatter(Visitor):
             self._newline()
             self._visit_on_conflict(node.on_conflict_clause)
 
-        if node.returning_list:
-            self._emit_returning(node.returning_list)
+        if node.HasField("returning_clause"):
+            self._emit_returning(node.returning_clause)
 
     def _visit_on_conflict(self, oc: pb.OnConflictClause) -> None:
         self._emit("ON CONFLICT")
@@ -999,8 +1012,8 @@ class _SqlFormatter(Visitor):
         if node.HasField("where_clause"):
             self._emit_where(node.where_clause)
 
-        if node.returning_list:
-            self._emit_returning(node.returning_list)
+        if node.HasField("returning_clause"):
+            self._emit_returning(node.returning_clause)
 
     # ── DELETE ────────────────────────────────────────────────────
 
@@ -1018,8 +1031,8 @@ class _SqlFormatter(Visitor):
         if node.HasField("where_clause"):
             self._emit_where(node.where_clause)
 
-        if node.returning_list:
-            self._emit_returning(node.returning_list)
+        if node.HasField("returning_clause"):
+            self._emit_returning(node.returning_clause)
 
     # ── CREATE TABLE ──────────────────────────────────────────────
 

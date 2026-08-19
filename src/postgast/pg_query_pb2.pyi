@@ -112,6 +112,7 @@ class RTEKind(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     RTE_CTE: _ClassVar[RTEKind]
     RTE_NAMEDTUPLESTORE: _ClassVar[RTEKind]
     RTE_RESULT: _ClassVar[RTEKind]
+    RTE_GROUP: _ClassVar[RTEKind]
 
 class WCOKind(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -138,6 +139,12 @@ class CTEMaterialize(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     CTEMaterializeDefault: _ClassVar[CTEMaterialize]
     CTEMaterializeAlways: _ClassVar[CTEMaterialize]
     CTEMaterializeNever: _ClassVar[CTEMaterialize]
+
+class ReturningOptionKind(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    RETURNING_OPTION_KIND_UNDEFINED: _ClassVar[ReturningOptionKind]
+    RETURNING_OPTION_OLD: _ClassVar[ReturningOptionKind]
+    RETURNING_OPTION_NEW: _ClassVar[ReturningOptionKind]
 
 class JsonQuotes(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -236,7 +243,6 @@ class AlterTableType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     AT_SetNotNull: _ClassVar[AlterTableType]
     AT_SetExpression: _ClassVar[AlterTableType]
     AT_DropExpression: _ClassVar[AlterTableType]
-    AT_CheckNotNull: _ClassVar[AlterTableType]
     AT_SetStatistics: _ClassVar[AlterTableType]
     AT_SetOptions: _ClassVar[AlterTableType]
     AT_ResetOptions: _ClassVar[AlterTableType]
@@ -330,6 +336,8 @@ class ConstrType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     CONSTR_ATTR_NOT_DEFERRABLE: _ClassVar[ConstrType]
     CONSTR_ATTR_DEFERRED: _ClassVar[ConstrType]
     CONSTR_ATTR_IMMEDIATE: _ClassVar[ConstrType]
+    CONSTR_ATTR_ENFORCED: _ClassVar[ConstrType]
+    CONSTR_ATTR_NOT_ENFORCED: _ClassVar[ConstrType]
 
 class ImportForeignSchemaType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -458,6 +466,13 @@ class TableFuncType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     TFT_XMLTABLE: _ClassVar[TableFuncType]
     TFT_JSON_TABLE: _ClassVar[TableFuncType]
 
+class VarReturningType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    VAR_RETURNING_TYPE_UNDEFINED: _ClassVar[VarReturningType]
+    VAR_RETURNING_DEFAULT: _ClassVar[VarReturningType]
+    VAR_RETURNING_OLD: _ClassVar[VarReturningType]
+    VAR_RETURNING_NEW: _ClassVar[VarReturningType]
+
 class ParamKind(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     PARAM_KIND_UNDEFINED: _ClassVar[ParamKind]
@@ -500,16 +515,6 @@ class SubLinkType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     MULTIEXPR_SUBLINK: _ClassVar[SubLinkType]
     ARRAY_SUBLINK: _ClassVar[SubLinkType]
     CTE_SUBLINK: _ClassVar[SubLinkType]
-
-class RowCompareType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-    __slots__ = ()
-    ROW_COMPARE_TYPE_UNDEFINED: _ClassVar[RowCompareType]
-    ROWCOMPARE_LT: _ClassVar[RowCompareType]
-    ROWCOMPARE_LE: _ClassVar[RowCompareType]
-    ROWCOMPARE_EQ: _ClassVar[RowCompareType]
-    ROWCOMPARE_GE: _ClassVar[RowCompareType]
-    ROWCOMPARE_GT: _ClassVar[RowCompareType]
-    ROWCOMPARE_NE: _ClassVar[RowCompareType]
 
 class MinMaxOp(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -661,6 +666,7 @@ class JoinType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     JOIN_RIGHT: _ClassVar[JoinType]
     JOIN_SEMI: _ClassVar[JoinType]
     JOIN_ANTI: _ClassVar[JoinType]
+    JOIN_RIGHT_SEMI: _ClassVar[JoinType]
     JOIN_RIGHT_ANTI: _ClassVar[JoinType]
     JOIN_UNIQUE_OUTER: _ClassVar[JoinType]
     JOIN_UNIQUE_INNER: _ClassVar[JoinType]
@@ -731,6 +737,19 @@ class LockTupleMode(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     LockTupleShare: _ClassVar[LockTupleMode]
     LockTupleNoKeyExclusive: _ClassVar[LockTupleMode]
     LockTupleExclusive: _ClassVar[LockTupleMode]
+
+class CompareType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    COMPARE_TYPE_UNDEFINED: _ClassVar[CompareType]
+    COMPARE_INVALID: _ClassVar[CompareType]
+    COMPARE_LT: _ClassVar[CompareType]
+    COMPARE_LE: _ClassVar[CompareType]
+    COMPARE_EQ: _ClassVar[CompareType]
+    COMPARE_GE: _ClassVar[CompareType]
+    COMPARE_GT: _ClassVar[CompareType]
+    COMPARE_NE: _ClassVar[CompareType]
+    COMPARE_OVERLAP: _ClassVar[CompareType]
+    COMPARE_CONTAINED_BY: _ClassVar[CompareType]
 
 class KeywordKind(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -910,6 +929,7 @@ class Token(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     ENCODING: _ClassVar[Token]
     ENCRYPTED: _ClassVar[Token]
     END_P: _ClassVar[Token]
+    ENFORCED: _ClassVar[Token]
     ENUM_P: _ClassVar[Token]
     ERROR_P: _ClassVar[Token]
     ESCAPE: _ClassVar[Token]
@@ -1064,6 +1084,7 @@ class Token(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     NULLS_P: _ClassVar[Token]
     NUMERIC: _ClassVar[Token]
     OBJECT_P: _ClassVar[Token]
+    OBJECTS_P: _ClassVar[Token]
     OF: _ClassVar[Token]
     OFF: _ClassVar[Token]
     OFFSET: _ClassVar[Token]
@@ -1095,6 +1116,7 @@ class Token(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     PASSING: _ClassVar[Token]
     PASSWORD: _ClassVar[Token]
     PATH: _ClassVar[Token]
+    PERIOD: _ClassVar[Token]
     PLACING: _ClassVar[Token]
     PLAN: _ClassVar[Token]
     PLANS: _ClassVar[Token]
@@ -1119,7 +1141,6 @@ class Token(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     READ: _ClassVar[Token]
     REAL: _ClassVar[Token]
     REASSIGN: _ClassVar[Token]
-    RECHECK: _ClassVar[Token]
     RECURSIVE: _ClassVar[Token]
     REF_P: _ClassVar[Token]
     REFERENCES: _ClassVar[Token]
@@ -1247,6 +1268,7 @@ class Token(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     VERSION_P: _ClassVar[Token]
     VIEW: _ClassVar[Token]
     VIEWS: _ClassVar[Token]
+    VIRTUAL: _ClassVar[Token]
     VOLATILE: _ClassVar[Token]
     WHEN: _ClassVar[Token]
     WHERE: _ClassVar[Token]
@@ -1358,6 +1380,7 @@ RTE_VALUES: RTEKind
 RTE_CTE: RTEKind
 RTE_NAMEDTUPLESTORE: RTEKind
 RTE_RESULT: RTEKind
+RTE_GROUP: RTEKind
 WCOKIND_UNDEFINED: WCOKind
 WCO_VIEW_CHECK: WCOKind
 WCO_RLS_INSERT_CHECK: WCOKind
@@ -1375,6 +1398,9 @@ CTEMATERIALIZE_UNDEFINED: CTEMaterialize
 CTEMaterializeDefault: CTEMaterialize
 CTEMaterializeAlways: CTEMaterialize
 CTEMaterializeNever: CTEMaterialize
+RETURNING_OPTION_KIND_UNDEFINED: ReturningOptionKind
+RETURNING_OPTION_OLD: ReturningOptionKind
+RETURNING_OPTION_NEW: ReturningOptionKind
 JSON_QUOTES_UNDEFINED: JsonQuotes
 JS_QUOTES_UNSPEC: JsonQuotes
 JS_QUOTES_KEEP: JsonQuotes
@@ -1455,7 +1481,6 @@ AT_DropNotNull: AlterTableType
 AT_SetNotNull: AlterTableType
 AT_SetExpression: AlterTableType
 AT_DropExpression: AlterTableType
-AT_CheckNotNull: AlterTableType
 AT_SetStatistics: AlterTableType
 AT_SetOptions: AlterTableType
 AT_ResetOptions: AlterTableType
@@ -1540,6 +1565,8 @@ CONSTR_ATTR_DEFERRABLE: ConstrType
 CONSTR_ATTR_NOT_DEFERRABLE: ConstrType
 CONSTR_ATTR_DEFERRED: ConstrType
 CONSTR_ATTR_IMMEDIATE: ConstrType
+CONSTR_ATTR_ENFORCED: ConstrType
+CONSTR_ATTR_NOT_ENFORCED: ConstrType
 IMPORT_FOREIGN_SCHEMA_TYPE_UNDEFINED: ImportForeignSchemaType
 FDW_IMPORT_SCHEMA_ALL: ImportForeignSchemaType
 FDW_IMPORT_SCHEMA_LIMIT_TO: ImportForeignSchemaType
@@ -1622,6 +1649,10 @@ ONCOMMIT_DROP: OnCommitAction
 TABLE_FUNC_TYPE_UNDEFINED: TableFuncType
 TFT_XMLTABLE: TableFuncType
 TFT_JSON_TABLE: TableFuncType
+VAR_RETURNING_TYPE_UNDEFINED: VarReturningType
+VAR_RETURNING_DEFAULT: VarReturningType
+VAR_RETURNING_OLD: VarReturningType
+VAR_RETURNING_NEW: VarReturningType
 PARAM_KIND_UNDEFINED: ParamKind
 PARAM_EXTERN: ParamKind
 PARAM_EXEC: ParamKind
@@ -1650,13 +1681,6 @@ EXPR_SUBLINK: SubLinkType
 MULTIEXPR_SUBLINK: SubLinkType
 ARRAY_SUBLINK: SubLinkType
 CTE_SUBLINK: SubLinkType
-ROW_COMPARE_TYPE_UNDEFINED: RowCompareType
-ROWCOMPARE_LT: RowCompareType
-ROWCOMPARE_LE: RowCompareType
-ROWCOMPARE_EQ: RowCompareType
-ROWCOMPARE_GE: RowCompareType
-ROWCOMPARE_GT: RowCompareType
-ROWCOMPARE_NE: RowCompareType
 MIN_MAX_OP_UNDEFINED: MinMaxOp
 IS_GREATEST: MinMaxOp
 IS_LEAST: MinMaxOp
@@ -1760,6 +1784,7 @@ JOIN_FULL: JoinType
 JOIN_RIGHT: JoinType
 JOIN_SEMI: JoinType
 JOIN_ANTI: JoinType
+JOIN_RIGHT_SEMI: JoinType
 JOIN_RIGHT_ANTI: JoinType
 JOIN_UNIQUE_OUTER: JoinType
 JOIN_UNIQUE_INNER: JoinType
@@ -1803,6 +1828,16 @@ LockTupleKeyShare: LockTupleMode
 LockTupleShare: LockTupleMode
 LockTupleNoKeyExclusive: LockTupleMode
 LockTupleExclusive: LockTupleMode
+COMPARE_TYPE_UNDEFINED: CompareType
+COMPARE_INVALID: CompareType
+COMPARE_LT: CompareType
+COMPARE_LE: CompareType
+COMPARE_EQ: CompareType
+COMPARE_GE: CompareType
+COMPARE_GT: CompareType
+COMPARE_NE: CompareType
+COMPARE_OVERLAP: CompareType
+COMPARE_CONTAINED_BY: CompareType
 NO_KEYWORD: KeywordKind
 UNRESERVED_KEYWORD: KeywordKind
 COL_NAME_KEYWORD: KeywordKind
@@ -1976,6 +2011,7 @@ ENABLE_P: Token
 ENCODING: Token
 ENCRYPTED: Token
 END_P: Token
+ENFORCED: Token
 ENUM_P: Token
 ERROR_P: Token
 ESCAPE: Token
@@ -2130,6 +2166,7 @@ NULLIF: Token
 NULLS_P: Token
 NUMERIC: Token
 OBJECT_P: Token
+OBJECTS_P: Token
 OF: Token
 OFF: Token
 OFFSET: Token
@@ -2161,6 +2198,7 @@ PARTITION: Token
 PASSING: Token
 PASSWORD: Token
 PATH: Token
+PERIOD: Token
 PLACING: Token
 PLAN: Token
 PLANS: Token
@@ -2185,7 +2223,6 @@ RANGE: Token
 READ: Token
 REAL: Token
 REASSIGN: Token
-RECHECK: Token
 RECURSIVE: Token
 REF_P: Token
 REFERENCES: Token
@@ -2313,6 +2350,7 @@ VERBOSE: Token
 VERSION_P: Token
 VIEW: Token
 VIEWS: Token
+VIRTUAL: Token
 VOLATILE: Token
 WHEN: Token
 WHERE: Token
@@ -2368,7 +2406,7 @@ class ScanResult(_message.Message):
     def __init__(self, version: _Optional[int] = ..., tokens: _Optional[_Iterable[_Union[ScanToken, _Mapping]]] = ...) -> None: ...
 
 class Node(_message.Message):
-    __slots__ = ("alias", "range_var", "table_func", "into_clause", "var", "param", "aggref", "grouping_func", "window_func", "window_func_run_condition", "merge_support_func", "subscripting_ref", "func_expr", "named_arg_expr", "op_expr", "distinct_expr", "null_if_expr", "scalar_array_op_expr", "bool_expr", "sub_link", "sub_plan", "alternative_sub_plan", "field_select", "field_store", "relabel_type", "coerce_via_io", "array_coerce_expr", "convert_rowtype_expr", "collate_expr", "case_expr", "case_when", "case_test_expr", "array_expr", "row_expr", "row_compare_expr", "coalesce_expr", "min_max_expr", "sqlvalue_function", "xml_expr", "json_format", "json_returning", "json_value_expr", "json_constructor_expr", "json_is_predicate", "json_behavior", "json_expr", "json_table_path", "json_table_path_scan", "json_table_sibling_join", "null_test", "boolean_test", "merge_action", "coerce_to_domain", "coerce_to_domain_value", "set_to_default", "current_of_expr", "next_value_expr", "inference_elem", "target_entry", "range_tbl_ref", "join_expr", "from_expr", "on_conflict_expr", "query", "type_name", "column_ref", "param_ref", "a_expr", "type_cast", "collate_clause", "role_spec", "func_call", "a_star", "a_indices", "a_indirection", "a_array_expr", "res_target", "multi_assign_ref", "sort_by", "window_def", "range_subselect", "range_function", "range_table_func", "range_table_func_col", "range_table_sample", "column_def", "table_like_clause", "index_elem", "def_elem", "locking_clause", "xml_serialize", "partition_elem", "partition_spec", "partition_bound_spec", "partition_range_datum", "single_partition_spec", "partition_cmd", "range_tbl_entry", "rtepermission_info", "range_tbl_function", "table_sample_clause", "with_check_option", "sort_group_clause", "grouping_set", "window_clause", "row_mark_clause", "with_clause", "infer_clause", "on_conflict_clause", "ctesearch_clause", "ctecycle_clause", "common_table_expr", "merge_when_clause", "trigger_transition", "json_output", "json_argument", "json_func_expr", "json_table_path_spec", "json_table", "json_table_column", "json_key_value", "json_parse_expr", "json_scalar_expr", "json_serialize_expr", "json_object_constructor", "json_array_constructor", "json_array_query_constructor", "json_agg_constructor", "json_object_agg", "json_array_agg", "raw_stmt", "insert_stmt", "delete_stmt", "update_stmt", "merge_stmt", "select_stmt", "set_operation_stmt", "return_stmt", "plassign_stmt", "create_schema_stmt", "alter_table_stmt", "replica_identity_stmt", "alter_table_cmd", "alter_collation_stmt", "alter_domain_stmt", "grant_stmt", "object_with_args", "access_priv", "grant_role_stmt", "alter_default_privileges_stmt", "copy_stmt", "variable_set_stmt", "variable_show_stmt", "create_stmt", "constraint", "create_table_space_stmt", "drop_table_space_stmt", "alter_table_space_options_stmt", "alter_table_move_all_stmt", "create_extension_stmt", "alter_extension_stmt", "alter_extension_contents_stmt", "create_fdw_stmt", "alter_fdw_stmt", "create_foreign_server_stmt", "alter_foreign_server_stmt", "create_foreign_table_stmt", "create_user_mapping_stmt", "alter_user_mapping_stmt", "drop_user_mapping_stmt", "import_foreign_schema_stmt", "create_policy_stmt", "alter_policy_stmt", "create_am_stmt", "create_trig_stmt", "create_event_trig_stmt", "alter_event_trig_stmt", "create_plang_stmt", "create_role_stmt", "alter_role_stmt", "alter_role_set_stmt", "drop_role_stmt", "create_seq_stmt", "alter_seq_stmt", "define_stmt", "create_domain_stmt", "create_op_class_stmt", "create_op_class_item", "create_op_family_stmt", "alter_op_family_stmt", "drop_stmt", "truncate_stmt", "comment_stmt", "sec_label_stmt", "declare_cursor_stmt", "close_portal_stmt", "fetch_stmt", "index_stmt", "create_stats_stmt", "stats_elem", "alter_stats_stmt", "create_function_stmt", "function_parameter", "alter_function_stmt", "do_stmt", "inline_code_block", "call_stmt", "call_context", "rename_stmt", "alter_object_depends_stmt", "alter_object_schema_stmt", "alter_owner_stmt", "alter_operator_stmt", "alter_type_stmt", "rule_stmt", "notify_stmt", "listen_stmt", "unlisten_stmt", "transaction_stmt", "composite_type_stmt", "create_enum_stmt", "create_range_stmt", "alter_enum_stmt", "view_stmt", "load_stmt", "createdb_stmt", "alter_database_stmt", "alter_database_refresh_coll_stmt", "alter_database_set_stmt", "dropdb_stmt", "alter_system_stmt", "cluster_stmt", "vacuum_stmt", "vacuum_relation", "explain_stmt", "create_table_as_stmt", "refresh_mat_view_stmt", "check_point_stmt", "discard_stmt", "lock_stmt", "constraints_set_stmt", "reindex_stmt", "create_conversion_stmt", "create_cast_stmt", "create_transform_stmt", "prepare_stmt", "execute_stmt", "deallocate_stmt", "drop_owned_stmt", "reassign_owned_stmt", "alter_tsdictionary_stmt", "alter_tsconfiguration_stmt", "publication_table", "publication_obj_spec", "create_publication_stmt", "alter_publication_stmt", "create_subscription_stmt", "alter_subscription_stmt", "drop_subscription_stmt", "integer", "float", "boolean", "string", "bit_string", "list", "int_list", "oid_list", "a_const")
+    __slots__ = ("alias", "range_var", "table_func", "into_clause", "var", "param", "aggref", "grouping_func", "window_func", "window_func_run_condition", "merge_support_func", "subscripting_ref", "func_expr", "named_arg_expr", "op_expr", "distinct_expr", "null_if_expr", "scalar_array_op_expr", "bool_expr", "sub_link", "sub_plan", "alternative_sub_plan", "field_select", "field_store", "relabel_type", "coerce_via_io", "array_coerce_expr", "convert_rowtype_expr", "collate_expr", "case_expr", "case_when", "case_test_expr", "array_expr", "row_expr", "row_compare_expr", "coalesce_expr", "min_max_expr", "sqlvalue_function", "xml_expr", "json_format", "json_returning", "json_value_expr", "json_constructor_expr", "json_is_predicate", "json_behavior", "json_expr", "json_table_path", "json_table_path_scan", "json_table_sibling_join", "null_test", "boolean_test", "merge_action", "coerce_to_domain", "coerce_to_domain_value", "set_to_default", "current_of_expr", "next_value_expr", "inference_elem", "returning_expr", "target_entry", "range_tbl_ref", "join_expr", "from_expr", "on_conflict_expr", "query", "type_name", "column_ref", "param_ref", "a_expr", "type_cast", "collate_clause", "role_spec", "func_call", "a_star", "a_indices", "a_indirection", "a_array_expr", "res_target", "multi_assign_ref", "sort_by", "window_def", "range_subselect", "range_function", "range_table_func", "range_table_func_col", "range_table_sample", "column_def", "table_like_clause", "index_elem", "def_elem", "locking_clause", "xml_serialize", "partition_elem", "partition_spec", "partition_bound_spec", "partition_range_datum", "partition_cmd", "range_tbl_entry", "rtepermission_info", "range_tbl_function", "table_sample_clause", "with_check_option", "sort_group_clause", "grouping_set", "window_clause", "row_mark_clause", "with_clause", "infer_clause", "on_conflict_clause", "ctesearch_clause", "ctecycle_clause", "common_table_expr", "merge_when_clause", "returning_option", "returning_clause", "trigger_transition", "json_output", "json_argument", "json_func_expr", "json_table_path_spec", "json_table", "json_table_column", "json_key_value", "json_parse_expr", "json_scalar_expr", "json_serialize_expr", "json_object_constructor", "json_array_constructor", "json_array_query_constructor", "json_agg_constructor", "json_object_agg", "json_array_agg", "raw_stmt", "insert_stmt", "delete_stmt", "update_stmt", "merge_stmt", "select_stmt", "set_operation_stmt", "return_stmt", "plassign_stmt", "create_schema_stmt", "alter_table_stmt", "alter_table_cmd", "atalter_constraint", "replica_identity_stmt", "alter_collation_stmt", "alter_domain_stmt", "grant_stmt", "object_with_args", "access_priv", "grant_role_stmt", "alter_default_privileges_stmt", "copy_stmt", "variable_set_stmt", "variable_show_stmt", "create_stmt", "constraint", "create_table_space_stmt", "drop_table_space_stmt", "alter_table_space_options_stmt", "alter_table_move_all_stmt", "create_extension_stmt", "alter_extension_stmt", "alter_extension_contents_stmt", "create_fdw_stmt", "alter_fdw_stmt", "create_foreign_server_stmt", "alter_foreign_server_stmt", "create_foreign_table_stmt", "create_user_mapping_stmt", "alter_user_mapping_stmt", "drop_user_mapping_stmt", "import_foreign_schema_stmt", "create_policy_stmt", "alter_policy_stmt", "create_am_stmt", "create_trig_stmt", "create_event_trig_stmt", "alter_event_trig_stmt", "create_plang_stmt", "create_role_stmt", "alter_role_stmt", "alter_role_set_stmt", "drop_role_stmt", "create_seq_stmt", "alter_seq_stmt", "define_stmt", "create_domain_stmt", "create_op_class_stmt", "create_op_class_item", "create_op_family_stmt", "alter_op_family_stmt", "drop_stmt", "truncate_stmt", "comment_stmt", "sec_label_stmt", "declare_cursor_stmt", "close_portal_stmt", "fetch_stmt", "index_stmt", "create_stats_stmt", "stats_elem", "alter_stats_stmt", "create_function_stmt", "function_parameter", "alter_function_stmt", "do_stmt", "inline_code_block", "call_stmt", "call_context", "rename_stmt", "alter_object_depends_stmt", "alter_object_schema_stmt", "alter_owner_stmt", "alter_operator_stmt", "alter_type_stmt", "rule_stmt", "notify_stmt", "listen_stmt", "unlisten_stmt", "transaction_stmt", "composite_type_stmt", "create_enum_stmt", "create_range_stmt", "alter_enum_stmt", "view_stmt", "load_stmt", "createdb_stmt", "alter_database_stmt", "alter_database_refresh_coll_stmt", "alter_database_set_stmt", "dropdb_stmt", "alter_system_stmt", "cluster_stmt", "vacuum_stmt", "vacuum_relation", "explain_stmt", "create_table_as_stmt", "refresh_mat_view_stmt", "check_point_stmt", "discard_stmt", "lock_stmt", "constraints_set_stmt", "reindex_stmt", "create_conversion_stmt", "create_cast_stmt", "create_transform_stmt", "prepare_stmt", "execute_stmt", "deallocate_stmt", "drop_owned_stmt", "reassign_owned_stmt", "alter_tsdictionary_stmt", "alter_tsconfiguration_stmt", "publication_table", "publication_obj_spec", "create_publication_stmt", "alter_publication_stmt", "create_subscription_stmt", "alter_subscription_stmt", "drop_subscription_stmt", "integer", "float", "boolean", "string", "bit_string", "list", "int_list", "oid_list", "a_const")
     ALIAS_FIELD_NUMBER: _ClassVar[int]
     RANGE_VAR_FIELD_NUMBER: _ClassVar[int]
     TABLE_FUNC_FIELD_NUMBER: _ClassVar[int]
@@ -2427,6 +2465,7 @@ class Node(_message.Message):
     CURRENT_OF_EXPR_FIELD_NUMBER: _ClassVar[int]
     NEXT_VALUE_EXPR_FIELD_NUMBER: _ClassVar[int]
     INFERENCE_ELEM_FIELD_NUMBER: _ClassVar[int]
+    RETURNING_EXPR_FIELD_NUMBER: _ClassVar[int]
     TARGET_ENTRY_FIELD_NUMBER: _ClassVar[int]
     RANGE_TBL_REF_FIELD_NUMBER: _ClassVar[int]
     JOIN_EXPR_FIELD_NUMBER: _ClassVar[int]
@@ -2464,7 +2503,6 @@ class Node(_message.Message):
     PARTITION_SPEC_FIELD_NUMBER: _ClassVar[int]
     PARTITION_BOUND_SPEC_FIELD_NUMBER: _ClassVar[int]
     PARTITION_RANGE_DATUM_FIELD_NUMBER: _ClassVar[int]
-    SINGLE_PARTITION_SPEC_FIELD_NUMBER: _ClassVar[int]
     PARTITION_CMD_FIELD_NUMBER: _ClassVar[int]
     RANGE_TBL_ENTRY_FIELD_NUMBER: _ClassVar[int]
     RTEPERMISSION_INFO_FIELD_NUMBER: _ClassVar[int]
@@ -2482,6 +2520,8 @@ class Node(_message.Message):
     CTECYCLE_CLAUSE_FIELD_NUMBER: _ClassVar[int]
     COMMON_TABLE_EXPR_FIELD_NUMBER: _ClassVar[int]
     MERGE_WHEN_CLAUSE_FIELD_NUMBER: _ClassVar[int]
+    RETURNING_OPTION_FIELD_NUMBER: _ClassVar[int]
+    RETURNING_CLAUSE_FIELD_NUMBER: _ClassVar[int]
     TRIGGER_TRANSITION_FIELD_NUMBER: _ClassVar[int]
     JSON_OUTPUT_FIELD_NUMBER: _ClassVar[int]
     JSON_ARGUMENT_FIELD_NUMBER: _ClassVar[int]
@@ -2510,8 +2550,9 @@ class Node(_message.Message):
     PLASSIGN_STMT_FIELD_NUMBER: _ClassVar[int]
     CREATE_SCHEMA_STMT_FIELD_NUMBER: _ClassVar[int]
     ALTER_TABLE_STMT_FIELD_NUMBER: _ClassVar[int]
-    REPLICA_IDENTITY_STMT_FIELD_NUMBER: _ClassVar[int]
     ALTER_TABLE_CMD_FIELD_NUMBER: _ClassVar[int]
+    ATALTER_CONSTRAINT_FIELD_NUMBER: _ClassVar[int]
+    REPLICA_IDENTITY_STMT_FIELD_NUMBER: _ClassVar[int]
     ALTER_COLLATION_STMT_FIELD_NUMBER: _ClassVar[int]
     ALTER_DOMAIN_STMT_FIELD_NUMBER: _ClassVar[int]
     GRANT_STMT_FIELD_NUMBER: _ClassVar[int]
@@ -2695,6 +2736,7 @@ class Node(_message.Message):
     current_of_expr: CurrentOfExpr
     next_value_expr: NextValueExpr
     inference_elem: InferenceElem
+    returning_expr: ReturningExpr
     target_entry: TargetEntry
     range_tbl_ref: RangeTblRef
     join_expr: JoinExpr
@@ -2732,7 +2774,6 @@ class Node(_message.Message):
     partition_spec: PartitionSpec
     partition_bound_spec: PartitionBoundSpec
     partition_range_datum: PartitionRangeDatum
-    single_partition_spec: SinglePartitionSpec
     partition_cmd: PartitionCmd
     range_tbl_entry: RangeTblEntry
     rtepermission_info: RTEPermissionInfo
@@ -2750,6 +2791,8 @@ class Node(_message.Message):
     ctecycle_clause: CTECycleClause
     common_table_expr: CommonTableExpr
     merge_when_clause: MergeWhenClause
+    returning_option: ReturningOption
+    returning_clause: ReturningClause
     trigger_transition: TriggerTransition
     json_output: JsonOutput
     json_argument: JsonArgument
@@ -2778,8 +2821,9 @@ class Node(_message.Message):
     plassign_stmt: PLAssignStmt
     create_schema_stmt: CreateSchemaStmt
     alter_table_stmt: AlterTableStmt
-    replica_identity_stmt: ReplicaIdentityStmt
     alter_table_cmd: AlterTableCmd
+    atalter_constraint: ATAlterConstraint
+    replica_identity_stmt: ReplicaIdentityStmt
     alter_collation_stmt: AlterCollationStmt
     alter_domain_stmt: AlterDomainStmt
     grant_stmt: GrantStmt
@@ -2905,7 +2949,7 @@ class Node(_message.Message):
     int_list: IntList
     oid_list: OidList
     a_const: A_Const
-    def __init__(self, alias: _Optional[_Union[Alias, _Mapping]] = ..., range_var: _Optional[_Union[RangeVar, _Mapping]] = ..., table_func: _Optional[_Union[TableFunc, _Mapping]] = ..., into_clause: _Optional[_Union[IntoClause, _Mapping]] = ..., var: _Optional[_Union[Var, _Mapping]] = ..., param: _Optional[_Union[Param, _Mapping]] = ..., aggref: _Optional[_Union[Aggref, _Mapping]] = ..., grouping_func: _Optional[_Union[GroupingFunc, _Mapping]] = ..., window_func: _Optional[_Union[WindowFunc, _Mapping]] = ..., window_func_run_condition: _Optional[_Union[WindowFuncRunCondition, _Mapping]] = ..., merge_support_func: _Optional[_Union[MergeSupportFunc, _Mapping]] = ..., subscripting_ref: _Optional[_Union[SubscriptingRef, _Mapping]] = ..., func_expr: _Optional[_Union[FuncExpr, _Mapping]] = ..., named_arg_expr: _Optional[_Union[NamedArgExpr, _Mapping]] = ..., op_expr: _Optional[_Union[OpExpr, _Mapping]] = ..., distinct_expr: _Optional[_Union[DistinctExpr, _Mapping]] = ..., null_if_expr: _Optional[_Union[NullIfExpr, _Mapping]] = ..., scalar_array_op_expr: _Optional[_Union[ScalarArrayOpExpr, _Mapping]] = ..., bool_expr: _Optional[_Union[BoolExpr, _Mapping]] = ..., sub_link: _Optional[_Union[SubLink, _Mapping]] = ..., sub_plan: _Optional[_Union[SubPlan, _Mapping]] = ..., alternative_sub_plan: _Optional[_Union[AlternativeSubPlan, _Mapping]] = ..., field_select: _Optional[_Union[FieldSelect, _Mapping]] = ..., field_store: _Optional[_Union[FieldStore, _Mapping]] = ..., relabel_type: _Optional[_Union[RelabelType, _Mapping]] = ..., coerce_via_io: _Optional[_Union[CoerceViaIO, _Mapping]] = ..., array_coerce_expr: _Optional[_Union[ArrayCoerceExpr, _Mapping]] = ..., convert_rowtype_expr: _Optional[_Union[ConvertRowtypeExpr, _Mapping]] = ..., collate_expr: _Optional[_Union[CollateExpr, _Mapping]] = ..., case_expr: _Optional[_Union[CaseExpr, _Mapping]] = ..., case_when: _Optional[_Union[CaseWhen, _Mapping]] = ..., case_test_expr: _Optional[_Union[CaseTestExpr, _Mapping]] = ..., array_expr: _Optional[_Union[ArrayExpr, _Mapping]] = ..., row_expr: _Optional[_Union[RowExpr, _Mapping]] = ..., row_compare_expr: _Optional[_Union[RowCompareExpr, _Mapping]] = ..., coalesce_expr: _Optional[_Union[CoalesceExpr, _Mapping]] = ..., min_max_expr: _Optional[_Union[MinMaxExpr, _Mapping]] = ..., sqlvalue_function: _Optional[_Union[SQLValueFunction, _Mapping]] = ..., xml_expr: _Optional[_Union[XmlExpr, _Mapping]] = ..., json_format: _Optional[_Union[JsonFormat, _Mapping]] = ..., json_returning: _Optional[_Union[JsonReturning, _Mapping]] = ..., json_value_expr: _Optional[_Union[JsonValueExpr, _Mapping]] = ..., json_constructor_expr: _Optional[_Union[JsonConstructorExpr, _Mapping]] = ..., json_is_predicate: _Optional[_Union[JsonIsPredicate, _Mapping]] = ..., json_behavior: _Optional[_Union[JsonBehavior, _Mapping]] = ..., json_expr: _Optional[_Union[JsonExpr, _Mapping]] = ..., json_table_path: _Optional[_Union[JsonTablePath, _Mapping]] = ..., json_table_path_scan: _Optional[_Union[JsonTablePathScan, _Mapping]] = ..., json_table_sibling_join: _Optional[_Union[JsonTableSiblingJoin, _Mapping]] = ..., null_test: _Optional[_Union[NullTest, _Mapping]] = ..., boolean_test: _Optional[_Union[BooleanTest, _Mapping]] = ..., merge_action: _Optional[_Union[MergeAction, _Mapping]] = ..., coerce_to_domain: _Optional[_Union[CoerceToDomain, _Mapping]] = ..., coerce_to_domain_value: _Optional[_Union[CoerceToDomainValue, _Mapping]] = ..., set_to_default: _Optional[_Union[SetToDefault, _Mapping]] = ..., current_of_expr: _Optional[_Union[CurrentOfExpr, _Mapping]] = ..., next_value_expr: _Optional[_Union[NextValueExpr, _Mapping]] = ..., inference_elem: _Optional[_Union[InferenceElem, _Mapping]] = ..., target_entry: _Optional[_Union[TargetEntry, _Mapping]] = ..., range_tbl_ref: _Optional[_Union[RangeTblRef, _Mapping]] = ..., join_expr: _Optional[_Union[JoinExpr, _Mapping]] = ..., from_expr: _Optional[_Union[FromExpr, _Mapping]] = ..., on_conflict_expr: _Optional[_Union[OnConflictExpr, _Mapping]] = ..., query: _Optional[_Union[Query, _Mapping]] = ..., type_name: _Optional[_Union[TypeName, _Mapping]] = ..., column_ref: _Optional[_Union[ColumnRef, _Mapping]] = ..., param_ref: _Optional[_Union[ParamRef, _Mapping]] = ..., a_expr: _Optional[_Union[A_Expr, _Mapping]] = ..., type_cast: _Optional[_Union[TypeCast, _Mapping]] = ..., collate_clause: _Optional[_Union[CollateClause, _Mapping]] = ..., role_spec: _Optional[_Union[RoleSpec, _Mapping]] = ..., func_call: _Optional[_Union[FuncCall, _Mapping]] = ..., a_star: _Optional[_Union[A_Star, _Mapping]] = ..., a_indices: _Optional[_Union[A_Indices, _Mapping]] = ..., a_indirection: _Optional[_Union[A_Indirection, _Mapping]] = ..., a_array_expr: _Optional[_Union[A_ArrayExpr, _Mapping]] = ..., res_target: _Optional[_Union[ResTarget, _Mapping]] = ..., multi_assign_ref: _Optional[_Union[MultiAssignRef, _Mapping]] = ..., sort_by: _Optional[_Union[SortBy, _Mapping]] = ..., window_def: _Optional[_Union[WindowDef, _Mapping]] = ..., range_subselect: _Optional[_Union[RangeSubselect, _Mapping]] = ..., range_function: _Optional[_Union[RangeFunction, _Mapping]] = ..., range_table_func: _Optional[_Union[RangeTableFunc, _Mapping]] = ..., range_table_func_col: _Optional[_Union[RangeTableFuncCol, _Mapping]] = ..., range_table_sample: _Optional[_Union[RangeTableSample, _Mapping]] = ..., column_def: _Optional[_Union[ColumnDef, _Mapping]] = ..., table_like_clause: _Optional[_Union[TableLikeClause, _Mapping]] = ..., index_elem: _Optional[_Union[IndexElem, _Mapping]] = ..., def_elem: _Optional[_Union[DefElem, _Mapping]] = ..., locking_clause: _Optional[_Union[LockingClause, _Mapping]] = ..., xml_serialize: _Optional[_Union[XmlSerialize, _Mapping]] = ..., partition_elem: _Optional[_Union[PartitionElem, _Mapping]] = ..., partition_spec: _Optional[_Union[PartitionSpec, _Mapping]] = ..., partition_bound_spec: _Optional[_Union[PartitionBoundSpec, _Mapping]] = ..., partition_range_datum: _Optional[_Union[PartitionRangeDatum, _Mapping]] = ..., single_partition_spec: _Optional[_Union[SinglePartitionSpec, _Mapping]] = ..., partition_cmd: _Optional[_Union[PartitionCmd, _Mapping]] = ..., range_tbl_entry: _Optional[_Union[RangeTblEntry, _Mapping]] = ..., rtepermission_info: _Optional[_Union[RTEPermissionInfo, _Mapping]] = ..., range_tbl_function: _Optional[_Union[RangeTblFunction, _Mapping]] = ..., table_sample_clause: _Optional[_Union[TableSampleClause, _Mapping]] = ..., with_check_option: _Optional[_Union[WithCheckOption, _Mapping]] = ..., sort_group_clause: _Optional[_Union[SortGroupClause, _Mapping]] = ..., grouping_set: _Optional[_Union[GroupingSet, _Mapping]] = ..., window_clause: _Optional[_Union[WindowClause, _Mapping]] = ..., row_mark_clause: _Optional[_Union[RowMarkClause, _Mapping]] = ..., with_clause: _Optional[_Union[WithClause, _Mapping]] = ..., infer_clause: _Optional[_Union[InferClause, _Mapping]] = ..., on_conflict_clause: _Optional[_Union[OnConflictClause, _Mapping]] = ..., ctesearch_clause: _Optional[_Union[CTESearchClause, _Mapping]] = ..., ctecycle_clause: _Optional[_Union[CTECycleClause, _Mapping]] = ..., common_table_expr: _Optional[_Union[CommonTableExpr, _Mapping]] = ..., merge_when_clause: _Optional[_Union[MergeWhenClause, _Mapping]] = ..., trigger_transition: _Optional[_Union[TriggerTransition, _Mapping]] = ..., json_output: _Optional[_Union[JsonOutput, _Mapping]] = ..., json_argument: _Optional[_Union[JsonArgument, _Mapping]] = ..., json_func_expr: _Optional[_Union[JsonFuncExpr, _Mapping]] = ..., json_table_path_spec: _Optional[_Union[JsonTablePathSpec, _Mapping]] = ..., json_table: _Optional[_Union[JsonTable, _Mapping]] = ..., json_table_column: _Optional[_Union[JsonTableColumn, _Mapping]] = ..., json_key_value: _Optional[_Union[JsonKeyValue, _Mapping]] = ..., json_parse_expr: _Optional[_Union[JsonParseExpr, _Mapping]] = ..., json_scalar_expr: _Optional[_Union[JsonScalarExpr, _Mapping]] = ..., json_serialize_expr: _Optional[_Union[JsonSerializeExpr, _Mapping]] = ..., json_object_constructor: _Optional[_Union[JsonObjectConstructor, _Mapping]] = ..., json_array_constructor: _Optional[_Union[JsonArrayConstructor, _Mapping]] = ..., json_array_query_constructor: _Optional[_Union[JsonArrayQueryConstructor, _Mapping]] = ..., json_agg_constructor: _Optional[_Union[JsonAggConstructor, _Mapping]] = ..., json_object_agg: _Optional[_Union[JsonObjectAgg, _Mapping]] = ..., json_array_agg: _Optional[_Union[JsonArrayAgg, _Mapping]] = ..., raw_stmt: _Optional[_Union[RawStmt, _Mapping]] = ..., insert_stmt: _Optional[_Union[InsertStmt, _Mapping]] = ..., delete_stmt: _Optional[_Union[DeleteStmt, _Mapping]] = ..., update_stmt: _Optional[_Union[UpdateStmt, _Mapping]] = ..., merge_stmt: _Optional[_Union[MergeStmt, _Mapping]] = ..., select_stmt: _Optional[_Union[SelectStmt, _Mapping]] = ..., set_operation_stmt: _Optional[_Union[SetOperationStmt, _Mapping]] = ..., return_stmt: _Optional[_Union[ReturnStmt, _Mapping]] = ..., plassign_stmt: _Optional[_Union[PLAssignStmt, _Mapping]] = ..., create_schema_stmt: _Optional[_Union[CreateSchemaStmt, _Mapping]] = ..., alter_table_stmt: _Optional[_Union[AlterTableStmt, _Mapping]] = ..., replica_identity_stmt: _Optional[_Union[ReplicaIdentityStmt, _Mapping]] = ..., alter_table_cmd: _Optional[_Union[AlterTableCmd, _Mapping]] = ..., alter_collation_stmt: _Optional[_Union[AlterCollationStmt, _Mapping]] = ..., alter_domain_stmt: _Optional[_Union[AlterDomainStmt, _Mapping]] = ..., grant_stmt: _Optional[_Union[GrantStmt, _Mapping]] = ..., object_with_args: _Optional[_Union[ObjectWithArgs, _Mapping]] = ..., access_priv: _Optional[_Union[AccessPriv, _Mapping]] = ..., grant_role_stmt: _Optional[_Union[GrantRoleStmt, _Mapping]] = ..., alter_default_privileges_stmt: _Optional[_Union[AlterDefaultPrivilegesStmt, _Mapping]] = ..., copy_stmt: _Optional[_Union[CopyStmt, _Mapping]] = ..., variable_set_stmt: _Optional[_Union[VariableSetStmt, _Mapping]] = ..., variable_show_stmt: _Optional[_Union[VariableShowStmt, _Mapping]] = ..., create_stmt: _Optional[_Union[CreateStmt, _Mapping]] = ..., constraint: _Optional[_Union[Constraint, _Mapping]] = ..., create_table_space_stmt: _Optional[_Union[CreateTableSpaceStmt, _Mapping]] = ..., drop_table_space_stmt: _Optional[_Union[DropTableSpaceStmt, _Mapping]] = ..., alter_table_space_options_stmt: _Optional[_Union[AlterTableSpaceOptionsStmt, _Mapping]] = ..., alter_table_move_all_stmt: _Optional[_Union[AlterTableMoveAllStmt, _Mapping]] = ..., create_extension_stmt: _Optional[_Union[CreateExtensionStmt, _Mapping]] = ..., alter_extension_stmt: _Optional[_Union[AlterExtensionStmt, _Mapping]] = ..., alter_extension_contents_stmt: _Optional[_Union[AlterExtensionContentsStmt, _Mapping]] = ..., create_fdw_stmt: _Optional[_Union[CreateFdwStmt, _Mapping]] = ..., alter_fdw_stmt: _Optional[_Union[AlterFdwStmt, _Mapping]] = ..., create_foreign_server_stmt: _Optional[_Union[CreateForeignServerStmt, _Mapping]] = ..., alter_foreign_server_stmt: _Optional[_Union[AlterForeignServerStmt, _Mapping]] = ..., create_foreign_table_stmt: _Optional[_Union[CreateForeignTableStmt, _Mapping]] = ..., create_user_mapping_stmt: _Optional[_Union[CreateUserMappingStmt, _Mapping]] = ..., alter_user_mapping_stmt: _Optional[_Union[AlterUserMappingStmt, _Mapping]] = ..., drop_user_mapping_stmt: _Optional[_Union[DropUserMappingStmt, _Mapping]] = ..., import_foreign_schema_stmt: _Optional[_Union[ImportForeignSchemaStmt, _Mapping]] = ..., create_policy_stmt: _Optional[_Union[CreatePolicyStmt, _Mapping]] = ..., alter_policy_stmt: _Optional[_Union[AlterPolicyStmt, _Mapping]] = ..., create_am_stmt: _Optional[_Union[CreateAmStmt, _Mapping]] = ..., create_trig_stmt: _Optional[_Union[CreateTrigStmt, _Mapping]] = ..., create_event_trig_stmt: _Optional[_Union[CreateEventTrigStmt, _Mapping]] = ..., alter_event_trig_stmt: _Optional[_Union[AlterEventTrigStmt, _Mapping]] = ..., create_plang_stmt: _Optional[_Union[CreatePLangStmt, _Mapping]] = ..., create_role_stmt: _Optional[_Union[CreateRoleStmt, _Mapping]] = ..., alter_role_stmt: _Optional[_Union[AlterRoleStmt, _Mapping]] = ..., alter_role_set_stmt: _Optional[_Union[AlterRoleSetStmt, _Mapping]] = ..., drop_role_stmt: _Optional[_Union[DropRoleStmt, _Mapping]] = ..., create_seq_stmt: _Optional[_Union[CreateSeqStmt, _Mapping]] = ..., alter_seq_stmt: _Optional[_Union[AlterSeqStmt, _Mapping]] = ..., define_stmt: _Optional[_Union[DefineStmt, _Mapping]] = ..., create_domain_stmt: _Optional[_Union[CreateDomainStmt, _Mapping]] = ..., create_op_class_stmt: _Optional[_Union[CreateOpClassStmt, _Mapping]] = ..., create_op_class_item: _Optional[_Union[CreateOpClassItem, _Mapping]] = ..., create_op_family_stmt: _Optional[_Union[CreateOpFamilyStmt, _Mapping]] = ..., alter_op_family_stmt: _Optional[_Union[AlterOpFamilyStmt, _Mapping]] = ..., drop_stmt: _Optional[_Union[DropStmt, _Mapping]] = ..., truncate_stmt: _Optional[_Union[TruncateStmt, _Mapping]] = ..., comment_stmt: _Optional[_Union[CommentStmt, _Mapping]] = ..., sec_label_stmt: _Optional[_Union[SecLabelStmt, _Mapping]] = ..., declare_cursor_stmt: _Optional[_Union[DeclareCursorStmt, _Mapping]] = ..., close_portal_stmt: _Optional[_Union[ClosePortalStmt, _Mapping]] = ..., fetch_stmt: _Optional[_Union[FetchStmt, _Mapping]] = ..., index_stmt: _Optional[_Union[IndexStmt, _Mapping]] = ..., create_stats_stmt: _Optional[_Union[CreateStatsStmt, _Mapping]] = ..., stats_elem: _Optional[_Union[StatsElem, _Mapping]] = ..., alter_stats_stmt: _Optional[_Union[AlterStatsStmt, _Mapping]] = ..., create_function_stmt: _Optional[_Union[CreateFunctionStmt, _Mapping]] = ..., function_parameter: _Optional[_Union[FunctionParameter, _Mapping]] = ..., alter_function_stmt: _Optional[_Union[AlterFunctionStmt, _Mapping]] = ..., do_stmt: _Optional[_Union[DoStmt, _Mapping]] = ..., inline_code_block: _Optional[_Union[InlineCodeBlock, _Mapping]] = ..., call_stmt: _Optional[_Union[CallStmt, _Mapping]] = ..., call_context: _Optional[_Union[CallContext, _Mapping]] = ..., rename_stmt: _Optional[_Union[RenameStmt, _Mapping]] = ..., alter_object_depends_stmt: _Optional[_Union[AlterObjectDependsStmt, _Mapping]] = ..., alter_object_schema_stmt: _Optional[_Union[AlterObjectSchemaStmt, _Mapping]] = ..., alter_owner_stmt: _Optional[_Union[AlterOwnerStmt, _Mapping]] = ..., alter_operator_stmt: _Optional[_Union[AlterOperatorStmt, _Mapping]] = ..., alter_type_stmt: _Optional[_Union[AlterTypeStmt, _Mapping]] = ..., rule_stmt: _Optional[_Union[RuleStmt, _Mapping]] = ..., notify_stmt: _Optional[_Union[NotifyStmt, _Mapping]] = ..., listen_stmt: _Optional[_Union[ListenStmt, _Mapping]] = ..., unlisten_stmt: _Optional[_Union[UnlistenStmt, _Mapping]] = ..., transaction_stmt: _Optional[_Union[TransactionStmt, _Mapping]] = ..., composite_type_stmt: _Optional[_Union[CompositeTypeStmt, _Mapping]] = ..., create_enum_stmt: _Optional[_Union[CreateEnumStmt, _Mapping]] = ..., create_range_stmt: _Optional[_Union[CreateRangeStmt, _Mapping]] = ..., alter_enum_stmt: _Optional[_Union[AlterEnumStmt, _Mapping]] = ..., view_stmt: _Optional[_Union[ViewStmt, _Mapping]] = ..., load_stmt: _Optional[_Union[LoadStmt, _Mapping]] = ..., createdb_stmt: _Optional[_Union[CreatedbStmt, _Mapping]] = ..., alter_database_stmt: _Optional[_Union[AlterDatabaseStmt, _Mapping]] = ..., alter_database_refresh_coll_stmt: _Optional[_Union[AlterDatabaseRefreshCollStmt, _Mapping]] = ..., alter_database_set_stmt: _Optional[_Union[AlterDatabaseSetStmt, _Mapping]] = ..., dropdb_stmt: _Optional[_Union[DropdbStmt, _Mapping]] = ..., alter_system_stmt: _Optional[_Union[AlterSystemStmt, _Mapping]] = ..., cluster_stmt: _Optional[_Union[ClusterStmt, _Mapping]] = ..., vacuum_stmt: _Optional[_Union[VacuumStmt, _Mapping]] = ..., vacuum_relation: _Optional[_Union[VacuumRelation, _Mapping]] = ..., explain_stmt: _Optional[_Union[ExplainStmt, _Mapping]] = ..., create_table_as_stmt: _Optional[_Union[CreateTableAsStmt, _Mapping]] = ..., refresh_mat_view_stmt: _Optional[_Union[RefreshMatViewStmt, _Mapping]] = ..., check_point_stmt: _Optional[_Union[CheckPointStmt, _Mapping]] = ..., discard_stmt: _Optional[_Union[DiscardStmt, _Mapping]] = ..., lock_stmt: _Optional[_Union[LockStmt, _Mapping]] = ..., constraints_set_stmt: _Optional[_Union[ConstraintsSetStmt, _Mapping]] = ..., reindex_stmt: _Optional[_Union[ReindexStmt, _Mapping]] = ..., create_conversion_stmt: _Optional[_Union[CreateConversionStmt, _Mapping]] = ..., create_cast_stmt: _Optional[_Union[CreateCastStmt, _Mapping]] = ..., create_transform_stmt: _Optional[_Union[CreateTransformStmt, _Mapping]] = ..., prepare_stmt: _Optional[_Union[PrepareStmt, _Mapping]] = ..., execute_stmt: _Optional[_Union[ExecuteStmt, _Mapping]] = ..., deallocate_stmt: _Optional[_Union[DeallocateStmt, _Mapping]] = ..., drop_owned_stmt: _Optional[_Union[DropOwnedStmt, _Mapping]] = ..., reassign_owned_stmt: _Optional[_Union[ReassignOwnedStmt, _Mapping]] = ..., alter_tsdictionary_stmt: _Optional[_Union[AlterTSDictionaryStmt, _Mapping]] = ..., alter_tsconfiguration_stmt: _Optional[_Union[AlterTSConfigurationStmt, _Mapping]] = ..., publication_table: _Optional[_Union[PublicationTable, _Mapping]] = ..., publication_obj_spec: _Optional[_Union[PublicationObjSpec, _Mapping]] = ..., create_publication_stmt: _Optional[_Union[CreatePublicationStmt, _Mapping]] = ..., alter_publication_stmt: _Optional[_Union[AlterPublicationStmt, _Mapping]] = ..., create_subscription_stmt: _Optional[_Union[CreateSubscriptionStmt, _Mapping]] = ..., alter_subscription_stmt: _Optional[_Union[AlterSubscriptionStmt, _Mapping]] = ..., drop_subscription_stmt: _Optional[_Union[DropSubscriptionStmt, _Mapping]] = ..., integer: _Optional[_Union[Integer, _Mapping]] = ..., float: _Optional[_Union[Float, _Mapping]] = ..., boolean: _Optional[_Union[Boolean, _Mapping]] = ..., string: _Optional[_Union[String, _Mapping]] = ..., bit_string: _Optional[_Union[BitString, _Mapping]] = ..., list: _Optional[_Union[List, _Mapping]] = ..., int_list: _Optional[_Union[IntList, _Mapping]] = ..., oid_list: _Optional[_Union[OidList, _Mapping]] = ..., a_const: _Optional[_Union[A_Const, _Mapping]] = ...) -> None: ...
+    def __init__(self, alias: _Optional[_Union[Alias, _Mapping]] = ..., range_var: _Optional[_Union[RangeVar, _Mapping]] = ..., table_func: _Optional[_Union[TableFunc, _Mapping]] = ..., into_clause: _Optional[_Union[IntoClause, _Mapping]] = ..., var: _Optional[_Union[Var, _Mapping]] = ..., param: _Optional[_Union[Param, _Mapping]] = ..., aggref: _Optional[_Union[Aggref, _Mapping]] = ..., grouping_func: _Optional[_Union[GroupingFunc, _Mapping]] = ..., window_func: _Optional[_Union[WindowFunc, _Mapping]] = ..., window_func_run_condition: _Optional[_Union[WindowFuncRunCondition, _Mapping]] = ..., merge_support_func: _Optional[_Union[MergeSupportFunc, _Mapping]] = ..., subscripting_ref: _Optional[_Union[SubscriptingRef, _Mapping]] = ..., func_expr: _Optional[_Union[FuncExpr, _Mapping]] = ..., named_arg_expr: _Optional[_Union[NamedArgExpr, _Mapping]] = ..., op_expr: _Optional[_Union[OpExpr, _Mapping]] = ..., distinct_expr: _Optional[_Union[DistinctExpr, _Mapping]] = ..., null_if_expr: _Optional[_Union[NullIfExpr, _Mapping]] = ..., scalar_array_op_expr: _Optional[_Union[ScalarArrayOpExpr, _Mapping]] = ..., bool_expr: _Optional[_Union[BoolExpr, _Mapping]] = ..., sub_link: _Optional[_Union[SubLink, _Mapping]] = ..., sub_plan: _Optional[_Union[SubPlan, _Mapping]] = ..., alternative_sub_plan: _Optional[_Union[AlternativeSubPlan, _Mapping]] = ..., field_select: _Optional[_Union[FieldSelect, _Mapping]] = ..., field_store: _Optional[_Union[FieldStore, _Mapping]] = ..., relabel_type: _Optional[_Union[RelabelType, _Mapping]] = ..., coerce_via_io: _Optional[_Union[CoerceViaIO, _Mapping]] = ..., array_coerce_expr: _Optional[_Union[ArrayCoerceExpr, _Mapping]] = ..., convert_rowtype_expr: _Optional[_Union[ConvertRowtypeExpr, _Mapping]] = ..., collate_expr: _Optional[_Union[CollateExpr, _Mapping]] = ..., case_expr: _Optional[_Union[CaseExpr, _Mapping]] = ..., case_when: _Optional[_Union[CaseWhen, _Mapping]] = ..., case_test_expr: _Optional[_Union[CaseTestExpr, _Mapping]] = ..., array_expr: _Optional[_Union[ArrayExpr, _Mapping]] = ..., row_expr: _Optional[_Union[RowExpr, _Mapping]] = ..., row_compare_expr: _Optional[_Union[RowCompareExpr, _Mapping]] = ..., coalesce_expr: _Optional[_Union[CoalesceExpr, _Mapping]] = ..., min_max_expr: _Optional[_Union[MinMaxExpr, _Mapping]] = ..., sqlvalue_function: _Optional[_Union[SQLValueFunction, _Mapping]] = ..., xml_expr: _Optional[_Union[XmlExpr, _Mapping]] = ..., json_format: _Optional[_Union[JsonFormat, _Mapping]] = ..., json_returning: _Optional[_Union[JsonReturning, _Mapping]] = ..., json_value_expr: _Optional[_Union[JsonValueExpr, _Mapping]] = ..., json_constructor_expr: _Optional[_Union[JsonConstructorExpr, _Mapping]] = ..., json_is_predicate: _Optional[_Union[JsonIsPredicate, _Mapping]] = ..., json_behavior: _Optional[_Union[JsonBehavior, _Mapping]] = ..., json_expr: _Optional[_Union[JsonExpr, _Mapping]] = ..., json_table_path: _Optional[_Union[JsonTablePath, _Mapping]] = ..., json_table_path_scan: _Optional[_Union[JsonTablePathScan, _Mapping]] = ..., json_table_sibling_join: _Optional[_Union[JsonTableSiblingJoin, _Mapping]] = ..., null_test: _Optional[_Union[NullTest, _Mapping]] = ..., boolean_test: _Optional[_Union[BooleanTest, _Mapping]] = ..., merge_action: _Optional[_Union[MergeAction, _Mapping]] = ..., coerce_to_domain: _Optional[_Union[CoerceToDomain, _Mapping]] = ..., coerce_to_domain_value: _Optional[_Union[CoerceToDomainValue, _Mapping]] = ..., set_to_default: _Optional[_Union[SetToDefault, _Mapping]] = ..., current_of_expr: _Optional[_Union[CurrentOfExpr, _Mapping]] = ..., next_value_expr: _Optional[_Union[NextValueExpr, _Mapping]] = ..., inference_elem: _Optional[_Union[InferenceElem, _Mapping]] = ..., returning_expr: _Optional[_Union[ReturningExpr, _Mapping]] = ..., target_entry: _Optional[_Union[TargetEntry, _Mapping]] = ..., range_tbl_ref: _Optional[_Union[RangeTblRef, _Mapping]] = ..., join_expr: _Optional[_Union[JoinExpr, _Mapping]] = ..., from_expr: _Optional[_Union[FromExpr, _Mapping]] = ..., on_conflict_expr: _Optional[_Union[OnConflictExpr, _Mapping]] = ..., query: _Optional[_Union[Query, _Mapping]] = ..., type_name: _Optional[_Union[TypeName, _Mapping]] = ..., column_ref: _Optional[_Union[ColumnRef, _Mapping]] = ..., param_ref: _Optional[_Union[ParamRef, _Mapping]] = ..., a_expr: _Optional[_Union[A_Expr, _Mapping]] = ..., type_cast: _Optional[_Union[TypeCast, _Mapping]] = ..., collate_clause: _Optional[_Union[CollateClause, _Mapping]] = ..., role_spec: _Optional[_Union[RoleSpec, _Mapping]] = ..., func_call: _Optional[_Union[FuncCall, _Mapping]] = ..., a_star: _Optional[_Union[A_Star, _Mapping]] = ..., a_indices: _Optional[_Union[A_Indices, _Mapping]] = ..., a_indirection: _Optional[_Union[A_Indirection, _Mapping]] = ..., a_array_expr: _Optional[_Union[A_ArrayExpr, _Mapping]] = ..., res_target: _Optional[_Union[ResTarget, _Mapping]] = ..., multi_assign_ref: _Optional[_Union[MultiAssignRef, _Mapping]] = ..., sort_by: _Optional[_Union[SortBy, _Mapping]] = ..., window_def: _Optional[_Union[WindowDef, _Mapping]] = ..., range_subselect: _Optional[_Union[RangeSubselect, _Mapping]] = ..., range_function: _Optional[_Union[RangeFunction, _Mapping]] = ..., range_table_func: _Optional[_Union[RangeTableFunc, _Mapping]] = ..., range_table_func_col: _Optional[_Union[RangeTableFuncCol, _Mapping]] = ..., range_table_sample: _Optional[_Union[RangeTableSample, _Mapping]] = ..., column_def: _Optional[_Union[ColumnDef, _Mapping]] = ..., table_like_clause: _Optional[_Union[TableLikeClause, _Mapping]] = ..., index_elem: _Optional[_Union[IndexElem, _Mapping]] = ..., def_elem: _Optional[_Union[DefElem, _Mapping]] = ..., locking_clause: _Optional[_Union[LockingClause, _Mapping]] = ..., xml_serialize: _Optional[_Union[XmlSerialize, _Mapping]] = ..., partition_elem: _Optional[_Union[PartitionElem, _Mapping]] = ..., partition_spec: _Optional[_Union[PartitionSpec, _Mapping]] = ..., partition_bound_spec: _Optional[_Union[PartitionBoundSpec, _Mapping]] = ..., partition_range_datum: _Optional[_Union[PartitionRangeDatum, _Mapping]] = ..., partition_cmd: _Optional[_Union[PartitionCmd, _Mapping]] = ..., range_tbl_entry: _Optional[_Union[RangeTblEntry, _Mapping]] = ..., rtepermission_info: _Optional[_Union[RTEPermissionInfo, _Mapping]] = ..., range_tbl_function: _Optional[_Union[RangeTblFunction, _Mapping]] = ..., table_sample_clause: _Optional[_Union[TableSampleClause, _Mapping]] = ..., with_check_option: _Optional[_Union[WithCheckOption, _Mapping]] = ..., sort_group_clause: _Optional[_Union[SortGroupClause, _Mapping]] = ..., grouping_set: _Optional[_Union[GroupingSet, _Mapping]] = ..., window_clause: _Optional[_Union[WindowClause, _Mapping]] = ..., row_mark_clause: _Optional[_Union[RowMarkClause, _Mapping]] = ..., with_clause: _Optional[_Union[WithClause, _Mapping]] = ..., infer_clause: _Optional[_Union[InferClause, _Mapping]] = ..., on_conflict_clause: _Optional[_Union[OnConflictClause, _Mapping]] = ..., ctesearch_clause: _Optional[_Union[CTESearchClause, _Mapping]] = ..., ctecycle_clause: _Optional[_Union[CTECycleClause, _Mapping]] = ..., common_table_expr: _Optional[_Union[CommonTableExpr, _Mapping]] = ..., merge_when_clause: _Optional[_Union[MergeWhenClause, _Mapping]] = ..., returning_option: _Optional[_Union[ReturningOption, _Mapping]] = ..., returning_clause: _Optional[_Union[ReturningClause, _Mapping]] = ..., trigger_transition: _Optional[_Union[TriggerTransition, _Mapping]] = ..., json_output: _Optional[_Union[JsonOutput, _Mapping]] = ..., json_argument: _Optional[_Union[JsonArgument, _Mapping]] = ..., json_func_expr: _Optional[_Union[JsonFuncExpr, _Mapping]] = ..., json_table_path_spec: _Optional[_Union[JsonTablePathSpec, _Mapping]] = ..., json_table: _Optional[_Union[JsonTable, _Mapping]] = ..., json_table_column: _Optional[_Union[JsonTableColumn, _Mapping]] = ..., json_key_value: _Optional[_Union[JsonKeyValue, _Mapping]] = ..., json_parse_expr: _Optional[_Union[JsonParseExpr, _Mapping]] = ..., json_scalar_expr: _Optional[_Union[JsonScalarExpr, _Mapping]] = ..., json_serialize_expr: _Optional[_Union[JsonSerializeExpr, _Mapping]] = ..., json_object_constructor: _Optional[_Union[JsonObjectConstructor, _Mapping]] = ..., json_array_constructor: _Optional[_Union[JsonArrayConstructor, _Mapping]] = ..., json_array_query_constructor: _Optional[_Union[JsonArrayQueryConstructor, _Mapping]] = ..., json_agg_constructor: _Optional[_Union[JsonAggConstructor, _Mapping]] = ..., json_object_agg: _Optional[_Union[JsonObjectAgg, _Mapping]] = ..., json_array_agg: _Optional[_Union[JsonArrayAgg, _Mapping]] = ..., raw_stmt: _Optional[_Union[RawStmt, _Mapping]] = ..., insert_stmt: _Optional[_Union[InsertStmt, _Mapping]] = ..., delete_stmt: _Optional[_Union[DeleteStmt, _Mapping]] = ..., update_stmt: _Optional[_Union[UpdateStmt, _Mapping]] = ..., merge_stmt: _Optional[_Union[MergeStmt, _Mapping]] = ..., select_stmt: _Optional[_Union[SelectStmt, _Mapping]] = ..., set_operation_stmt: _Optional[_Union[SetOperationStmt, _Mapping]] = ..., return_stmt: _Optional[_Union[ReturnStmt, _Mapping]] = ..., plassign_stmt: _Optional[_Union[PLAssignStmt, _Mapping]] = ..., create_schema_stmt: _Optional[_Union[CreateSchemaStmt, _Mapping]] = ..., alter_table_stmt: _Optional[_Union[AlterTableStmt, _Mapping]] = ..., alter_table_cmd: _Optional[_Union[AlterTableCmd, _Mapping]] = ..., atalter_constraint: _Optional[_Union[ATAlterConstraint, _Mapping]] = ..., replica_identity_stmt: _Optional[_Union[ReplicaIdentityStmt, _Mapping]] = ..., alter_collation_stmt: _Optional[_Union[AlterCollationStmt, _Mapping]] = ..., alter_domain_stmt: _Optional[_Union[AlterDomainStmt, _Mapping]] = ..., grant_stmt: _Optional[_Union[GrantStmt, _Mapping]] = ..., object_with_args: _Optional[_Union[ObjectWithArgs, _Mapping]] = ..., access_priv: _Optional[_Union[AccessPriv, _Mapping]] = ..., grant_role_stmt: _Optional[_Union[GrantRoleStmt, _Mapping]] = ..., alter_default_privileges_stmt: _Optional[_Union[AlterDefaultPrivilegesStmt, _Mapping]] = ..., copy_stmt: _Optional[_Union[CopyStmt, _Mapping]] = ..., variable_set_stmt: _Optional[_Union[VariableSetStmt, _Mapping]] = ..., variable_show_stmt: _Optional[_Union[VariableShowStmt, _Mapping]] = ..., create_stmt: _Optional[_Union[CreateStmt, _Mapping]] = ..., constraint: _Optional[_Union[Constraint, _Mapping]] = ..., create_table_space_stmt: _Optional[_Union[CreateTableSpaceStmt, _Mapping]] = ..., drop_table_space_stmt: _Optional[_Union[DropTableSpaceStmt, _Mapping]] = ..., alter_table_space_options_stmt: _Optional[_Union[AlterTableSpaceOptionsStmt, _Mapping]] = ..., alter_table_move_all_stmt: _Optional[_Union[AlterTableMoveAllStmt, _Mapping]] = ..., create_extension_stmt: _Optional[_Union[CreateExtensionStmt, _Mapping]] = ..., alter_extension_stmt: _Optional[_Union[AlterExtensionStmt, _Mapping]] = ..., alter_extension_contents_stmt: _Optional[_Union[AlterExtensionContentsStmt, _Mapping]] = ..., create_fdw_stmt: _Optional[_Union[CreateFdwStmt, _Mapping]] = ..., alter_fdw_stmt: _Optional[_Union[AlterFdwStmt, _Mapping]] = ..., create_foreign_server_stmt: _Optional[_Union[CreateForeignServerStmt, _Mapping]] = ..., alter_foreign_server_stmt: _Optional[_Union[AlterForeignServerStmt, _Mapping]] = ..., create_foreign_table_stmt: _Optional[_Union[CreateForeignTableStmt, _Mapping]] = ..., create_user_mapping_stmt: _Optional[_Union[CreateUserMappingStmt, _Mapping]] = ..., alter_user_mapping_stmt: _Optional[_Union[AlterUserMappingStmt, _Mapping]] = ..., drop_user_mapping_stmt: _Optional[_Union[DropUserMappingStmt, _Mapping]] = ..., import_foreign_schema_stmt: _Optional[_Union[ImportForeignSchemaStmt, _Mapping]] = ..., create_policy_stmt: _Optional[_Union[CreatePolicyStmt, _Mapping]] = ..., alter_policy_stmt: _Optional[_Union[AlterPolicyStmt, _Mapping]] = ..., create_am_stmt: _Optional[_Union[CreateAmStmt, _Mapping]] = ..., create_trig_stmt: _Optional[_Union[CreateTrigStmt, _Mapping]] = ..., create_event_trig_stmt: _Optional[_Union[CreateEventTrigStmt, _Mapping]] = ..., alter_event_trig_stmt: _Optional[_Union[AlterEventTrigStmt, _Mapping]] = ..., create_plang_stmt: _Optional[_Union[CreatePLangStmt, _Mapping]] = ..., create_role_stmt: _Optional[_Union[CreateRoleStmt, _Mapping]] = ..., alter_role_stmt: _Optional[_Union[AlterRoleStmt, _Mapping]] = ..., alter_role_set_stmt: _Optional[_Union[AlterRoleSetStmt, _Mapping]] = ..., drop_role_stmt: _Optional[_Union[DropRoleStmt, _Mapping]] = ..., create_seq_stmt: _Optional[_Union[CreateSeqStmt, _Mapping]] = ..., alter_seq_stmt: _Optional[_Union[AlterSeqStmt, _Mapping]] = ..., define_stmt: _Optional[_Union[DefineStmt, _Mapping]] = ..., create_domain_stmt: _Optional[_Union[CreateDomainStmt, _Mapping]] = ..., create_op_class_stmt: _Optional[_Union[CreateOpClassStmt, _Mapping]] = ..., create_op_class_item: _Optional[_Union[CreateOpClassItem, _Mapping]] = ..., create_op_family_stmt: _Optional[_Union[CreateOpFamilyStmt, _Mapping]] = ..., alter_op_family_stmt: _Optional[_Union[AlterOpFamilyStmt, _Mapping]] = ..., drop_stmt: _Optional[_Union[DropStmt, _Mapping]] = ..., truncate_stmt: _Optional[_Union[TruncateStmt, _Mapping]] = ..., comment_stmt: _Optional[_Union[CommentStmt, _Mapping]] = ..., sec_label_stmt: _Optional[_Union[SecLabelStmt, _Mapping]] = ..., declare_cursor_stmt: _Optional[_Union[DeclareCursorStmt, _Mapping]] = ..., close_portal_stmt: _Optional[_Union[ClosePortalStmt, _Mapping]] = ..., fetch_stmt: _Optional[_Union[FetchStmt, _Mapping]] = ..., index_stmt: _Optional[_Union[IndexStmt, _Mapping]] = ..., create_stats_stmt: _Optional[_Union[CreateStatsStmt, _Mapping]] = ..., stats_elem: _Optional[_Union[StatsElem, _Mapping]] = ..., alter_stats_stmt: _Optional[_Union[AlterStatsStmt, _Mapping]] = ..., create_function_stmt: _Optional[_Union[CreateFunctionStmt, _Mapping]] = ..., function_parameter: _Optional[_Union[FunctionParameter, _Mapping]] = ..., alter_function_stmt: _Optional[_Union[AlterFunctionStmt, _Mapping]] = ..., do_stmt: _Optional[_Union[DoStmt, _Mapping]] = ..., inline_code_block: _Optional[_Union[InlineCodeBlock, _Mapping]] = ..., call_stmt: _Optional[_Union[CallStmt, _Mapping]] = ..., call_context: _Optional[_Union[CallContext, _Mapping]] = ..., rename_stmt: _Optional[_Union[RenameStmt, _Mapping]] = ..., alter_object_depends_stmt: _Optional[_Union[AlterObjectDependsStmt, _Mapping]] = ..., alter_object_schema_stmt: _Optional[_Union[AlterObjectSchemaStmt, _Mapping]] = ..., alter_owner_stmt: _Optional[_Union[AlterOwnerStmt, _Mapping]] = ..., alter_operator_stmt: _Optional[_Union[AlterOperatorStmt, _Mapping]] = ..., alter_type_stmt: _Optional[_Union[AlterTypeStmt, _Mapping]] = ..., rule_stmt: _Optional[_Union[RuleStmt, _Mapping]] = ..., notify_stmt: _Optional[_Union[NotifyStmt, _Mapping]] = ..., listen_stmt: _Optional[_Union[ListenStmt, _Mapping]] = ..., unlisten_stmt: _Optional[_Union[UnlistenStmt, _Mapping]] = ..., transaction_stmt: _Optional[_Union[TransactionStmt, _Mapping]] = ..., composite_type_stmt: _Optional[_Union[CompositeTypeStmt, _Mapping]] = ..., create_enum_stmt: _Optional[_Union[CreateEnumStmt, _Mapping]] = ..., create_range_stmt: _Optional[_Union[CreateRangeStmt, _Mapping]] = ..., alter_enum_stmt: _Optional[_Union[AlterEnumStmt, _Mapping]] = ..., view_stmt: _Optional[_Union[ViewStmt, _Mapping]] = ..., load_stmt: _Optional[_Union[LoadStmt, _Mapping]] = ..., createdb_stmt: _Optional[_Union[CreatedbStmt, _Mapping]] = ..., alter_database_stmt: _Optional[_Union[AlterDatabaseStmt, _Mapping]] = ..., alter_database_refresh_coll_stmt: _Optional[_Union[AlterDatabaseRefreshCollStmt, _Mapping]] = ..., alter_database_set_stmt: _Optional[_Union[AlterDatabaseSetStmt, _Mapping]] = ..., dropdb_stmt: _Optional[_Union[DropdbStmt, _Mapping]] = ..., alter_system_stmt: _Optional[_Union[AlterSystemStmt, _Mapping]] = ..., cluster_stmt: _Optional[_Union[ClusterStmt, _Mapping]] = ..., vacuum_stmt: _Optional[_Union[VacuumStmt, _Mapping]] = ..., vacuum_relation: _Optional[_Union[VacuumRelation, _Mapping]] = ..., explain_stmt: _Optional[_Union[ExplainStmt, _Mapping]] = ..., create_table_as_stmt: _Optional[_Union[CreateTableAsStmt, _Mapping]] = ..., refresh_mat_view_stmt: _Optional[_Union[RefreshMatViewStmt, _Mapping]] = ..., check_point_stmt: _Optional[_Union[CheckPointStmt, _Mapping]] = ..., discard_stmt: _Optional[_Union[DiscardStmt, _Mapping]] = ..., lock_stmt: _Optional[_Union[LockStmt, _Mapping]] = ..., constraints_set_stmt: _Optional[_Union[ConstraintsSetStmt, _Mapping]] = ..., reindex_stmt: _Optional[_Union[ReindexStmt, _Mapping]] = ..., create_conversion_stmt: _Optional[_Union[CreateConversionStmt, _Mapping]] = ..., create_cast_stmt: _Optional[_Union[CreateCastStmt, _Mapping]] = ..., create_transform_stmt: _Optional[_Union[CreateTransformStmt, _Mapping]] = ..., prepare_stmt: _Optional[_Union[PrepareStmt, _Mapping]] = ..., execute_stmt: _Optional[_Union[ExecuteStmt, _Mapping]] = ..., deallocate_stmt: _Optional[_Union[DeallocateStmt, _Mapping]] = ..., drop_owned_stmt: _Optional[_Union[DropOwnedStmt, _Mapping]] = ..., reassign_owned_stmt: _Optional[_Union[ReassignOwnedStmt, _Mapping]] = ..., alter_tsdictionary_stmt: _Optional[_Union[AlterTSDictionaryStmt, _Mapping]] = ..., alter_tsconfiguration_stmt: _Optional[_Union[AlterTSConfigurationStmt, _Mapping]] = ..., publication_table: _Optional[_Union[PublicationTable, _Mapping]] = ..., publication_obj_spec: _Optional[_Union[PublicationObjSpec, _Mapping]] = ..., create_publication_stmt: _Optional[_Union[CreatePublicationStmt, _Mapping]] = ..., alter_publication_stmt: _Optional[_Union[AlterPublicationStmt, _Mapping]] = ..., create_subscription_stmt: _Optional[_Union[CreateSubscriptionStmt, _Mapping]] = ..., alter_subscription_stmt: _Optional[_Union[AlterSubscriptionStmt, _Mapping]] = ..., drop_subscription_stmt: _Optional[_Union[DropSubscriptionStmt, _Mapping]] = ..., integer: _Optional[_Union[Integer, _Mapping]] = ..., float: _Optional[_Union[Float, _Mapping]] = ..., boolean: _Optional[_Union[Boolean, _Mapping]] = ..., string: _Optional[_Union[String, _Mapping]] = ..., bit_string: _Optional[_Union[BitString, _Mapping]] = ..., list: _Optional[_Union[List, _Mapping]] = ..., int_list: _Optional[_Union[IntList, _Mapping]] = ..., oid_list: _Optional[_Union[OidList, _Mapping]] = ..., a_const: _Optional[_Union[A_Const, _Mapping]] = ...) -> None: ...
 
 class Integer(_message.Message):
     __slots__ = ("ival",)
@@ -3053,12 +3097,12 @@ class IntoClause(_message.Message):
     options: _containers.RepeatedCompositeFieldContainer[Node]
     on_commit: OnCommitAction
     table_space_name: str
-    view_query: Node
+    view_query: Query
     skip_data: bool
-    def __init__(self, rel: _Optional[_Union[RangeVar, _Mapping]] = ..., col_names: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., access_method: _Optional[str] = ..., options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., on_commit: _Optional[_Union[OnCommitAction, str]] = ..., table_space_name: _Optional[str] = ..., view_query: _Optional[_Union[Node, _Mapping]] = ..., skip_data: bool = ...) -> None: ...
+    def __init__(self, rel: _Optional[_Union[RangeVar, _Mapping]] = ..., col_names: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., access_method: _Optional[str] = ..., options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., on_commit: _Optional[_Union[OnCommitAction, str]] = ..., table_space_name: _Optional[str] = ..., view_query: _Optional[_Union[Query, _Mapping]] = ..., skip_data: bool = ...) -> None: ...
 
 class Var(_message.Message):
-    __slots__ = ("xpr", "varno", "varattno", "vartype", "vartypmod", "varcollid", "varnullingrels", "varlevelsup", "location")
+    __slots__ = ("xpr", "varno", "varattno", "vartype", "vartypmod", "varcollid", "varnullingrels", "varlevelsup", "varreturningtype", "location")
     XPR_FIELD_NUMBER: _ClassVar[int]
     VARNO_FIELD_NUMBER: _ClassVar[int]
     VARATTNO_FIELD_NUMBER: _ClassVar[int]
@@ -3067,6 +3111,7 @@ class Var(_message.Message):
     VARCOLLID_FIELD_NUMBER: _ClassVar[int]
     VARNULLINGRELS_FIELD_NUMBER: _ClassVar[int]
     VARLEVELSUP_FIELD_NUMBER: _ClassVar[int]
+    VARRETURNINGTYPE_FIELD_NUMBER: _ClassVar[int]
     LOCATION_FIELD_NUMBER: _ClassVar[int]
     xpr: Node
     varno: int
@@ -3076,8 +3121,9 @@ class Var(_message.Message):
     varcollid: int
     varnullingrels: _containers.RepeatedScalarFieldContainer[int]
     varlevelsup: int
+    varreturningtype: VarReturningType
     location: int
-    def __init__(self, xpr: _Optional[_Union[Node, _Mapping]] = ..., varno: _Optional[int] = ..., varattno: _Optional[int] = ..., vartype: _Optional[int] = ..., vartypmod: _Optional[int] = ..., varcollid: _Optional[int] = ..., varnullingrels: _Optional[_Iterable[int]] = ..., varlevelsup: _Optional[int] = ..., location: _Optional[int] = ...) -> None: ...
+    def __init__(self, xpr: _Optional[_Union[Node, _Mapping]] = ..., varno: _Optional[int] = ..., varattno: _Optional[int] = ..., vartype: _Optional[int] = ..., vartypmod: _Optional[int] = ..., varcollid: _Optional[int] = ..., varnullingrels: _Optional[_Iterable[int]] = ..., varlevelsup: _Optional[int] = ..., varreturningtype: _Optional[_Union[VarReturningType, str]] = ..., location: _Optional[int] = ...) -> None: ...
 
 class Param(_message.Message):
     __slots__ = ("xpr", "paramkind", "paramid", "paramtype", "paramtypmod", "paramcollid", "location")
@@ -3574,13 +3620,15 @@ class CaseTestExpr(_message.Message):
     def __init__(self, xpr: _Optional[_Union[Node, _Mapping]] = ..., type_id: _Optional[int] = ..., type_mod: _Optional[int] = ..., collation: _Optional[int] = ...) -> None: ...
 
 class ArrayExpr(_message.Message):
-    __slots__ = ("xpr", "array_typeid", "array_collid", "element_typeid", "elements", "multidims", "location")
+    __slots__ = ("xpr", "array_typeid", "array_collid", "element_typeid", "elements", "multidims", "list_start", "list_end", "location")
     XPR_FIELD_NUMBER: _ClassVar[int]
     ARRAY_TYPEID_FIELD_NUMBER: _ClassVar[int]
     ARRAY_COLLID_FIELD_NUMBER: _ClassVar[int]
     ELEMENT_TYPEID_FIELD_NUMBER: _ClassVar[int]
     ELEMENTS_FIELD_NUMBER: _ClassVar[int]
     MULTIDIMS_FIELD_NUMBER: _ClassVar[int]
+    LIST_START_FIELD_NUMBER: _ClassVar[int]
+    LIST_END_FIELD_NUMBER: _ClassVar[int]
     LOCATION_FIELD_NUMBER: _ClassVar[int]
     xpr: Node
     array_typeid: int
@@ -3588,8 +3636,10 @@ class ArrayExpr(_message.Message):
     element_typeid: int
     elements: _containers.RepeatedCompositeFieldContainer[Node]
     multidims: bool
+    list_start: int
+    list_end: int
     location: int
-    def __init__(self, xpr: _Optional[_Union[Node, _Mapping]] = ..., array_typeid: _Optional[int] = ..., array_collid: _Optional[int] = ..., element_typeid: _Optional[int] = ..., elements: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., multidims: bool = ..., location: _Optional[int] = ...) -> None: ...
+    def __init__(self, xpr: _Optional[_Union[Node, _Mapping]] = ..., array_typeid: _Optional[int] = ..., array_collid: _Optional[int] = ..., element_typeid: _Optional[int] = ..., elements: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., multidims: bool = ..., list_start: _Optional[int] = ..., list_end: _Optional[int] = ..., location: _Optional[int] = ...) -> None: ...
 
 class RowExpr(_message.Message):
     __slots__ = ("xpr", "args", "row_typeid", "row_format", "colnames", "location")
@@ -3608,22 +3658,22 @@ class RowExpr(_message.Message):
     def __init__(self, xpr: _Optional[_Union[Node, _Mapping]] = ..., args: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., row_typeid: _Optional[int] = ..., row_format: _Optional[_Union[CoercionForm, str]] = ..., colnames: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., location: _Optional[int] = ...) -> None: ...
 
 class RowCompareExpr(_message.Message):
-    __slots__ = ("xpr", "rctype", "opnos", "opfamilies", "inputcollids", "largs", "rargs")
+    __slots__ = ("xpr", "cmptype", "opnos", "opfamilies", "inputcollids", "largs", "rargs")
     XPR_FIELD_NUMBER: _ClassVar[int]
-    RCTYPE_FIELD_NUMBER: _ClassVar[int]
+    CMPTYPE_FIELD_NUMBER: _ClassVar[int]
     OPNOS_FIELD_NUMBER: _ClassVar[int]
     OPFAMILIES_FIELD_NUMBER: _ClassVar[int]
     INPUTCOLLIDS_FIELD_NUMBER: _ClassVar[int]
     LARGS_FIELD_NUMBER: _ClassVar[int]
     RARGS_FIELD_NUMBER: _ClassVar[int]
     xpr: Node
-    rctype: RowCompareType
+    cmptype: CompareType
     opnos: _containers.RepeatedCompositeFieldContainer[Node]
     opfamilies: _containers.RepeatedCompositeFieldContainer[Node]
     inputcollids: _containers.RepeatedCompositeFieldContainer[Node]
     largs: _containers.RepeatedCompositeFieldContainer[Node]
     rargs: _containers.RepeatedCompositeFieldContainer[Node]
-    def __init__(self, xpr: _Optional[_Union[Node, _Mapping]] = ..., rctype: _Optional[_Union[RowCompareType, str]] = ..., opnos: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., opfamilies: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., inputcollids: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., largs: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., rargs: _Optional[_Iterable[_Union[Node, _Mapping]]] = ...) -> None: ...
+    def __init__(self, xpr: _Optional[_Union[Node, _Mapping]] = ..., cmptype: _Optional[_Union[CompareType, str]] = ..., opnos: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., opfamilies: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., inputcollids: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., largs: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., rargs: _Optional[_Iterable[_Union[Node, _Mapping]]] = ...) -> None: ...
 
 class CoalesceExpr(_message.Message):
     __slots__ = ("xpr", "coalescetype", "coalescecollid", "args", "location")
@@ -3967,6 +4017,18 @@ class InferenceElem(_message.Message):
     inferopclass: int
     def __init__(self, xpr: _Optional[_Union[Node, _Mapping]] = ..., expr: _Optional[_Union[Node, _Mapping]] = ..., infercollid: _Optional[int] = ..., inferopclass: _Optional[int] = ...) -> None: ...
 
+class ReturningExpr(_message.Message):
+    __slots__ = ("xpr", "retlevelsup", "retold", "retexpr")
+    XPR_FIELD_NUMBER: _ClassVar[int]
+    RETLEVELSUP_FIELD_NUMBER: _ClassVar[int]
+    RETOLD_FIELD_NUMBER: _ClassVar[int]
+    RETEXPR_FIELD_NUMBER: _ClassVar[int]
+    xpr: Node
+    retlevelsup: int
+    retold: bool
+    retexpr: Node
+    def __init__(self, xpr: _Optional[_Union[Node, _Mapping]] = ..., retlevelsup: _Optional[int] = ..., retold: bool = ..., retexpr: _Optional[_Union[Node, _Mapping]] = ...) -> None: ...
+
 class TargetEntry(_message.Message):
     __slots__ = ("xpr", "expr", "resno", "resname", "ressortgroupref", "resorigtbl", "resorigcol", "resjunk")
     XPR_FIELD_NUMBER: _ClassVar[int]
@@ -4044,7 +4106,7 @@ class OnConflictExpr(_message.Message):
     def __init__(self, action: _Optional[_Union[OnConflictAction, str]] = ..., arbiter_elems: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., arbiter_where: _Optional[_Union[Node, _Mapping]] = ..., constraint: _Optional[int] = ..., on_conflict_set: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., on_conflict_where: _Optional[_Union[Node, _Mapping]] = ..., excl_rel_index: _Optional[int] = ..., excl_rel_tlist: _Optional[_Iterable[_Union[Node, _Mapping]]] = ...) -> None: ...
 
 class Query(_message.Message):
-    __slots__ = ("command_type", "query_source", "can_set_tag", "utility_stmt", "result_relation", "has_aggs", "has_window_funcs", "has_target_srfs", "has_sub_links", "has_distinct_on", "has_recursive", "has_modifying_cte", "has_for_update", "has_row_security", "is_return", "cte_list", "rtable", "rteperminfos", "jointree", "merge_action_list", "merge_target_relation", "merge_join_condition", "target_list", "override", "on_conflict", "returning_list", "group_clause", "group_distinct", "grouping_sets", "having_qual", "window_clause", "distinct_clause", "sort_clause", "limit_offset", "limit_count", "limit_option", "row_marks", "set_operations", "constraint_deps", "with_check_options", "stmt_location", "stmt_len")
+    __slots__ = ("command_type", "query_source", "can_set_tag", "utility_stmt", "result_relation", "has_aggs", "has_window_funcs", "has_target_srfs", "has_sub_links", "has_distinct_on", "has_recursive", "has_modifying_cte", "has_for_update", "has_row_security", "has_group_rte", "is_return", "cte_list", "rtable", "rteperminfos", "jointree", "merge_action_list", "merge_target_relation", "merge_join_condition", "target_list", "override", "on_conflict", "returning_old_alias", "returning_new_alias", "returning_list", "group_clause", "group_distinct", "grouping_sets", "having_qual", "window_clause", "distinct_clause", "sort_clause", "limit_offset", "limit_count", "limit_option", "row_marks", "set_operations", "constraint_deps", "with_check_options", "stmt_location", "stmt_len")
     COMMAND_TYPE_FIELD_NUMBER: _ClassVar[int]
     QUERY_SOURCE_FIELD_NUMBER: _ClassVar[int]
     CAN_SET_TAG_FIELD_NUMBER: _ClassVar[int]
@@ -4059,6 +4121,7 @@ class Query(_message.Message):
     HAS_MODIFYING_CTE_FIELD_NUMBER: _ClassVar[int]
     HAS_FOR_UPDATE_FIELD_NUMBER: _ClassVar[int]
     HAS_ROW_SECURITY_FIELD_NUMBER: _ClassVar[int]
+    HAS_GROUP_RTE_FIELD_NUMBER: _ClassVar[int]
     IS_RETURN_FIELD_NUMBER: _ClassVar[int]
     CTE_LIST_FIELD_NUMBER: _ClassVar[int]
     RTABLE_FIELD_NUMBER: _ClassVar[int]
@@ -4070,6 +4133,8 @@ class Query(_message.Message):
     TARGET_LIST_FIELD_NUMBER: _ClassVar[int]
     OVERRIDE_FIELD_NUMBER: _ClassVar[int]
     ON_CONFLICT_FIELD_NUMBER: _ClassVar[int]
+    RETURNING_OLD_ALIAS_FIELD_NUMBER: _ClassVar[int]
+    RETURNING_NEW_ALIAS_FIELD_NUMBER: _ClassVar[int]
     RETURNING_LIST_FIELD_NUMBER: _ClassVar[int]
     GROUP_CLAUSE_FIELD_NUMBER: _ClassVar[int]
     GROUP_DISTINCT_FIELD_NUMBER: _ClassVar[int]
@@ -4101,6 +4166,7 @@ class Query(_message.Message):
     has_modifying_cte: bool
     has_for_update: bool
     has_row_security: bool
+    has_group_rte: bool
     is_return: bool
     cte_list: _containers.RepeatedCompositeFieldContainer[Node]
     rtable: _containers.RepeatedCompositeFieldContainer[Node]
@@ -4112,6 +4178,8 @@ class Query(_message.Message):
     target_list: _containers.RepeatedCompositeFieldContainer[Node]
     override: OverridingKind
     on_conflict: OnConflictExpr
+    returning_old_alias: str
+    returning_new_alias: str
     returning_list: _containers.RepeatedCompositeFieldContainer[Node]
     group_clause: _containers.RepeatedCompositeFieldContainer[Node]
     group_distinct: bool
@@ -4129,7 +4197,7 @@ class Query(_message.Message):
     with_check_options: _containers.RepeatedCompositeFieldContainer[Node]
     stmt_location: int
     stmt_len: int
-    def __init__(self, command_type: _Optional[_Union[CmdType, str]] = ..., query_source: _Optional[_Union[QuerySource, str]] = ..., can_set_tag: bool = ..., utility_stmt: _Optional[_Union[Node, _Mapping]] = ..., result_relation: _Optional[int] = ..., has_aggs: bool = ..., has_window_funcs: bool = ..., has_target_srfs: bool = ..., has_sub_links: bool = ..., has_distinct_on: bool = ..., has_recursive: bool = ..., has_modifying_cte: bool = ..., has_for_update: bool = ..., has_row_security: bool = ..., is_return: bool = ..., cte_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., rtable: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., rteperminfos: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., jointree: _Optional[_Union[FromExpr, _Mapping]] = ..., merge_action_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., merge_target_relation: _Optional[int] = ..., merge_join_condition: _Optional[_Union[Node, _Mapping]] = ..., target_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., override: _Optional[_Union[OverridingKind, str]] = ..., on_conflict: _Optional[_Union[OnConflictExpr, _Mapping]] = ..., returning_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., group_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., group_distinct: bool = ..., grouping_sets: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., having_qual: _Optional[_Union[Node, _Mapping]] = ..., window_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., distinct_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., sort_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., limit_offset: _Optional[_Union[Node, _Mapping]] = ..., limit_count: _Optional[_Union[Node, _Mapping]] = ..., limit_option: _Optional[_Union[LimitOption, str]] = ..., row_marks: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., set_operations: _Optional[_Union[Node, _Mapping]] = ..., constraint_deps: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., with_check_options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., stmt_location: _Optional[int] = ..., stmt_len: _Optional[int] = ...) -> None: ...
+    def __init__(self, command_type: _Optional[_Union[CmdType, str]] = ..., query_source: _Optional[_Union[QuerySource, str]] = ..., can_set_tag: bool = ..., utility_stmt: _Optional[_Union[Node, _Mapping]] = ..., result_relation: _Optional[int] = ..., has_aggs: bool = ..., has_window_funcs: bool = ..., has_target_srfs: bool = ..., has_sub_links: bool = ..., has_distinct_on: bool = ..., has_recursive: bool = ..., has_modifying_cte: bool = ..., has_for_update: bool = ..., has_row_security: bool = ..., has_group_rte: bool = ..., is_return: bool = ..., cte_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., rtable: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., rteperminfos: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., jointree: _Optional[_Union[FromExpr, _Mapping]] = ..., merge_action_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., merge_target_relation: _Optional[int] = ..., merge_join_condition: _Optional[_Union[Node, _Mapping]] = ..., target_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., override: _Optional[_Union[OverridingKind, str]] = ..., on_conflict: _Optional[_Union[OnConflictExpr, _Mapping]] = ..., returning_old_alias: _Optional[str] = ..., returning_new_alias: _Optional[str] = ..., returning_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., group_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., group_distinct: bool = ..., grouping_sets: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., having_qual: _Optional[_Union[Node, _Mapping]] = ..., window_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., distinct_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., sort_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., limit_offset: _Optional[_Union[Node, _Mapping]] = ..., limit_count: _Optional[_Union[Node, _Mapping]] = ..., limit_option: _Optional[_Union[LimitOption, str]] = ..., row_marks: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., set_operations: _Optional[_Union[Node, _Mapping]] = ..., constraint_deps: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., with_check_options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., stmt_location: _Optional[int] = ..., stmt_len: _Optional[int] = ...) -> None: ...
 
 class TypeName(_message.Message):
     __slots__ = ("names", "type_oid", "setof", "pct_type", "typmods", "typemod", "array_bounds", "location")
@@ -4168,18 +4236,22 @@ class ParamRef(_message.Message):
     def __init__(self, number: _Optional[int] = ..., location: _Optional[int] = ...) -> None: ...
 
 class A_Expr(_message.Message):
-    __slots__ = ("kind", "name", "lexpr", "rexpr", "location")
+    __slots__ = ("kind", "name", "lexpr", "rexpr", "rexpr_list_start", "rexpr_list_end", "location")
     KIND_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     LEXPR_FIELD_NUMBER: _ClassVar[int]
     REXPR_FIELD_NUMBER: _ClassVar[int]
+    REXPR_LIST_START_FIELD_NUMBER: _ClassVar[int]
+    REXPR_LIST_END_FIELD_NUMBER: _ClassVar[int]
     LOCATION_FIELD_NUMBER: _ClassVar[int]
     kind: A_Expr_Kind
     name: _containers.RepeatedCompositeFieldContainer[Node]
     lexpr: Node
     rexpr: Node
+    rexpr_list_start: int
+    rexpr_list_end: int
     location: int
-    def __init__(self, kind: _Optional[_Union[A_Expr_Kind, str]] = ..., name: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., lexpr: _Optional[_Union[Node, _Mapping]] = ..., rexpr: _Optional[_Union[Node, _Mapping]] = ..., location: _Optional[int] = ...) -> None: ...
+    def __init__(self, kind: _Optional[_Union[A_Expr_Kind, str]] = ..., name: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., lexpr: _Optional[_Union[Node, _Mapping]] = ..., rexpr: _Optional[_Union[Node, _Mapping]] = ..., rexpr_list_start: _Optional[int] = ..., rexpr_list_end: _Optional[int] = ..., location: _Optional[int] = ...) -> None: ...
 
 class TypeCast(_message.Message):
     __slots__ = ("arg", "type_name", "location")
@@ -4260,12 +4332,16 @@ class A_Indirection(_message.Message):
     def __init__(self, arg: _Optional[_Union[Node, _Mapping]] = ..., indirection: _Optional[_Iterable[_Union[Node, _Mapping]]] = ...) -> None: ...
 
 class A_ArrayExpr(_message.Message):
-    __slots__ = ("elements", "location")
+    __slots__ = ("elements", "list_start", "list_end", "location")
     ELEMENTS_FIELD_NUMBER: _ClassVar[int]
+    LIST_START_FIELD_NUMBER: _ClassVar[int]
+    LIST_END_FIELD_NUMBER: _ClassVar[int]
     LOCATION_FIELD_NUMBER: _ClassVar[int]
     elements: _containers.RepeatedCompositeFieldContainer[Node]
+    list_start: int
+    list_end: int
     location: int
-    def __init__(self, elements: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., location: _Optional[int] = ...) -> None: ...
+    def __init__(self, elements: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., list_start: _Optional[int] = ..., list_end: _Optional[int] = ..., location: _Optional[int] = ...) -> None: ...
 
 class ResTarget(_message.Message):
     __slots__ = ("name", "indirection", "val", "location")
@@ -4563,10 +4639,6 @@ class PartitionRangeDatum(_message.Message):
     location: int
     def __init__(self, kind: _Optional[_Union[PartitionRangeDatumKind, str]] = ..., value: _Optional[_Union[Node, _Mapping]] = ..., location: _Optional[int] = ...) -> None: ...
 
-class SinglePartitionSpec(_message.Message):
-    __slots__ = ()
-    def __init__(self) -> None: ...
-
 class PartitionCmd(_message.Message):
     __slots__ = ("name", "bound", "concurrent")
     NAME_FIELD_NUMBER: _ClassVar[int]
@@ -4578,7 +4650,7 @@ class PartitionCmd(_message.Message):
     def __init__(self, name: _Optional[_Union[RangeVar, _Mapping]] = ..., bound: _Optional[_Union[PartitionBoundSpec, _Mapping]] = ..., concurrent: bool = ...) -> None: ...
 
 class RangeTblEntry(_message.Message):
-    __slots__ = ("alias", "eref", "rtekind", "relid", "inh", "relkind", "rellockmode", "perminfoindex", "tablesample", "subquery", "security_barrier", "jointype", "joinmergedcols", "joinaliasvars", "joinleftcols", "joinrightcols", "join_using_alias", "functions", "funcordinality", "tablefunc", "values_lists", "ctename", "ctelevelsup", "self_reference", "coltypes", "coltypmods", "colcollations", "enrname", "enrtuples", "lateral", "in_from_cl", "security_quals")
+    __slots__ = ("alias", "eref", "rtekind", "relid", "inh", "relkind", "rellockmode", "perminfoindex", "tablesample", "subquery", "security_barrier", "jointype", "joinmergedcols", "joinaliasvars", "joinleftcols", "joinrightcols", "join_using_alias", "functions", "funcordinality", "tablefunc", "values_lists", "ctename", "ctelevelsup", "self_reference", "coltypes", "coltypmods", "colcollations", "enrname", "enrtuples", "groupexprs", "lateral", "in_from_cl", "security_quals")
     ALIAS_FIELD_NUMBER: _ClassVar[int]
     EREF_FIELD_NUMBER: _ClassVar[int]
     RTEKIND_FIELD_NUMBER: _ClassVar[int]
@@ -4608,6 +4680,7 @@ class RangeTblEntry(_message.Message):
     COLCOLLATIONS_FIELD_NUMBER: _ClassVar[int]
     ENRNAME_FIELD_NUMBER: _ClassVar[int]
     ENRTUPLES_FIELD_NUMBER: _ClassVar[int]
+    GROUPEXPRS_FIELD_NUMBER: _ClassVar[int]
     LATERAL_FIELD_NUMBER: _ClassVar[int]
     IN_FROM_CL_FIELD_NUMBER: _ClassVar[int]
     SECURITY_QUALS_FIELD_NUMBER: _ClassVar[int]
@@ -4640,10 +4713,11 @@ class RangeTblEntry(_message.Message):
     colcollations: _containers.RepeatedCompositeFieldContainer[Node]
     enrname: str
     enrtuples: float
+    groupexprs: _containers.RepeatedCompositeFieldContainer[Node]
     lateral: bool
     in_from_cl: bool
     security_quals: _containers.RepeatedCompositeFieldContainer[Node]
-    def __init__(self, alias: _Optional[_Union[Alias, _Mapping]] = ..., eref: _Optional[_Union[Alias, _Mapping]] = ..., rtekind: _Optional[_Union[RTEKind, str]] = ..., relid: _Optional[int] = ..., inh: bool = ..., relkind: _Optional[str] = ..., rellockmode: _Optional[int] = ..., perminfoindex: _Optional[int] = ..., tablesample: _Optional[_Union[TableSampleClause, _Mapping]] = ..., subquery: _Optional[_Union[Query, _Mapping]] = ..., security_barrier: bool = ..., jointype: _Optional[_Union[JoinType, str]] = ..., joinmergedcols: _Optional[int] = ..., joinaliasvars: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., joinleftcols: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., joinrightcols: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., join_using_alias: _Optional[_Union[Alias, _Mapping]] = ..., functions: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., funcordinality: bool = ..., tablefunc: _Optional[_Union[TableFunc, _Mapping]] = ..., values_lists: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., ctename: _Optional[str] = ..., ctelevelsup: _Optional[int] = ..., self_reference: bool = ..., coltypes: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., coltypmods: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., colcollations: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., enrname: _Optional[str] = ..., enrtuples: _Optional[float] = ..., lateral: bool = ..., in_from_cl: bool = ..., security_quals: _Optional[_Iterable[_Union[Node, _Mapping]]] = ...) -> None: ...
+    def __init__(self, alias: _Optional[_Union[Alias, _Mapping]] = ..., eref: _Optional[_Union[Alias, _Mapping]] = ..., rtekind: _Optional[_Union[RTEKind, str]] = ..., relid: _Optional[int] = ..., inh: bool = ..., relkind: _Optional[str] = ..., rellockmode: _Optional[int] = ..., perminfoindex: _Optional[int] = ..., tablesample: _Optional[_Union[TableSampleClause, _Mapping]] = ..., subquery: _Optional[_Union[Query, _Mapping]] = ..., security_barrier: bool = ..., jointype: _Optional[_Union[JoinType, str]] = ..., joinmergedcols: _Optional[int] = ..., joinaliasvars: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., joinleftcols: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., joinrightcols: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., join_using_alias: _Optional[_Union[Alias, _Mapping]] = ..., functions: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., funcordinality: bool = ..., tablefunc: _Optional[_Union[TableFunc, _Mapping]] = ..., values_lists: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., ctename: _Optional[str] = ..., ctelevelsup: _Optional[int] = ..., self_reference: bool = ..., coltypes: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., coltypmods: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., colcollations: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., enrname: _Optional[str] = ..., enrtuples: _Optional[float] = ..., groupexprs: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., lateral: bool = ..., in_from_cl: bool = ..., security_quals: _Optional[_Iterable[_Union[Node, _Mapping]]] = ...) -> None: ...
 
 class RTEPermissionInfo(_message.Message):
     __slots__ = ("relid", "inh", "required_perms", "check_as_user", "selected_cols", "inserted_cols", "updated_cols")
@@ -4706,18 +4780,20 @@ class WithCheckOption(_message.Message):
     def __init__(self, kind: _Optional[_Union[WCOKind, str]] = ..., relname: _Optional[str] = ..., polname: _Optional[str] = ..., qual: _Optional[_Union[Node, _Mapping]] = ..., cascaded: bool = ...) -> None: ...
 
 class SortGroupClause(_message.Message):
-    __slots__ = ("tle_sort_group_ref", "eqop", "sortop", "nulls_first", "hashable")
+    __slots__ = ("tle_sort_group_ref", "eqop", "sortop", "reverse_sort", "nulls_first", "hashable")
     TLE_SORT_GROUP_REF_FIELD_NUMBER: _ClassVar[int]
     EQOP_FIELD_NUMBER: _ClassVar[int]
     SORTOP_FIELD_NUMBER: _ClassVar[int]
+    REVERSE_SORT_FIELD_NUMBER: _ClassVar[int]
     NULLS_FIRST_FIELD_NUMBER: _ClassVar[int]
     HASHABLE_FIELD_NUMBER: _ClassVar[int]
     tle_sort_group_ref: int
     eqop: int
     sortop: int
+    reverse_sort: bool
     nulls_first: bool
     hashable: bool
-    def __init__(self, tle_sort_group_ref: _Optional[int] = ..., eqop: _Optional[int] = ..., sortop: _Optional[int] = ..., nulls_first: bool = ..., hashable: bool = ...) -> None: ...
+    def __init__(self, tle_sort_group_ref: _Optional[int] = ..., eqop: _Optional[int] = ..., sortop: _Optional[int] = ..., reverse_sort: bool = ..., nulls_first: bool = ..., hashable: bool = ...) -> None: ...
 
 class GroupingSet(_message.Message):
     __slots__ = ("kind", "content", "location")
@@ -4890,6 +4966,24 @@ class MergeWhenClause(_message.Message):
     target_list: _containers.RepeatedCompositeFieldContainer[Node]
     values: _containers.RepeatedCompositeFieldContainer[Node]
     def __init__(self, match_kind: _Optional[_Union[MergeMatchKind, str]] = ..., command_type: _Optional[_Union[CmdType, str]] = ..., override: _Optional[_Union[OverridingKind, str]] = ..., condition: _Optional[_Union[Node, _Mapping]] = ..., target_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., values: _Optional[_Iterable[_Union[Node, _Mapping]]] = ...) -> None: ...
+
+class ReturningOption(_message.Message):
+    __slots__ = ("option", "value", "location")
+    OPTION_FIELD_NUMBER: _ClassVar[int]
+    VALUE_FIELD_NUMBER: _ClassVar[int]
+    LOCATION_FIELD_NUMBER: _ClassVar[int]
+    option: ReturningOptionKind
+    value: str
+    location: int
+    def __init__(self, option: _Optional[_Union[ReturningOptionKind, str]] = ..., value: _Optional[str] = ..., location: _Optional[int] = ...) -> None: ...
+
+class ReturningClause(_message.Message):
+    __slots__ = ("options", "exprs")
+    OPTIONS_FIELD_NUMBER: _ClassVar[int]
+    EXPRS_FIELD_NUMBER: _ClassVar[int]
+    options: _containers.RepeatedCompositeFieldContainer[Node]
+    exprs: _containers.RepeatedCompositeFieldContainer[Node]
+    def __init__(self, options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., exprs: _Optional[_Iterable[_Union[Node, _Mapping]]] = ...) -> None: ...
 
 class TriggerTransition(_message.Message):
     __slots__ = ("name", "is_new", "is_table")
@@ -5128,68 +5222,68 @@ class RawStmt(_message.Message):
     def __init__(self, stmt: _Optional[_Union[Node, _Mapping]] = ..., stmt_location: _Optional[int] = ..., stmt_len: _Optional[int] = ...) -> None: ...
 
 class InsertStmt(_message.Message):
-    __slots__ = ("relation", "cols", "select_stmt", "on_conflict_clause", "returning_list", "with_clause", "override")
+    __slots__ = ("relation", "cols", "select_stmt", "on_conflict_clause", "returning_clause", "with_clause", "override")
     RELATION_FIELD_NUMBER: _ClassVar[int]
     COLS_FIELD_NUMBER: _ClassVar[int]
     SELECT_STMT_FIELD_NUMBER: _ClassVar[int]
     ON_CONFLICT_CLAUSE_FIELD_NUMBER: _ClassVar[int]
-    RETURNING_LIST_FIELD_NUMBER: _ClassVar[int]
+    RETURNING_CLAUSE_FIELD_NUMBER: _ClassVar[int]
     WITH_CLAUSE_FIELD_NUMBER: _ClassVar[int]
     OVERRIDE_FIELD_NUMBER: _ClassVar[int]
     relation: RangeVar
     cols: _containers.RepeatedCompositeFieldContainer[Node]
     select_stmt: Node
     on_conflict_clause: OnConflictClause
-    returning_list: _containers.RepeatedCompositeFieldContainer[Node]
+    returning_clause: ReturningClause
     with_clause: WithClause
     override: OverridingKind
-    def __init__(self, relation: _Optional[_Union[RangeVar, _Mapping]] = ..., cols: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., select_stmt: _Optional[_Union[Node, _Mapping]] = ..., on_conflict_clause: _Optional[_Union[OnConflictClause, _Mapping]] = ..., returning_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., with_clause: _Optional[_Union[WithClause, _Mapping]] = ..., override: _Optional[_Union[OverridingKind, str]] = ...) -> None: ...
+    def __init__(self, relation: _Optional[_Union[RangeVar, _Mapping]] = ..., cols: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., select_stmt: _Optional[_Union[Node, _Mapping]] = ..., on_conflict_clause: _Optional[_Union[OnConflictClause, _Mapping]] = ..., returning_clause: _Optional[_Union[ReturningClause, _Mapping]] = ..., with_clause: _Optional[_Union[WithClause, _Mapping]] = ..., override: _Optional[_Union[OverridingKind, str]] = ...) -> None: ...
 
 class DeleteStmt(_message.Message):
-    __slots__ = ("relation", "using_clause", "where_clause", "returning_list", "with_clause")
+    __slots__ = ("relation", "using_clause", "where_clause", "returning_clause", "with_clause")
     RELATION_FIELD_NUMBER: _ClassVar[int]
     USING_CLAUSE_FIELD_NUMBER: _ClassVar[int]
     WHERE_CLAUSE_FIELD_NUMBER: _ClassVar[int]
-    RETURNING_LIST_FIELD_NUMBER: _ClassVar[int]
+    RETURNING_CLAUSE_FIELD_NUMBER: _ClassVar[int]
     WITH_CLAUSE_FIELD_NUMBER: _ClassVar[int]
     relation: RangeVar
     using_clause: _containers.RepeatedCompositeFieldContainer[Node]
     where_clause: Node
-    returning_list: _containers.RepeatedCompositeFieldContainer[Node]
+    returning_clause: ReturningClause
     with_clause: WithClause
-    def __init__(self, relation: _Optional[_Union[RangeVar, _Mapping]] = ..., using_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., where_clause: _Optional[_Union[Node, _Mapping]] = ..., returning_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., with_clause: _Optional[_Union[WithClause, _Mapping]] = ...) -> None: ...
+    def __init__(self, relation: _Optional[_Union[RangeVar, _Mapping]] = ..., using_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., where_clause: _Optional[_Union[Node, _Mapping]] = ..., returning_clause: _Optional[_Union[ReturningClause, _Mapping]] = ..., with_clause: _Optional[_Union[WithClause, _Mapping]] = ...) -> None: ...
 
 class UpdateStmt(_message.Message):
-    __slots__ = ("relation", "target_list", "where_clause", "from_clause", "returning_list", "with_clause")
+    __slots__ = ("relation", "target_list", "where_clause", "from_clause", "returning_clause", "with_clause")
     RELATION_FIELD_NUMBER: _ClassVar[int]
     TARGET_LIST_FIELD_NUMBER: _ClassVar[int]
     WHERE_CLAUSE_FIELD_NUMBER: _ClassVar[int]
     FROM_CLAUSE_FIELD_NUMBER: _ClassVar[int]
-    RETURNING_LIST_FIELD_NUMBER: _ClassVar[int]
+    RETURNING_CLAUSE_FIELD_NUMBER: _ClassVar[int]
     WITH_CLAUSE_FIELD_NUMBER: _ClassVar[int]
     relation: RangeVar
     target_list: _containers.RepeatedCompositeFieldContainer[Node]
     where_clause: Node
     from_clause: _containers.RepeatedCompositeFieldContainer[Node]
-    returning_list: _containers.RepeatedCompositeFieldContainer[Node]
+    returning_clause: ReturningClause
     with_clause: WithClause
-    def __init__(self, relation: _Optional[_Union[RangeVar, _Mapping]] = ..., target_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., where_clause: _Optional[_Union[Node, _Mapping]] = ..., from_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., returning_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., with_clause: _Optional[_Union[WithClause, _Mapping]] = ...) -> None: ...
+    def __init__(self, relation: _Optional[_Union[RangeVar, _Mapping]] = ..., target_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., where_clause: _Optional[_Union[Node, _Mapping]] = ..., from_clause: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., returning_clause: _Optional[_Union[ReturningClause, _Mapping]] = ..., with_clause: _Optional[_Union[WithClause, _Mapping]] = ...) -> None: ...
 
 class MergeStmt(_message.Message):
-    __slots__ = ("relation", "source_relation", "join_condition", "merge_when_clauses", "returning_list", "with_clause")
+    __slots__ = ("relation", "source_relation", "join_condition", "merge_when_clauses", "returning_clause", "with_clause")
     RELATION_FIELD_NUMBER: _ClassVar[int]
     SOURCE_RELATION_FIELD_NUMBER: _ClassVar[int]
     JOIN_CONDITION_FIELD_NUMBER: _ClassVar[int]
     MERGE_WHEN_CLAUSES_FIELD_NUMBER: _ClassVar[int]
-    RETURNING_LIST_FIELD_NUMBER: _ClassVar[int]
+    RETURNING_CLAUSE_FIELD_NUMBER: _ClassVar[int]
     WITH_CLAUSE_FIELD_NUMBER: _ClassVar[int]
     relation: RangeVar
     source_relation: Node
     join_condition: Node
     merge_when_clauses: _containers.RepeatedCompositeFieldContainer[Node]
-    returning_list: _containers.RepeatedCompositeFieldContainer[Node]
+    returning_clause: ReturningClause
     with_clause: WithClause
-    def __init__(self, relation: _Optional[_Union[RangeVar, _Mapping]] = ..., source_relation: _Optional[_Union[Node, _Mapping]] = ..., join_condition: _Optional[_Union[Node, _Mapping]] = ..., merge_when_clauses: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., returning_list: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., with_clause: _Optional[_Union[WithClause, _Mapping]] = ...) -> None: ...
+    def __init__(self, relation: _Optional[_Union[RangeVar, _Mapping]] = ..., source_relation: _Optional[_Union[Node, _Mapping]] = ..., join_condition: _Optional[_Union[Node, _Mapping]] = ..., merge_when_clauses: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., returning_clause: _Optional[_Union[ReturningClause, _Mapping]] = ..., with_clause: _Optional[_Union[WithClause, _Mapping]] = ...) -> None: ...
 
 class SelectStmt(_message.Message):
     __slots__ = ("distinct_clause", "into_clause", "target_list", "from_clause", "where_clause", "group_clause", "group_distinct", "having_clause", "window_clause", "values_lists", "sort_clause", "limit_offset", "limit_count", "limit_option", "locking_clause", "with_clause", "op", "all", "larg", "rarg")
@@ -5299,14 +5393,6 @@ class AlterTableStmt(_message.Message):
     missing_ok: bool
     def __init__(self, relation: _Optional[_Union[RangeVar, _Mapping]] = ..., cmds: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., objtype: _Optional[_Union[ObjectType, str]] = ..., missing_ok: bool = ...) -> None: ...
 
-class ReplicaIdentityStmt(_message.Message):
-    __slots__ = ("identity_type", "name")
-    IDENTITY_TYPE_FIELD_NUMBER: _ClassVar[int]
-    NAME_FIELD_NUMBER: _ClassVar[int]
-    identity_type: str
-    name: str
-    def __init__(self, identity_type: _Optional[str] = ..., name: _Optional[str] = ...) -> None: ...
-
 class AlterTableCmd(_message.Message):
     __slots__ = ("subtype", "name", "num", "newowner", "behavior", "missing_ok", "recurse")
     SUBTYPE_FIELD_NUMBER: _ClassVar[int]
@@ -5325,6 +5411,34 @@ class AlterTableCmd(_message.Message):
     missing_ok: bool
     recurse: bool
     def __init__(self, subtype: _Optional[_Union[AlterTableType, str]] = ..., name: _Optional[str] = ..., num: _Optional[int] = ..., newowner: _Optional[_Union[RoleSpec, _Mapping]] = ..., behavior: _Optional[_Union[DropBehavior, str]] = ..., missing_ok: bool = ..., recurse: bool = ..., **kwargs) -> None: ...
+
+class ATAlterConstraint(_message.Message):
+    __slots__ = ("conname", "alter_enforceability", "is_enforced", "alter_deferrability", "deferrable", "initdeferred", "alter_inheritability", "noinherit")
+    CONNAME_FIELD_NUMBER: _ClassVar[int]
+    ALTER_ENFORCEABILITY_FIELD_NUMBER: _ClassVar[int]
+    IS_ENFORCED_FIELD_NUMBER: _ClassVar[int]
+    ALTER_DEFERRABILITY_FIELD_NUMBER: _ClassVar[int]
+    DEFERRABLE_FIELD_NUMBER: _ClassVar[int]
+    INITDEFERRED_FIELD_NUMBER: _ClassVar[int]
+    ALTER_INHERITABILITY_FIELD_NUMBER: _ClassVar[int]
+    NOINHERIT_FIELD_NUMBER: _ClassVar[int]
+    conname: str
+    alter_enforceability: bool
+    is_enforced: bool
+    alter_deferrability: bool
+    deferrable: bool
+    initdeferred: bool
+    alter_inheritability: bool
+    noinherit: bool
+    def __init__(self, conname: _Optional[str] = ..., alter_enforceability: bool = ..., is_enforced: bool = ..., alter_deferrability: bool = ..., deferrable: bool = ..., initdeferred: bool = ..., alter_inheritability: bool = ..., noinherit: bool = ...) -> None: ...
+
+class ReplicaIdentityStmt(_message.Message):
+    __slots__ = ("identity_type", "name")
+    IDENTITY_TYPE_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    identity_type: str
+    name: str
+    def __init__(self, identity_type: _Optional[str] = ..., name: _Optional[str] = ...) -> None: ...
 
 class AlterCollationStmt(_message.Message):
     __slots__ = ("collname",)
@@ -5434,16 +5548,20 @@ class CopyStmt(_message.Message):
     def __init__(self, relation: _Optional[_Union[RangeVar, _Mapping]] = ..., query: _Optional[_Union[Node, _Mapping]] = ..., attlist: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., is_from: bool = ..., is_program: bool = ..., filename: _Optional[str] = ..., options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., where_clause: _Optional[_Union[Node, _Mapping]] = ...) -> None: ...
 
 class VariableSetStmt(_message.Message):
-    __slots__ = ("kind", "name", "args", "is_local")
+    __slots__ = ("kind", "name", "args", "jumble_args", "is_local", "location")
     KIND_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     ARGS_FIELD_NUMBER: _ClassVar[int]
+    JUMBLE_ARGS_FIELD_NUMBER: _ClassVar[int]
     IS_LOCAL_FIELD_NUMBER: _ClassVar[int]
+    LOCATION_FIELD_NUMBER: _ClassVar[int]
     kind: VariableSetKind
     name: str
     args: _containers.RepeatedCompositeFieldContainer[Node]
+    jumble_args: bool
     is_local: bool
-    def __init__(self, kind: _Optional[_Union[VariableSetKind, str]] = ..., name: _Optional[str] = ..., args: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., is_local: bool = ...) -> None: ...
+    location: int
+    def __init__(self, kind: _Optional[_Union[VariableSetKind, str]] = ..., name: _Optional[str] = ..., args: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., jumble_args: bool = ..., is_local: bool = ..., location: _Optional[int] = ...) -> None: ...
 
 class VariableShowStmt(_message.Message):
     __slots__ = ("name",)
@@ -5452,7 +5570,7 @@ class VariableShowStmt(_message.Message):
     def __init__(self, name: _Optional[str] = ...) -> None: ...
 
 class CreateStmt(_message.Message):
-    __slots__ = ("relation", "table_elts", "inh_relations", "partbound", "partspec", "of_typename", "constraints", "options", "oncommit", "tablespacename", "access_method", "if_not_exists")
+    __slots__ = ("relation", "table_elts", "inh_relations", "partbound", "partspec", "of_typename", "constraints", "nnconstraints", "options", "oncommit", "tablespacename", "access_method", "if_not_exists")
     RELATION_FIELD_NUMBER: _ClassVar[int]
     TABLE_ELTS_FIELD_NUMBER: _ClassVar[int]
     INH_RELATIONS_FIELD_NUMBER: _ClassVar[int]
@@ -5460,6 +5578,7 @@ class CreateStmt(_message.Message):
     PARTSPEC_FIELD_NUMBER: _ClassVar[int]
     OF_TYPENAME_FIELD_NUMBER: _ClassVar[int]
     CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
+    NNCONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
     OPTIONS_FIELD_NUMBER: _ClassVar[int]
     ONCOMMIT_FIELD_NUMBER: _ClassVar[int]
     TABLESPACENAME_FIELD_NUMBER: _ClassVar[int]
@@ -5472,28 +5591,31 @@ class CreateStmt(_message.Message):
     partspec: PartitionSpec
     of_typename: TypeName
     constraints: _containers.RepeatedCompositeFieldContainer[Node]
+    nnconstraints: _containers.RepeatedCompositeFieldContainer[Node]
     options: _containers.RepeatedCompositeFieldContainer[Node]
     oncommit: OnCommitAction
     tablespacename: str
     access_method: str
     if_not_exists: bool
-    def __init__(self, relation: _Optional[_Union[RangeVar, _Mapping]] = ..., table_elts: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., inh_relations: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., partbound: _Optional[_Union[PartitionBoundSpec, _Mapping]] = ..., partspec: _Optional[_Union[PartitionSpec, _Mapping]] = ..., of_typename: _Optional[_Union[TypeName, _Mapping]] = ..., constraints: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., oncommit: _Optional[_Union[OnCommitAction, str]] = ..., tablespacename: _Optional[str] = ..., access_method: _Optional[str] = ..., if_not_exists: bool = ...) -> None: ...
+    def __init__(self, relation: _Optional[_Union[RangeVar, _Mapping]] = ..., table_elts: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., inh_relations: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., partbound: _Optional[_Union[PartitionBoundSpec, _Mapping]] = ..., partspec: _Optional[_Union[PartitionSpec, _Mapping]] = ..., of_typename: _Optional[_Union[TypeName, _Mapping]] = ..., constraints: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., nnconstraints: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., oncommit: _Optional[_Union[OnCommitAction, str]] = ..., tablespacename: _Optional[str] = ..., access_method: _Optional[str] = ..., if_not_exists: bool = ...) -> None: ...
 
 class Constraint(_message.Message):
-    __slots__ = ("contype", "conname", "deferrable", "initdeferred", "skip_validation", "initially_valid", "is_no_inherit", "raw_expr", "cooked_expr", "generated_when", "inhcount", "nulls_not_distinct", "keys", "including", "exclusions", "options", "indexname", "indexspace", "reset_default_tblspc", "access_method", "where_clause", "pktable", "fk_attrs", "pk_attrs", "fk_matchtype", "fk_upd_action", "fk_del_action", "fk_del_set_cols", "old_conpfeqop", "old_pktable_oid", "location")
+    __slots__ = ("contype", "conname", "deferrable", "initdeferred", "is_enforced", "skip_validation", "initially_valid", "is_no_inherit", "raw_expr", "cooked_expr", "generated_when", "generated_kind", "nulls_not_distinct", "keys", "without_overlaps", "including", "exclusions", "options", "indexname", "indexspace", "reset_default_tblspc", "access_method", "where_clause", "pktable", "fk_attrs", "pk_attrs", "fk_with_period", "pk_with_period", "fk_matchtype", "fk_upd_action", "fk_del_action", "fk_del_set_cols", "old_conpfeqop", "old_pktable_oid", "location")
     CONTYPE_FIELD_NUMBER: _ClassVar[int]
     CONNAME_FIELD_NUMBER: _ClassVar[int]
     DEFERRABLE_FIELD_NUMBER: _ClassVar[int]
     INITDEFERRED_FIELD_NUMBER: _ClassVar[int]
+    IS_ENFORCED_FIELD_NUMBER: _ClassVar[int]
     SKIP_VALIDATION_FIELD_NUMBER: _ClassVar[int]
     INITIALLY_VALID_FIELD_NUMBER: _ClassVar[int]
     IS_NO_INHERIT_FIELD_NUMBER: _ClassVar[int]
     RAW_EXPR_FIELD_NUMBER: _ClassVar[int]
     COOKED_EXPR_FIELD_NUMBER: _ClassVar[int]
     GENERATED_WHEN_FIELD_NUMBER: _ClassVar[int]
-    INHCOUNT_FIELD_NUMBER: _ClassVar[int]
+    GENERATED_KIND_FIELD_NUMBER: _ClassVar[int]
     NULLS_NOT_DISTINCT_FIELD_NUMBER: _ClassVar[int]
     KEYS_FIELD_NUMBER: _ClassVar[int]
+    WITHOUT_OVERLAPS_FIELD_NUMBER: _ClassVar[int]
     INCLUDING_FIELD_NUMBER: _ClassVar[int]
     EXCLUSIONS_FIELD_NUMBER: _ClassVar[int]
     OPTIONS_FIELD_NUMBER: _ClassVar[int]
@@ -5505,6 +5627,8 @@ class Constraint(_message.Message):
     PKTABLE_FIELD_NUMBER: _ClassVar[int]
     FK_ATTRS_FIELD_NUMBER: _ClassVar[int]
     PK_ATTRS_FIELD_NUMBER: _ClassVar[int]
+    FK_WITH_PERIOD_FIELD_NUMBER: _ClassVar[int]
+    PK_WITH_PERIOD_FIELD_NUMBER: _ClassVar[int]
     FK_MATCHTYPE_FIELD_NUMBER: _ClassVar[int]
     FK_UPD_ACTION_FIELD_NUMBER: _ClassVar[int]
     FK_DEL_ACTION_FIELD_NUMBER: _ClassVar[int]
@@ -5516,15 +5640,17 @@ class Constraint(_message.Message):
     conname: str
     deferrable: bool
     initdeferred: bool
+    is_enforced: bool
     skip_validation: bool
     initially_valid: bool
     is_no_inherit: bool
     raw_expr: Node
     cooked_expr: str
     generated_when: str
-    inhcount: int
+    generated_kind: str
     nulls_not_distinct: bool
     keys: _containers.RepeatedCompositeFieldContainer[Node]
+    without_overlaps: bool
     including: _containers.RepeatedCompositeFieldContainer[Node]
     exclusions: _containers.RepeatedCompositeFieldContainer[Node]
     options: _containers.RepeatedCompositeFieldContainer[Node]
@@ -5536,6 +5662,8 @@ class Constraint(_message.Message):
     pktable: RangeVar
     fk_attrs: _containers.RepeatedCompositeFieldContainer[Node]
     pk_attrs: _containers.RepeatedCompositeFieldContainer[Node]
+    fk_with_period: bool
+    pk_with_period: bool
     fk_matchtype: str
     fk_upd_action: str
     fk_del_action: str
@@ -5543,7 +5671,7 @@ class Constraint(_message.Message):
     old_conpfeqop: _containers.RepeatedCompositeFieldContainer[Node]
     old_pktable_oid: int
     location: int
-    def __init__(self, contype: _Optional[_Union[ConstrType, str]] = ..., conname: _Optional[str] = ..., deferrable: bool = ..., initdeferred: bool = ..., skip_validation: bool = ..., initially_valid: bool = ..., is_no_inherit: bool = ..., raw_expr: _Optional[_Union[Node, _Mapping]] = ..., cooked_expr: _Optional[str] = ..., generated_when: _Optional[str] = ..., inhcount: _Optional[int] = ..., nulls_not_distinct: bool = ..., keys: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., including: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., exclusions: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., indexname: _Optional[str] = ..., indexspace: _Optional[str] = ..., reset_default_tblspc: bool = ..., access_method: _Optional[str] = ..., where_clause: _Optional[_Union[Node, _Mapping]] = ..., pktable: _Optional[_Union[RangeVar, _Mapping]] = ..., fk_attrs: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., pk_attrs: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., fk_matchtype: _Optional[str] = ..., fk_upd_action: _Optional[str] = ..., fk_del_action: _Optional[str] = ..., fk_del_set_cols: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., old_conpfeqop: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., old_pktable_oid: _Optional[int] = ..., location: _Optional[int] = ...) -> None: ...
+    def __init__(self, contype: _Optional[_Union[ConstrType, str]] = ..., conname: _Optional[str] = ..., deferrable: bool = ..., initdeferred: bool = ..., is_enforced: bool = ..., skip_validation: bool = ..., initially_valid: bool = ..., is_no_inherit: bool = ..., raw_expr: _Optional[_Union[Node, _Mapping]] = ..., cooked_expr: _Optional[str] = ..., generated_when: _Optional[str] = ..., generated_kind: _Optional[str] = ..., nulls_not_distinct: bool = ..., keys: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., without_overlaps: bool = ..., including: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., exclusions: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., indexname: _Optional[str] = ..., indexspace: _Optional[str] = ..., reset_default_tblspc: bool = ..., access_method: _Optional[str] = ..., where_clause: _Optional[_Union[Node, _Mapping]] = ..., pktable: _Optional[_Union[RangeVar, _Mapping]] = ..., fk_attrs: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., pk_attrs: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., fk_with_period: bool = ..., pk_with_period: bool = ..., fk_matchtype: _Optional[str] = ..., fk_upd_action: _Optional[str] = ..., fk_del_action: _Optional[str] = ..., fk_del_set_cols: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., old_conpfeqop: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., old_pktable_oid: _Optional[int] = ..., location: _Optional[int] = ...) -> None: ...
 
 class CreateTableSpaceStmt(_message.Message):
     __slots__ = ("tablespacename", "owner", "location", "options")
@@ -6058,7 +6186,7 @@ class FetchStmt(_message.Message):
     def __init__(self, direction: _Optional[_Union[FetchDirection, str]] = ..., how_many: _Optional[int] = ..., portalname: _Optional[str] = ..., ismove: bool = ...) -> None: ...
 
 class IndexStmt(_message.Message):
-    __slots__ = ("idxname", "relation", "access_method", "table_space", "index_params", "index_including_params", "options", "where_clause", "exclude_op_names", "idxcomment", "index_oid", "old_number", "old_create_subid", "old_first_relfilelocator_subid", "unique", "nulls_not_distinct", "primary", "isconstraint", "deferrable", "initdeferred", "transformed", "concurrent", "if_not_exists", "reset_default_tblspc")
+    __slots__ = ("idxname", "relation", "access_method", "table_space", "index_params", "index_including_params", "options", "where_clause", "exclude_op_names", "idxcomment", "index_oid", "old_number", "old_create_subid", "old_first_relfilelocator_subid", "unique", "nulls_not_distinct", "primary", "isconstraint", "iswithoutoverlaps", "deferrable", "initdeferred", "transformed", "concurrent", "if_not_exists", "reset_default_tblspc")
     IDXNAME_FIELD_NUMBER: _ClassVar[int]
     RELATION_FIELD_NUMBER: _ClassVar[int]
     ACCESS_METHOD_FIELD_NUMBER: _ClassVar[int]
@@ -6077,6 +6205,7 @@ class IndexStmt(_message.Message):
     NULLS_NOT_DISTINCT_FIELD_NUMBER: _ClassVar[int]
     PRIMARY_FIELD_NUMBER: _ClassVar[int]
     ISCONSTRAINT_FIELD_NUMBER: _ClassVar[int]
+    ISWITHOUTOVERLAPS_FIELD_NUMBER: _ClassVar[int]
     DEFERRABLE_FIELD_NUMBER: _ClassVar[int]
     INITDEFERRED_FIELD_NUMBER: _ClassVar[int]
     TRANSFORMED_FIELD_NUMBER: _ClassVar[int]
@@ -6101,13 +6230,14 @@ class IndexStmt(_message.Message):
     nulls_not_distinct: bool
     primary: bool
     isconstraint: bool
+    iswithoutoverlaps: bool
     deferrable: bool
     initdeferred: bool
     transformed: bool
     concurrent: bool
     if_not_exists: bool
     reset_default_tblspc: bool
-    def __init__(self, idxname: _Optional[str] = ..., relation: _Optional[_Union[RangeVar, _Mapping]] = ..., access_method: _Optional[str] = ..., table_space: _Optional[str] = ..., index_params: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., index_including_params: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., where_clause: _Optional[_Union[Node, _Mapping]] = ..., exclude_op_names: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., idxcomment: _Optional[str] = ..., index_oid: _Optional[int] = ..., old_number: _Optional[int] = ..., old_create_subid: _Optional[int] = ..., old_first_relfilelocator_subid: _Optional[int] = ..., unique: bool = ..., nulls_not_distinct: bool = ..., primary: bool = ..., isconstraint: bool = ..., deferrable: bool = ..., initdeferred: bool = ..., transformed: bool = ..., concurrent: bool = ..., if_not_exists: bool = ..., reset_default_tblspc: bool = ...) -> None: ...
+    def __init__(self, idxname: _Optional[str] = ..., relation: _Optional[_Union[RangeVar, _Mapping]] = ..., access_method: _Optional[str] = ..., table_space: _Optional[str] = ..., index_params: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., index_including_params: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., where_clause: _Optional[_Union[Node, _Mapping]] = ..., exclude_op_names: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., idxcomment: _Optional[str] = ..., index_oid: _Optional[int] = ..., old_number: _Optional[int] = ..., old_create_subid: _Optional[int] = ..., old_first_relfilelocator_subid: _Optional[int] = ..., unique: bool = ..., nulls_not_distinct: bool = ..., primary: bool = ..., isconstraint: bool = ..., iswithoutoverlaps: bool = ..., deferrable: bool = ..., initdeferred: bool = ..., transformed: bool = ..., concurrent: bool = ..., if_not_exists: bool = ..., reset_default_tblspc: bool = ...) -> None: ...
 
 class CreateStatsStmt(_message.Message):
     __slots__ = ("defnames", "stat_types", "exprs", "relations", "stxcomment", "transformed", "if_not_exists")
@@ -6164,16 +6294,18 @@ class CreateFunctionStmt(_message.Message):
     def __init__(self, is_procedure: bool = ..., replace: bool = ..., funcname: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., parameters: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., return_type: _Optional[_Union[TypeName, _Mapping]] = ..., options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., sql_body: _Optional[_Union[Node, _Mapping]] = ...) -> None: ...
 
 class FunctionParameter(_message.Message):
-    __slots__ = ("name", "arg_type", "mode", "defexpr")
+    __slots__ = ("name", "arg_type", "mode", "defexpr", "location")
     NAME_FIELD_NUMBER: _ClassVar[int]
     ARG_TYPE_FIELD_NUMBER: _ClassVar[int]
     MODE_FIELD_NUMBER: _ClassVar[int]
     DEFEXPR_FIELD_NUMBER: _ClassVar[int]
+    LOCATION_FIELD_NUMBER: _ClassVar[int]
     name: str
     arg_type: TypeName
     mode: FunctionParameterMode
     defexpr: Node
-    def __init__(self, name: _Optional[str] = ..., arg_type: _Optional[_Union[TypeName, _Mapping]] = ..., mode: _Optional[_Union[FunctionParameterMode, str]] = ..., defexpr: _Optional[_Union[Node, _Mapping]] = ...) -> None: ...
+    location: int
+    def __init__(self, name: _Optional[str] = ..., arg_type: _Optional[_Union[TypeName, _Mapping]] = ..., mode: _Optional[_Union[FunctionParameterMode, str]] = ..., defexpr: _Optional[_Union[Node, _Mapping]] = ..., location: _Optional[int] = ...) -> None: ...
 
 class AlterFunctionStmt(_message.Message):
     __slots__ = ("objtype", "func", "actions")

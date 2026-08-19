@@ -9,11 +9,11 @@ where parentheses are required.
 Source
 ------
 The canonical reference is the precedence block near the top of PostgreSQL's ``gram.y``.
-For the PostgreSQL 17 version used by this project:
+For the PostgreSQL 18 version used by this project:
 
-    https://github.com/postgres/postgres/blob/REL_17_STABLE/src/backend/parser/gram.y
+    https://github.com/postgres/postgres/blob/REL_18_STABLE/src/backend/parser/gram.y
 
-Search for the ``%nonassoc`` / ``%left`` / ``%right`` section (roughly lines 100–160).
+Search for the ``%nonassoc`` / ``%left`` / ``%right`` section (roughly lines 820–900).
 The table below is a faithful transcription.
 
 PostgreSQL is Copyright (c) 1996-2025, The PostgreSQL Global Development Group, and is distributed under the PostgreSQL
@@ -58,7 +58,7 @@ class Side(enum.Enum):
 # Higher numeric value == tighter binding. The numbers are arbitrary; only their relative order matters.  They follow
 # the declaration order in gram.y (bottom = tightest).
 #
-# gram.y (PostgreSQL 17, REL_17_STABLE):
+# gram.y (PostgreSQL 18, REL_18_STABLE):
 #
 #   %left       UNION EXCEPT
 #   %left       INTERSECT

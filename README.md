@@ -38,7 +38,7 @@ shared library itself.
 | **AST Helpers**  | [Available](openspec/specs/ast-navigation/) | Extract tables, columns, functions; generate DROP from CREATE DDL          |
 | **Pretty Print** | [Available](openspec/specs/pretty-print/)   | Rudimentary SQL formatting via AST round-trip (strips comments)            |
 
-Built on `libpg_query` 17-latest (PostgreSQL 17 parser).
+Built on `libpg_query` 18.0.0 (PostgreSQL 18 parser).
 
 ## Installation
 
@@ -116,6 +116,6 @@ shared library and pure Python on top.
 BSD 2-Clause. See [LICENSE](LICENSE) for details.
 
 `libpg_query` is licensed under the
-[BSD 3-Clause License](https://github.com/pganalyze/libpg_query/blob/17-latest/LICENSE). Portions of the PostgreSQL
+[BSD 3-Clause License](https://github.com/pganalyze/libpg_query/blob/18-latest/LICENSE). Portions of the PostgreSQL
 source code used by `libpg_query` are licensed under the
 [PostgreSQL License](https://www.postgresql.org/about/licence/).

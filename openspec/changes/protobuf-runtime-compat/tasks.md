@@ -49,10 +49,14 @@
 
 ## 5. CI guard
 
-- [ ] 5.1 Add a `protobuf-compat` job to `.github/workflows/ci.yml` that runs the test suite twice on Linux — once with
-  protobuf pinned to the declared floor, once with the latest release
-- [ ] 5.2 Have the job install the floor from the `dependencies` declaration rather than a hardcoded literal, so the job
-  fails if the declared floor stops working
+- [ ] 5.1 Add a `protobuf-compat` job to `.github/workflows/ci.yml` that runs the test suite twice on Linux — once
+  against the declared floor, once against the latest protobuf release
+- [ ] 5.2 Resolve the floor leg with `uv run --resolution lowest-direct` and the latest leg with
+  `uv run --resolution highest --upgrade-package protobuf`, so neither version is written literally into the workflow
+  and both track `pyproject.toml`
+- [ ] 5.3 Print the resolved protobuf version at the start of each leg so a failure names the version that produced it
+- [ ] 5.4 Leave the latest leg unpinned and not `continue-on-error` — a protobuf release breaking postgast is the signal
+  the job exists to raise
 
 ## 6. Documentation
 

@@ -1,5 +1,6 @@
 import ast
 import importlib.resources
+import os
 import pathlib
 import subprocess
 import sys
@@ -32,13 +33,21 @@ def _called_names(source: str) -> set[str]:
     return names
 
 
+def _default_pool_file_name(name: str) -> str:
+    """Return the name under which ``name`` is registered in the default descriptor pool.
+
+    Raises:
+        KeyError: If the default pool holds no file by that name.
+    """
+    return descriptor_pool.Default().FindFileByName(name).name  # pyright: ignore[reportUnknownMemberType,reportUnknownVariableType]
+
+
 def _default_pool_registration(name: str) -> str | None:
     """Return the file name as registered in the default descriptor pool, or None when it is absent."""
     try:
-        found = descriptor_pool.Default().FindFileByName(name)  # pyright: ignore[reportUnknownMemberType,reportUnknownVariableType]
+        return _default_pool_file_name(name)
     except KeyError:
         return None
-    return cast("str", found.name)  # pyright: ignore[reportUnknownMemberType,reportUnknownArgumentType]
 
 
 def _pool_from_committed_descriptor() -> descriptor_pool.DescriptorPool:
@@ -169,6 +178,32 @@ class TestDescriptorPool:
         )
         assert result.returncode == 0, result.stderr
         assert int(result.stdout.strip()) > 0
+
+
+class TestPurePythonImplementation:
+    def test_imports_without_the_native_protobuf_accelerator(self):
+        """The loader must not depend on upb/C++ pool behaviour.
+
+        ``DescriptorPool.Add`` returns the descriptor it registered on the upb and C++ implementations but returns
+        None on the pure-Python one, so anything reading its return value works in CI and breaks for users who set
+        PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python.
+        """
+        script = (
+            "from google.protobuf.internal import api_implementation\n"
+            "import postgast\n"
+            "print(api_implementation.Type(), postgast.parse('SELECT 1').version)\n"
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", script],
+            capture_output=True,
+            text=True,
+            check=False,
+            env={**os.environ, "PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION": "python"},
+        )
+        assert result.returncode == 0, result.stderr
+        implementation, version = result.stdout.split()
+        assert implementation == "python"
+        assert int(version) > 0
 
 
 class TestWireCompatibility:

@@ -24,7 +24,6 @@ aliases them: the schema owns this namespace, and a future message or enum named
 import importlib.resources as _resources
 from pathlib import Path as _Path
 from typing import Final as _Final
-from typing import cast as _cast
 
 from google.protobuf import descriptor_pb2 as _descriptor_pb2
 from google.protobuf import descriptor_pool as _descriptor_pool
@@ -47,6 +46,18 @@ def _read_descriptor_bytes() -> bytes:
     return (_Path(__file__).parent / _DESCRIPTOR_FILENAME).read_bytes()
 
 
+def _find_primary_file(pool: _descriptor_pool.DescriptorPool) -> _FileDescriptor:
+    """Look up the descriptor for ``pg_query.proto`` in ``pool``.
+
+    ``DescriptorPool`` lookups are untyped in some protobuf runtimes, so the declared return type here is what gives
+    callers a known type regardless of which runtime is installed.
+
+    Raises:
+        KeyError: If the pool holds no file by that name.
+    """
+    return pool.FindFileByName(_PRIMARY_FILE)  # pyright: ignore[reportUnknownMemberType,reportUnknownVariableType]
+
+
 def _build_pool() -> tuple[_descriptor_pool.DescriptorPool, _FileDescriptor]:
     """Build a private descriptor pool from the committed descriptor set.
 
@@ -59,15 +70,15 @@ def _build_pool() -> tuple[_descriptor_pool.DescriptorPool, _FileDescriptor]:
     pool = _descriptor_pool.DescriptorPool()
     file_set = _descriptor_pb2.FileDescriptorSet()
     file_set.ParseFromString(_read_descriptor_bytes())
-    primary: _FileDescriptor | None = None
     # ``--include_imports`` orders the set so that each file's dependencies precede it, so a single pass suffices.
+    # ``Add`` is deliberately not read for its return value: the upb and C++ pools return the descriptor they
+    # registered, but the pure-Python pool returns None, so the primary file is looked up afterwards instead.
     for file_proto in file_set.file:
-        # ``DescriptorPool.Add`` is untyped in the protobuf runtime; it returns the file descriptor it registered.
-        added = _cast("_FileDescriptor", pool.Add(file_proto))  # pyright: ignore[reportUnknownMemberType,reportUnknownArgumentType]
-        if file_proto.name == _PRIMARY_FILE:
-            primary = added
-    if primary is None:  # pragma: no cover — only reachable if pg_query.desc is regenerated from a renamed schema
-        raise RuntimeError(f"{_DESCRIPTOR_FILENAME} does not contain {_PRIMARY_FILE}")
+        pool.Add(file_proto)  # pyright: ignore[reportUnknownMemberType]
+    try:
+        primary = _find_primary_file(pool)
+    except KeyError as exc:  # pragma: no cover — only reachable if pg_query.desc is built from a renamed schema
+        raise RuntimeError(f"{_DESCRIPTOR_FILENAME} does not contain {_PRIMARY_FILE}") from exc
     return pool, primary
 
 

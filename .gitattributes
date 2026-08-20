@@ -1,5 +1,6 @@
-# Generated protobuf code
-src/postgast/pg_query_pb2.py linguist-generated=true
+# Generated protobuf artifacts (make proto).
+# pg_query_pb2.py is hand-written source and is deliberately absent from this list.
+src/postgast/pg_query.desc binary
 src/postgast/pg_query_pb2.pyi linguist-generated=true
 
 # Generated AST wrapper classes (scripts/generate_nodes.py)

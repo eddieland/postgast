@@ -1,41 +1,43 @@
 ## Why
 
-Two problems, one root cause: the committed protobuf bindings are protoc gencode, and gencode is version-gated against
-the protobuf runtime.
-
-**The declared floor is wrong.** `pyproject.toml` declares `protobuf>=5.27.2`, but `src/postgast/pg_query_pb2.py` is
-gencode stamped `Protobuf Python Version: 5.29.0`. Protobuf's only cross-version guarantee is *runtime >= gencode*, so
-every runtime the resolver may legally pick in `[5.27.2, 5.29.0)` fails at import:
+`pyproject.toml` declares `protobuf>=5.27.2`, but `src/postgast/pg_query_pb2.py` is protoc gencode stamped
+`Protobuf Python Version: 5.29.0`. Protobuf's only cross-version guarantee is *runtime >= gencode*, so every runtime the
+resolver may legally pick in `[5.27.2, 5.29.0)` fails at import:
 
 ```
 VersionError: Detected incompatible Protobuf Gencode/Runtime versions when loading pg_query.proto:
 gencode 5.29.0 runtime 5.27.2. Runtime version cannot be older than the linked gencode version.
 ```
 
-Confirmed against 5.27.2 and 5.28.3 (both raise); 5.29.0 imports but is a yanked release, so the true working floor is
-5.29.1. The `bindings` spec already states `protobuf>=5.29` — `pyproject.toml` is the file that drifted.
+Verified against the committed gencode:
 
-**The gate itself is unnecessary.** `_runtime_version.ValidateProtobufRuntimeVersion` couples every postgast release to
-the protoc that produced its gencode, which is why the `test` dependency group carries a defensive `protobuf<6.0.0` pin.
-That pin guards a risk that does not exist: the same gencode imports and roundtrips cleanly on protobuf 7.35.1, the
-current latest, with no warning. All real exposure points backwards, at the floor.
+| protobuf runtime | result                   |
+| ---------------- | ------------------------ |
+| 5.27.2           | `VersionError` at import |
+| 5.28.3           | `VersionError` at import |
+| 5.29.1           | imports, messages usable |
+| 6.33.1           | imports, no warning      |
+| 7.36.0           | imports, no warning      |
 
-postgast only needs message classes for a schema it already ships. Building them at import from a committed serialized
-descriptor set — public `descriptor_pool` and `message_factory` APIs, no gencode — removes the version gate outright and
-costs nothing measurable (5.5 ms to build all 276 messages and 73 enums, against 4.9 ms to import the gencode).
+`openspec/specs/bindings/spec.md` already requires `protobuf>=5.29` — `pyproject.toml` is the file that drifted.
+
+The `test` group carries a defensive `protobuf<6.0.0` pin ("pin to avoid regenerating pb2 when protobuf major changes").
+That guards a risk that does not exist: the gate is one-directional and `runtime_version.py` has no gencode-too-old
+branch, so newer majors are not the hazard. Verified — the same gencode imports and roundtrips cleanly on 6.33.1 and
+7.36.0 with warnings raised as errors.
+
+Both bounds are wrong, and both survived because nothing in CI ever installs either end of the declared range.
 
 ## What Changes
 
-- Replace protoc gencode with a hand-written `pg_query_pb2.py` loader that builds message classes at import from a
-  committed `src/postgast/pg_query.desc` serialized `FileDescriptorSet`.
-- Build into a private `DescriptorPool` rather than the default pool, exposed as `pg_query_pb2.DESCRIPTOR_POOL`.
-- Keep the public surface byte-for-byte identical: 1432 module-level names (276 message classes, 73 enum wrappers, 1082
-  enum value constants, `DESCRIPTOR`), verified by set comparison against the current gencode on protobuf 5.29 and 7.35.
-- Change `make proto` from `--python_out` to `--descriptor_set_out --include_imports`, still emitting `--pyi_out`.
-- Correct the runtime floor in `pyproject.toml` to `protobuf>=5.29` and drop the `protobuf<6.0.0` pin from the `test`
-  group.
-- Add a CI job that runs the test suite against both the declared floor and the latest protobuf, so a floor/gencode
-  mismatch can never ship again.
+- Correct the runtime floor in `pyproject.toml` from `protobuf>=5.27.2` to `protobuf>=5.29`, matching what the
+  `bindings` spec already requires and what actually imports.
+- Drop the `<6.0.0` upper pin from the `test` dependency group.
+- Add a CI job that runs the test suite against both ends of the declared range — the floor and the latest release —
+  resolving both from `pyproject.toml` so neither is written into the workflow.
+
+Every future `make proto` on a newer protoc silently raises the required floor; that is how this shipped. The CI job is
+what turns the next occurrence into a red build instead of a broken release.
 
 ## Capabilities
 
@@ -45,21 +47,17 @@ costs nothing measurable (5.5 ms to build all 276 messages and 73 enums, against
 
 ### Modified Capabilities
 
-- `bindings`: The protobuf module is built at runtime from a committed descriptor set instead of being protoc gencode;
-  adds requirements for the committed descriptor set and the isolated descriptor pool; `make proto` emits a descriptor
-  set; the declared runtime dependency is stated as a floor with no upper bound.
+- `bindings`: The protobuf runtime dependency requirement gains an explicit no-upper-bound statement and scenarios
+  asserting that the declared floor is a version which can actually import `pg_query_pb2`.
 - `ci-pipeline`: Adds a protobuf version compatibility job covering the declared floor and the latest release.
 
 ## Impact
 
-- `src/postgast/pg_query_pb2.py` — replaced: ~100 KB of gencode becomes a ~40-line loader (no longer generated)
-- `src/postgast/pg_query.desc` — new: serialized `FileDescriptorSet`, shipped as package data in wheel and sdist
-- `src/postgast/pg_query_pb2.pyi` — unchanged in content, still generated by `protoc --pyi_out`
-- `pyproject.toml` — floor corrected to `protobuf>=5.29`; `test` group upper pin removed; `pg_query_pb2.py` dropped from
-  the ruff/basedpyright/codespell/coverage exclude lists now that it is hand-written
-- `Makefile` — `proto` target switches to `--descriptor_set_out --include_imports`
-- `.gitattributes` — `pg_query_pb2.py` no longer `linguist-generated`; `pg_query.desc` marked binary
-- `.github/workflows/ci.yml` — new protobuf compatibility job
-- `tests/postgast/test_protobuf_bindings.py` — name-parity, enum-constant, isolated-pool, and wire-roundtrip tests
-- `scripts/generate_nodes.py` — unaffected (loads `pg_query_pb2.py` by path and walks `DESCRIPTOR`), but must be
-  re-verified against the loader
+- `pyproject.toml` — `dependencies` floor corrected to `protobuf>=5.29`; `test` group pin becomes `protobuf>=5.29`
+- `.github/workflows/ci.yml` — new `protobuf-compat` job
+- `tests/postgast/test_protobuf_bindings.py` — new: asserts the declared floor and the installed runtime are consistent
+  with the gencode stamp
+- `uv.lock` — regenerated for the changed constraints
+
+Not in scope: `src/postgast/pg_query_pb2.py`, `Makefile`, `.gitattributes`. Replacing gencode with a descriptor-set
+loader is a separate, deferred proposal — see `openspec/changes/protobuf-descriptor-loader/`.

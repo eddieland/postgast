@@ -33,7 +33,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "protobuf>=5.27.2",
+    "protobuf>=5.29",
 ]
 
 [project.urls]
@@ -46,8 +46,9 @@ Documentation = "https://postgast.readthedocs.io"
 [dependency-groups]
 test = [
     "hypothesis>=6.151.9",
-    "protobuf>=5.27.2,<6.0.0", # pin to avoid regenerating pb2 when protobuf major changes
-    "psycopg[binary]",
+    "protobuf>=5.29",
+    # Lower bound required so the CI protobuf floor leg (`--resolution lowest-direct`) can resolve.
+    "psycopg[binary]>=3.2",
     "pytest-cov>=7.0.0",
     "pytest-sugar>=1.1.1",
     "pytest>=9.0.2",
@@ -100,7 +101,7 @@ packages = ["src/postgast"]
 
 [tool.ruff]
 line-length = 120
-exclude = ["src/postgast/pg_query_pb2.py", "src/postgast/pg_query_pb2.pyi"]
+exclude = ["src/postgast/pg_query_pb2.pyi"]
 
 [tool.ruff.format]
 preview = true
@@ -178,7 +179,7 @@ convention = "google"
 # https://marketplace.visualstudio.com/items?itemName=detachhead.basedpyright
 # https://docs.basedpyright.com/latest/configuration/config-files/#sample-pyprojecttoml-file
 include = ["src", "tests"]
-exclude = ["src/postgast/pg_query_pb2.py", "src/postgast/pg_query_pb2.pyi", "src/postgast/nodes/", "tests/postgast/test_nodes.py"]
+exclude = ["src/postgast/pg_query_pb2.pyi", "src/postgast/nodes/", "tests/postgast/test_nodes.py"]
 # By default BasedPyright is very strict, so you almost certainly want to disable
 # some of the rules.
 # First, these turn off warnings about (yes) how you ignore warnings:
@@ -226,7 +227,7 @@ end_of_line = "lf"
 
 [tool.codespell]
 ignore-words-list = "fo,inout,larg"
-skip = "src/postgast/pg_query_pb2.py,src/postgast/pg_query_pb2.pyi,src/postgast/nodes"
+skip = "src/postgast/pg_query_pb2.pyi,src/postgast/nodes"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -239,7 +240,7 @@ markers = [
 
 [tool.coverage.run]
 source = ["postgast"]
-omit = ["src/postgast/pg_query_pb2.py", "src/postgast/nodes/_generated.py"]
+omit = ["src/postgast/nodes/_generated.py"]
 
 [tool.coverage.report]
 show_missing = true

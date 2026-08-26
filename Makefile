@@ -65,8 +65,8 @@ check-nodes: ## Verify generated nodes are up to date (CI freshness check)
 	fi; \
 	rm -rf "$$tmpdir"
 
-proto: ## Regenerate Python protobuf bindings from vendored pg_query.proto
-	uv run python -m grpc_tools.protoc --python_out=src/postgast --pyi_out=src/postgast --proto_path=vendor/libpg_query/protobuf pg_query.proto
+proto: ## Regenerate protobuf descriptor set and type stub from vendored pg_query.proto
+	uv run python -m grpc_tools.protoc --descriptor_set_out=src/postgast/pg_query.desc --include_imports --pyi_out=src/postgast --proto_path=vendor/libpg_query/protobuf pg_query.proto
 
 docs: ## Build Sphinx documentation
 	uv run --group docs sphinx-build -b html docs docs/_build/html

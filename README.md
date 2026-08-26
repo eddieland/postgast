@@ -18,7 +18,8 @@ from the PostgreSQL codebase and packaged so it can be used outside the server. 
 full coverage of PostgreSQL syntax, not a hand-written approximation.
 
 Only two runtime dependencies are needed: `protobuf` (for deserializing parse results) and the vendored `libpg_query`
-shared library itself.
+shared library itself. Any `protobuf` release from 5.29 onward works, across major versions, and `protoc` is never
+needed — postgast builds its message classes at import time from a descriptor set it ships.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/eddieland/postgast/main/docs/logo.png" width="350" alt="postgast logo"/>
@@ -110,6 +111,12 @@ At runtime, `postgast` loads the vendored shared library and calls `libpg_query`
 `ctypes` module. Parse results come back as serialized protobuf, which postgast deserializes into Python objects using
 the standard `protobuf` library. There is no Cython, no Rust, and no C extension module to compile, just a vendored
 shared library and pure Python on top.
+
+The message classes are not `protoc` gencode. `postgast` ships the schema as a serialized descriptor set
+(`pg_query.desc`) and builds the classes from it at import, using protobuf's public descriptor APIs. Gencode carries a
+version gate that refuses to load on any `protobuf` runtime older than the `protoc` that generated it; building from a
+descriptor set sidesteps that gate entirely, so a postgast release is not tied to a `protobuf` version range and
+installing it never requires `protoc`.
 
 ## License
 

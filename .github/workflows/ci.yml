@@ -132,3 +132,61 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
+
+  protobuf-compat:
+    name: "Protobuf compat (${{ matrix.leg }})"
+    needs: lint
+    # Protobuf runtime compatibility is not platform-dependent, so one OS is enough.
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Neither protobuf version is written down here: both are resolved from the protobuf declaration in
+          # pyproject.toml, so changing the floor there changes what this job exercises with no edit to this workflow.
+          #
+          # The floor leg runs on the oldest supported Python, matching the oldest direct dependencies it resolves.
+          # Pairing lowest-direct resolution with a *new* Python does not work: it pins every direct dependency to its
+          # oldest release, and old releases have no wheels for Python versions that postdate them.
+          - leg: floor
+            python-version: "3.10"
+            resolution: "--resolution lowest-direct"
+          # Deliberately unpinned, and deliberately not continue-on-error: if a new protobuf release breaks postgast,
+          # this leg turning red with no change to the repository is the signal the job exists to raise.
+          - leg: latest
+            python-version: "3.13"
+            resolution: "--resolution highest --upgrade-package protobuf"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.10.2"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install test dependencies
+        run: uv sync --no-default-groups --group test
+        env:
+          POSTGAST_SKIP_NATIVE_BUILD: "1"
+
+      - name: Build native library
+        run: make build-native
+
+      - name: Report resolved protobuf version
+        run: |
+          uv run --no-default-groups --group test ${{ matrix.resolution }} python -c \
+            "from google.protobuf import __version__; print(f'protobuf runtime: {__version__}')"
+
+      - name: Run tests
+        run: uv run --no-default-groups --group test ${{ matrix.resolution }} pytest -m "not fuzz"

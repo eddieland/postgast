@@ -7,10 +7,15 @@ floor named in `pyproject.toml` `dependencies`, and the latest published protobu
 written literally into the workflow — both SHALL be resolved from the dependency declaration at run time, so that the
 job tracks `pyproject.toml` automatically and a floor which no longer imports fails CI.
 
-The floor leg SHALL obtain its version by resolving direct dependencies downward (`uv run --resolution lowest-direct`).
-The latest leg SHALL resolve upward with no upper constraint (`uv run --resolution highest --upgrade-package protobuf`).
-Both legs SHALL print the resolved protobuf version before running the suite, so a failure names the version that
-produced it.
+Each leg SHALL move only the protobuf version, resolving every other dependency exactly as the `test` job does, so that
+a red leg always names protobuf rather than an unrelated dependency's floor. Lowering the whole environment
+(`--resolution lowest-direct` applied to every direct dependency) SHALL NOT be used: it makes a failure ambiguous, and
+it forces invented lower bounds on unrelated packages purely to keep the resolution installable.
+
+The floor leg SHALL resolve the protobuf specifier read from `pyproject.toml` downward, landing on the lowest
+*installable* version in the declared range. The latest leg SHALL take the newest published release. Both legs SHALL
+print the resolved protobuf version before running the suite, so a failure names the version that produced it, and SHALL
+run the suite without re-resolving the version they just pinned.
 
 The latest leg is deliberately unpinned and is therefore not reproducible across time: a newly published protobuf
 release may turn it red with no change to the repository. That is the intended signal — an early warning that a protobuf
@@ -33,6 +38,12 @@ since a silent canary defeats the purpose.
 
 - **WHEN** the protobuf floor in `pyproject.toml` `dependencies` is changed
 - **THEN** the compatibility job exercises the new floor without any edit to the workflow file
+
+#### Scenario: Only protobuf is moved
+
+- **WHEN** either leg resolves its protobuf version
+- **THEN** every other dependency stays at the version the `test` job resolves, so no unrelated package needs a lower
+  bound declared solely to keep this job installable
 
 #### Scenario: Mismatched floor fails CI
 

@@ -47,8 +47,7 @@ Documentation = "https://postgast.readthedocs.io"
 test = [
     "hypothesis>=6.151.9",
     "protobuf>=5.29",
-    # Lower bound required so the CI protobuf floor leg (`--resolution lowest-direct`) can resolve.
-    "psycopg[binary]>=3.2",
+    "psycopg[binary]",
     "pytest-cov>=7.0.0",
     "pytest-sugar>=1.1.1",
     "pytest>=9.0.2",

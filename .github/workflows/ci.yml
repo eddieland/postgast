@@ -145,17 +145,19 @@ jobs:
           # Neither protobuf version is written down here: both are resolved from the protobuf declaration in
           # pyproject.toml, so changing the floor there changes what this job exercises with no edit to this workflow.
           #
-          # The floor leg runs on the oldest supported Python, matching the oldest direct dependencies it resolves.
-          # Pairing lowest-direct resolution with a *new* Python does not work: it pins every direct dependency to its
-          # oldest release, and old releases have no wheels for Python versions that postdate them.
+          # Only protobuf moves. Lowering *every* direct dependency (a bare `--resolution lowest-direct` over the whole
+          # environment) makes a red leg ambiguous — it could be any dependency's floor — and it forced an invented
+          # `psycopg[binary]` lower bound just to keep the resolution installable. Both legs therefore resolve the rest
+          # of the environment normally and move protobuf alone, so a failure here always names protobuf.
+          #
+          # The legs need `tomllib` to read the specifier out of pyproject.toml, so neither runs on 3.10. Python
+          # coverage is the `test` matrix's job; this one is about protobuf versions.
           - leg: floor
-            python-version: "3.10"
-            resolution: "--resolution lowest-direct"
+            python-version: "3.12"
           # Deliberately unpinned, and deliberately not continue-on-error: if a new protobuf release breaks postgast,
           # this leg turning red with no change to the repository is the signal the job exists to raise.
           - leg: latest
             python-version: "3.13"
-            resolution: "--resolution highest --upgrade-package protobuf"
 
     steps:
       - name: Checkout
@@ -183,10 +185,34 @@ jobs:
       - name: Build native library
         run: make build-native
 
+      # Reads the protobuf requirement straight out of pyproject.toml, so the version this leg exercises tracks the
+      # declaration with no edit here. The floor leg resolves that specifier downward (skipping yanked releases, so it
+      # lands on the lowest *installable* version); the latest leg ignores it and takes the newest release.
+      - name: Move protobuf to this leg's version
+        run: |
+          set -euo pipefail
+          if [ "${{ matrix.leg }}" = "floor" ]; then
+            spec=$(uv run --no-sync python -c "
+          import tomllib
+          with open('pyproject.toml', 'rb') as fh:
+              deps = tomllib.load(fh)['project']['dependencies']
+          print(next(d for d in deps if d.replace('_', '-').lower().startswith('protobuf')))
+          ")
+            echo "floor leg: resolving '$spec' downward"
+            # --reinstall-package is load-bearing: `uv sync` above already installed a protobuf that satisfies the
+            # specifier, and without it uv would leave that version in place and this leg would silently test the
+            # synced version instead of the floor.
+            uv pip install --resolution lowest-direct --reinstall-package protobuf "$spec"
+          else
+            echo "latest leg: taking the newest protobuf release"
+            uv pip install --upgrade protobuf
+          fi
+
       - name: Report resolved protobuf version
         run: |
-          uv run --no-default-groups --group test ${{ matrix.resolution }} python -c \
+          uv run --no-sync python -c \
             "from google.protobuf import __version__; print(f'protobuf runtime: {__version__}')"
 
+      # --no-sync so the version pinned above is not re-resolved away before the suite runs.
       - name: Run tests
-        run: uv run --no-default-groups --group test ${{ matrix.resolution }} pytest -m "not fuzz"
+        run: uv run --no-sync pytest -m "not fuzz"

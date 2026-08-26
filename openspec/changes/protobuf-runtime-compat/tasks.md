@@ -25,8 +25,10 @@
 
 - [x] 3.1 Change the runtime dependency in `pyproject.toml` from `protobuf>=5.27.2` to `protobuf>=5.29`
 - [x] 3.2 Replace `protobuf>=5.27.2,<6.0.0` in the `test` dependency group with `protobuf>=5.29` (both bounds were
-  wrong). Also added a `psycopg[binary]>=3.2` lower bound: the group's only unpinned direct dependency, which made
-  `--resolution lowest-direct` (task 5.2) resolve `psycopg-binary==3.0` and fail to install.
+  wrong). A `psycopg[binary]>=3.2` lower bound was briefly added here too, because whole-environment
+  `--resolution lowest-direct` resolved `psycopg-binary==3.0` and failed to install. That bound has been removed again:
+  it described no real requirement of postgast's, and scoping the floor leg's resolution to protobuf (task 5.2) removed
+  the need for it. Declaring an unverified floor is the same class of bug this change exists to fix.
 - [x] 3.3 Remove `src/postgast/pg_query_pb2.py` from the ruff `exclude`, basedpyright `exclude`, codespell `skip`, and
   coverage `omit` lists, keeping the `.pyi` on each
 - [x] 3.4 Run `make lint` and resolve any BasedPyright findings on the loader; if the `globals()` assignments cannot be
@@ -56,9 +58,12 @@
 
 - [x] 5.1 Add a `protobuf-compat` job to `.github/workflows/ci.yml` that runs the test suite twice on Linux — once
   against the declared floor, once against the latest protobuf release
-- [x] 5.2 Resolve the floor leg with `uv run --resolution lowest-direct` and the latest leg with
-  `uv run --resolution highest --upgrade-package protobuf`, so neither version is written literally into the workflow
-  and both track `pyproject.toml`
+- [x] 5.2 Resolve the floor leg by reading the protobuf specifier out of `pyproject.toml` and installing it with
+  `uv pip install --resolution lowest-direct`, and the latest leg with `uv pip install --upgrade protobuf`, so neither
+  version is written literally into the workflow, both track `pyproject.toml`, and only protobuf moves. An earlier
+  implementation applied `--resolution lowest-direct` to the whole environment; that made a red floor leg ambiguous
+  between protobuf and any other dependency's floor, and it required inventing a `psycopg[binary]>=3.2` bound (see 3.2)
+  purely to keep the resolution installable. Both are fixed by scoping the resolution to protobuf.
 - [x] 5.3 Print the resolved protobuf version at the start of each leg so a failure names the version that produced it
 - [x] 5.4 Leave the latest leg unpinned and not `continue-on-error` — a protobuf release breaking postgast is the signal
   the job exists to raise

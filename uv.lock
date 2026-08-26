@@ -1166,7 +1166,7 @@ dev = [
     { name = "mdformat-pyproject", specifier = ">=0.0.2" },
     { name = "mdformat-ruff", specifier = ">=0.1" },
     { name = "protobuf", specifier = ">=5.29" },
-    { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
+    { name = "psycopg", extras = ["binary"] },
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-cov", specifier = ">=7.0.0" },
     { name = "pytest-sugar", specifier = ">=1.1.1" },
@@ -1188,7 +1188,7 @@ recipes = [
 test = [
     { name = "hypothesis", specifier = ">=6.151.9" },
     { name = "protobuf", specifier = ">=5.29" },
-    { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
+    { name = "psycopg", extras = ["binary"] },
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-cov", specifier = ">=7.0.0" },
     { name = "pytest-sugar", specifier = ">=1.1.1" },

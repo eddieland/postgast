@@ -55,8 +55,10 @@ what turns the next occurrence into a red build instead of a broken release.
 
 - `pyproject.toml` — `dependencies` floor corrected to `protobuf>=5.29`; `test` group pin becomes `protobuf>=5.29`
 - `.github/workflows/ci.yml` — new `protobuf-compat` job
-- `tests/postgast/test_protobuf_bindings.py` — new: asserts the declared floor and the installed runtime are consistent
-  with the gencode stamp
+- `tests/postgast/test_protobuf_bindings.py` — extended: asserts the declared floor is consistent with the gencode stamp
+  (the file already exists)
+- `tests/conftest.py` — new: a `pytest_configure` bootstrap check that names a too-old protobuf runtime before
+  `tests/postgast/conftest.py` imports `postgast` and dies at collection
 - `uv.lock` — regenerated for the changed constraints
 
 Not in scope: `src/postgast/pg_query_pb2.py`, `Makefile`, `.gitattributes`. Replacing gencode with a descriptor-set

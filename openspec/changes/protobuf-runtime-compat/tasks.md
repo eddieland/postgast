@@ -7,11 +7,15 @@
 
 ## 2. Tests
 
-- [ ] 2.1 Add `tests/postgast/test_protobuf_bindings.py` with a test that reads the `Protobuf Python Version:` stamp
-  from `pg_query_pb2.py` and asserts the floor declared in `pyproject.toml` `dependencies` is greater than or equal to
-  it — the invariant that was violated, checked from the two files that must agree
-- [ ] 2.2 Add a test that the installed protobuf runtime satisfies the declared floor, so a developer running the suite
-  on a too-old runtime gets a named failure rather than a collection error
+- [ ] 2.1 Extend the existing `tests/postgast/test_protobuf_bindings.py` with a test that reads the
+  `Protobuf Python Version:` stamp from `pg_query_pb2.py` and asserts the floor declared in `pyproject.toml`
+  `dependencies` is greater than or equal to it — the invariant that was violated, checked from the two files that must
+  agree. This test reads both files as text and does not need a compatible runtime to run.
+- [ ] 2.2 Add a `pytest_configure` hook in a new root `tests/conftest.py` that fails with a named message when the
+  installed protobuf runtime is below the declared floor. It SHALL NOT live in `tests/postgast/`: that package's
+  `conftest.py` does `from postgast import ...` at module level, so on a too-old runtime the import raises
+  `VersionError` during collection, before any test body or same-package hook runs. A root `tests/conftest.py`
+  `pytest_configure` runs before the subdirectory conftest is imported (verified), so the check gets there first.
 - [ ] 2.3 Run the suite against the floor (`uv run --isolated --with 'protobuf==5.29.1' pytest`) and against the latest
   release, and confirm both pass
 

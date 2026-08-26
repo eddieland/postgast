@@ -1,8 +1,8 @@
 Common Usage Patterns
 =====================
 
-This page demonstrates practical patterns for common tasks. For API
-fundamentals, see the :doc:`guide`.
+This page shows patterns for common tasks. The :doc:`guide` covers the API
+basics.
 
 Query Analysis
 --------------
@@ -74,8 +74,8 @@ Query Monitoring
 Group queries with normalization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Replace literal values with positional placeholders so that structurally
-identical queries collapse into a single group:
+Replace literal values with positional placeholders. Structurally identical
+queries then form one group:
 
 .. code-block:: python
 
@@ -143,8 +143,8 @@ Output:
 Format an already-parsed tree
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``format_sql`` also accepts a ``ParseResult``, so you can format after
-making AST modifications:
+``format_sql`` also accepts a ``ParseResult``. You can therefore format a tree
+after you change it:
 
 .. code-block:: python
 
@@ -168,8 +168,8 @@ Batch Processing
 Process a SQL migration file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Use :func:`~postgast.split` to break a multi-statement file into individual
-statements, then analyze each one:
+Use :func:`~postgast.split` to divide a multi-statement file into single
+statements. Then analyze each statement:
 
 .. code-block:: python
 
@@ -212,8 +212,8 @@ DDL Tooling
 Generate rollback DROP statements
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Automatically produce ``DROP`` statements from ``CREATE`` DDL for migration
-rollback scripts:
+Produce ``DROP`` statements from ``CREATE`` DDL for migration rollback
+scripts:
 
 .. code-block:: python
 
@@ -234,8 +234,8 @@ rollback scripts:
 Make CREATE statements idempotent
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Add ``OR REPLACE`` to ``CREATE FUNCTION``, ``CREATE TRIGGER``, and
-``CREATE VIEW`` statements so they can be re-run safely:
+Add ``OR REPLACE`` to a ``CREATE FUNCTION``, ``CREATE TRIGGER``, or
+``CREATE VIEW`` statement. You can then run the statement again safely:
 
 .. code-block:: python
 
@@ -255,7 +255,7 @@ Walk the AST to inspect structure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :func:`~postgast.walk` yields every node in the tree with its parent field
-name, useful for debugging or generic transforms:
+name. Use it for debugging or for generic transforms:
 
 .. code-block:: python
 
@@ -283,7 +283,8 @@ Collect information with the Visitor pattern
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Create a :class:`~postgast.Visitor` subclass with ``visit_<TypeName>``
-methods. Unhandled node types automatically recurse into their children:
+methods. The visitor recurses into the children of every node type that you do
+not handle:
 
 .. code-block:: python
 
@@ -322,8 +323,8 @@ methods. Unhandled node types automatically recurse into their children:
 Control traversal depth
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Omitting the call to ``self.generic_visit(node)`` in a handler stops
-recursion into that node's children. This lets you skip subtrees:
+A handler that does not call ``self.generic_visit(node)`` stops the recursion
+at that node. Use this behaviour to skip a subtree:
 
 .. code-block:: python
 
@@ -351,8 +352,9 @@ recursion into that node's children. This lets you skip subtrees:
 Use typed AST wrappers
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Wrap a parse tree with :func:`~postgast.wrap` for typed attribute access.
-Works with :func:`~postgast.walk_typed` and :class:`~postgast.TypedVisitor`:
+Wrap a parse tree with :func:`~postgast.wrap` for typed attribute access. The
+wrapper works with :func:`~postgast.walk_typed` and
+:class:`~postgast.TypedVisitor`:
 
 .. code-block:: python
 
@@ -369,8 +371,8 @@ Working with the Protobuf AST
 Access raw protobuf nodes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The parse tree is a standard protobuf ``Message``. You can inspect it
-using all the usual protobuf APIs:
+The parse tree is a standard protobuf ``Message``. Inspect it with the
+standard protobuf APIs:
 
 .. code-block:: python
 
@@ -467,7 +469,7 @@ exception carries the error message, cursor position, and source location:
 Validate SQL before execution
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Use ``parse`` as a fast syntax check without hitting the database:
+Use ``parse`` as a fast syntax check. It needs no database connection:
 
 .. code-block:: python
 
@@ -490,8 +492,8 @@ Tokenization
 Scan SQL into tokens
 ^^^^^^^^^^^^^^^^^^^^^
 
-:func:`~postgast.scan` returns the raw token stream, useful for syntax
-highlighting, keyword detection, or building custom splitters:
+:func:`~postgast.scan` returns the raw token stream. Use it for syntax
+highlighting, for keyword detection, or for a custom splitter:
 
 .. code-block:: python
 

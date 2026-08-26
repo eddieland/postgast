@@ -4,11 +4,11 @@ postgast
 `GitHub <https://github.com/eddieland/postgast>`_ | `PyPI <https://pypi.org/project/postgast/>`_
 
 BSD-licensed Python bindings to `libpg_query <https://github.com/pganalyze/libpg_query>`_,
-the PostgreSQL parser extracted as a standalone C library.
+the PostgreSQL parser packaged as a standalone C library.
 
 Parse, deparse, normalize, fingerprint, split, and scan PostgreSQL SQL
-statements from Python with a minimal dependency footprint — just ``protobuf``
-and the vendored C library.
+statements from Python. ``postgast`` declares one runtime dependency,
+``protobuf``. The vendored C library ships inside the wheel.
 
 .. code-block:: python
 
@@ -41,10 +41,12 @@ Installation
 LLM-Friendly Docs
 ------------------
 
-Machine-readable documentation is available for AI coding assistants:
+``postgast`` publishes machine-readable documentation for AI coding
+assistants:
 
-- `llms.txt </llms.txt>`_ — concise overview
-- `llms-full.txt </llms-full.txt>`_ — complete documentation in a single file
+- `llms.txt </llms.txt>`_ holds a short overview.
+- `llms-full.txt </llms-full.txt>`_ holds the complete documentation in one
+  file.
 
 These files follow the `llms.txt standard <https://llmstxt.org/>`_.
 

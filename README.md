@@ -1,4 +1,4 @@
-# postgast
+# `postgast`
 
 [![PyPI](https://img.shields.io/pypi/v/postgast)](https://pypi.org/project/postgast/)
 [![Python](https://img.shields.io/pypi/pyversions/postgast)](https://pypi.org/project/postgast/)
@@ -8,18 +8,17 @@
 [![Docs](https://readthedocs.org/projects/postgast/badge/?version=latest)](https://postgast.readthedocs.io)
 [![Downloads](https://img.shields.io/pypi/dm/postgast)](https://pypi.org/project/postgast/)
 
-BSD-licensed Python bindings to [libpg_query](https://github.com/pganalyze/libpg_query), the real PostgreSQL parser
-extracted as a standalone C library by [pganalyze](https://pganalyze.com/).
+BSD-licensed Python bindings to [libpg_query](https://github.com/pganalyze/libpg_query). `libpg_query` is the PostgreSQL
+parser, packaged as a standalone C library by [pganalyze](https://pganalyze.com/).
 
-`libpg_query` is the foundation of this library. It contains the actual PostgreSQL parser source code, pulled directly
-from the PostgreSQL codebase and packaged so it can be used outside the server. Every operation postgast provides
-(parsing, deparsing, normalization, fingerprinting, splitting, and scanning) is performed by calling into
-`libpg_query`'s C functions. This means postgast always produces the same parse tree that PostgreSQL itself would, with
-full coverage of PostgreSQL syntax, not a hand-written approximation.
+`libpg_query` holds the PostgreSQL parser source code. pganalyze copies that code from the PostgreSQL codebase and
+packages it to run outside the PostgreSQL server. Every `postgast` operation calls a `libpg_query` C function. Parse,
+deparse, normalize, fingerprint, split, and scan all work this way. `postgast` returns the same parse tree that
+PostgreSQL builds, and it accepts the same syntax. `postgast` does not reimplement the grammar.
 
-Only two runtime dependencies are needed: `protobuf` (for deserializing parse results) and the vendored `libpg_query`
-shared library itself. Any `protobuf` release from 5.29 onward works, across major versions, and `protoc` is never
-needed — postgast builds its message classes at import time from a descriptor set it ships.
+`postgast` declares one runtime dependency, `protobuf`, which deserializes parse results. The vendored `libpg_query`
+shared library ships inside the wheel. Any `protobuf` release from 5.29 onward works, across major versions. You never
+need `protoc`. `postgast` builds its message classes at import time from a descriptor set that it ships.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/eddieland/postgast/main/docs/logo.png" width="350" alt="postgast logo"/>
@@ -39,7 +38,7 @@ needed — postgast builds its message classes at import time from a descriptor 
 | **AST Helpers**  | [Available](openspec/specs/ast-navigation/) | Extract tables, columns, functions; generate DROP from CREATE DDL          |
 | **Pretty Print** | [Available](openspec/specs/pretty-print/)   | Rudimentary SQL formatting via AST round-trip (strips comments)            |
 
-Built on `libpg_query` 18.0.0 (PostgreSQL 18 parser).
+`postgast` uses `libpg_query` 18.0.0, the PostgreSQL 18 parser.
 
 ## Installation
 
@@ -72,8 +71,8 @@ stmts = postgast.split("SELECT 1; SELECT 2;")
 
 ## Pretty Printing
 
-`postgast` includes a rudimentary SQL pretty-printer via `format_sql`. It works by parsing SQL into a protobuf AST and
-walking it back out with uppercase keywords, clause-per-line layout, and indented bodies:
+`format_sql` is a basic SQL pretty-printer. It parses the SQL into a protobuf AST. It then renders that AST as text with
+uppercase keywords, one clause per line, and indented bodies:
 
 ```python
 import postgast
@@ -86,37 +85,37 @@ print(formatted)
 # ORDER BY name;
 ```
 
-**Caveats:** Because the formatter operates on the parsed AST, it strips comments. The PostgreSQL parser discards them
-during parsing, so they are not present in the tree. Whitespace and stylistic choices from the original SQL are also not
-preserved.
+**Caveats:** The formatter reads the parsed AST, so it removes comments. The PostgreSQL parser discards comments, so the
+tree never holds them. The formatter also discards the whitespace and the layout of the original SQL.
 
-This is the area of the library most likely to evolve over time as our needs and user stories change. The current
-implementation covers the common cases, but the formatting rules, output style, and supported syntax should be
-considered unstable. If you depend on exact output, pin your version.
+The formatter changes more often than the rest of the library. It handles the common cases today. Treat the formatting
+rules, the output style, and the supported syntax as unstable. Pin your `postgast` version if you depend on the exact
+output.
 
 ## Motivation
 
-[pglast](https://github.com/lelit/pglast) is an excellent library that wraps `libpg_query` for Python, but it is
-licensed under GPLv3, which makes it unusable in many commercial and permissively-licensed projects. `postgast` provides
-a BSD-licensed alternative that leans directly on `libpg_query`'s C API via `ctypes`, keeping the implementation minimal
-and the dependency footprint small.
+[pglast](https://github.com/lelit/pglast) also wraps `libpg_query` for Python. `pglast` uses the GPLv3 license. That
+license blocks `pglast` from many commercial projects and from many permissively licensed projects. `postgast` is a
+BSD-licensed alternative. It calls the `libpg_query` C API through `ctypes`. This keeps the code small and the
+dependency list short.
 
 ## How It Works
 
-`libpg_query` is included as a Git submodule under `vendor/libpg_query`. At build time, a custom hatchling build hook
-compiles it into a platform-specific shared library (`libpg_query.so`, `.dylib`, or `.dll`) and bundles it inside the
-wheel. Pre-built wheels are published to PyPI for common platforms, so most users never need a C compiler.
+`postgast` vendors `libpg_query` as a Git submodule under `vendor/libpg_query`. A hatchling build hook compiles that
+submodule at build time. The hook produces a platform-specific shared library (`libpg_query.so`, `.dylib`, or `.dll`)
+and places it inside the wheel. PyPI carries pre-built wheels for the common platforms, so most users need no C
+compiler.
 
-At runtime, `postgast` loads the vendored shared library and calls `libpg_query`'s C functions directly through Python's
-`ctypes` module. Parse results come back as serialized protobuf, which postgast deserializes into Python objects using
-the standard `protobuf` library. There is no Cython, no Rust, and no C extension module to compile, just a vendored
-shared library and pure Python on top.
+At runtime, `postgast` loads the vendored shared library. It calls the `libpg_query` C functions through Python's
+`ctypes` module. `libpg_query` returns each parse result as serialized protobuf. `postgast` deserializes that result
+into Python objects with the `protobuf` library. The package compiles no Cython, no Rust, and no C extension module. It
+ships one vendored shared library and pure Python code.
 
-The message classes are not `protoc` gencode. `postgast` ships the schema as a serialized descriptor set
-(`pg_query.desc`) and builds the classes from it at import, using protobuf's public descriptor APIs. Gencode carries a
-version gate that refuses to load on any `protobuf` runtime older than the `protoc` that generated it; building from a
-descriptor set sidesteps that gate entirely, so a postgast release is not tied to a `protobuf` version range and
-installing it never requires `protoc`.
+`postgast` does not ship `protoc` gencode. It ships the schema as a serialized descriptor set (`pg_query.desc`). It
+builds the message classes from that file at import time, using the public protobuf descriptor APIs. Gencode carries a
+version gate. The gate refuses to import on any `protobuf` runtime older than the `protoc` that produced the gencode. A
+descriptor set has no such gate. A `postgast` release therefore works across `protobuf` major versions, and installing
+it never requires `protoc`.
 
 ## License
 

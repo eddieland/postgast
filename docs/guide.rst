@@ -26,9 +26,8 @@ Convert a parse tree back into SQL text:
    sql = postgast.deparse(tree)
    # "SELECT id, name FROM users WHERE active = true"
 
-The deparsed SQL is canonicalized by libpg_query and may differ from the
-original in whitespace, casing, or parenthesization while remaining
-semantically equivalent.
+``libpg_query`` canonicalizes the deparsed SQL. The result can differ from the
+original in whitespace, casing, or parentheses. The meaning stays the same.
 
 Normalization
 -------------
@@ -40,7 +39,7 @@ Replace literal constants with positional placeholders:
    postgast.normalize("SELECT * FROM users WHERE id = 42 AND name = 'alice'")
    # => "SELECT * FROM users WHERE id = $1 AND name = $2"
 
-This is useful for grouping structurally equivalent queries.
+Use normalization to group structurally equivalent queries.
 
 Fingerprinting
 --------------
@@ -64,10 +63,11 @@ Split a multi-statement SQL string into individual statements:
    postgast.split("SELECT 1; SELECT 2;")
    # => ["SELECT 1", "SELECT 2"]
 
-Two methods are available via the ``method`` parameter:
+The ``method`` parameter selects one of two methods:
 
-- ``"parser"`` (default) — uses the full PostgreSQL parser for accuracy
-- ``"scanner"`` — faster, tolerates invalid SQL
+- ``"parser"`` (default) uses the full PostgreSQL parser. It is the accurate
+  method.
+- ``"scanner"`` is faster. It also accepts invalid SQL.
 
 .. code-block:: python
 

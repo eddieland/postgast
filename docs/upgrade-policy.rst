@@ -1,35 +1,34 @@
 Upgrade Policy
 ==============
 
-This page describes how ``postgast`` tracks upstream dependencies and which
-Python versions are supported.
+This page describes how ``postgast`` tracks upstream dependencies. It also
+lists the supported Python versions.
 
 Python
 ------
 
-``postgast`` currently supports **Python 3.10** through the latest GA release
-(currently 3.14).
+``postgast`` supports **Python 3.10** through the latest GA release, which is
+3.14.
 
-The minimum supported version will move to **Python 3.12** in an upcoming
-release. When this happens the major version will be bumped to signal the
-change. Pin ``postgast<2`` if you need to stay on Python 3.10 or 3.11.
+A future release raises the minimum version to **Python 3.12**. That release
+also raises the ``postgast`` major version, which signals the change. Pin
+``postgast<2`` if you must remain on Python 3.10 or 3.11.
 
 PostgreSQL (libpg_query)
 ------------------------
 
 ``postgast`` always vendors the latest available version of
 `libpg_query <https://github.com/pganalyze/libpg_query>`_. The vendored
-version determines which PostgreSQL grammar is used for parsing, deparsing,
-and all other operations.
+version sets the PostgreSQL grammar for every operation.
 
-Because ``postgast`` delegates all parsing to ``libpg_query``, the PostgreSQL
-syntax it understands is dictated entirely by the vendored library version.
-There is no separate PostgreSQL version knob to configure.
+``postgast`` delegates every parse to ``libpg_query``. The vendored library
+version therefore sets the PostgreSQL syntax that ``postgast`` accepts.
+``postgast`` has no separate PostgreSQL version setting.
 
-Backwards-incompatible changes to the PostgreSQL parser are exceedingly rare.
-In practice a ``libpg_query`` upgrade means *new* syntax is accepted, not that
-existing syntax breaks. Still, if you need to pin a specific parser version
-you can pin the ``postgast`` version that vendors it.
+The PostgreSQL parser rarely makes a backwards-incompatible change. A
+``libpg_query`` upgrade usually adds *new* syntax and keeps existing syntax
+valid. To hold one parser version, pin the ``postgast`` version that vendors
+it.
 
 Versioning
 ----------
@@ -45,9 +44,9 @@ Versioning
 What this means in practice
 ---------------------------
 
-- **Most users** can track the latest ``postgast`` release with no issues.
-  ``libpg_query`` parser upgrades almost never break existing SQL.
-- **Users on older Python versions** should pin to the last major version that
-  supports their interpreter once the minimum is raised.
-- **Users who need a specific PostgreSQL parser version** should pin the
-  ``postgast`` version that vendors the corresponding ``libpg_query`` release.
+- **Most users** can track the latest ``postgast`` release. A ``libpg_query``
+  parser upgrade almost never breaks existing SQL.
+- **Users on older Python versions** should pin the last major version that
+  supports their interpreter after the minimum rises.
+- **Users who need one PostgreSQL parser version** should pin the ``postgast``
+  version that vendors the matching ``libpg_query`` release.

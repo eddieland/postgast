@@ -3,8 +3,8 @@
 ## Project Overview
 
 postgast is a BSD-licensed Python library that parses, deparses, normalizes, fingerprints, splits, and scans PostgreSQL
-SQL. It binds to [libpg_query](https://github.com/pganalyze/libpg_query) via `ctypes` (no Cython/Rust/C extensions) and
-deserializes results into protobuf Python objects.
+SQL. It binds to [libpg_query](https://github.com/pganalyze/libpg_query) via `ctypes`. It uses no Cython, Rust, or C
+extensions. It deserializes results into protobuf Python objects.
 
 ## Commands
 
@@ -22,25 +22,26 @@ uv run pytest tests/test_foo.py::test_bar -v  # single test
 
 ## Architecture
 
-- `src/postgast/` — package source (hatchling, `packages = ["src/postgast"]`)
-- `tests/` — pytest test directory
-- `uv` for deps, `hatchling` for build, version from git tags (`uv-dynamic-versioning`)
-- `__init__.py` — clean re-exports defining the public API
-- Uses official `protobuf` library
+- `src/postgast/`: package source (hatchling, `packages = ["src/postgast"]`)
+- `tests/`: pytest test directory
+- `uv` manages dependencies. `hatchling` builds the package. The version comes from git tags (`uv-dynamic-versioning`).
+- `__init__.py`: re-exports that define the public API
+- The package uses the official `protobuf` library.
 
 ## Conventions
 
 - New modules: plain names (`split.py`), not underscore-prefixed.
-- Public API defined by `__init__.py` re-exports and `__all__`, not module prefixes.
+- The `__init__.py` re-exports and `__all__` define the public API. Module prefixes do not.
 - Annotate module-level constants with `typing.Final` (e.g., `TIMEOUT: Final = 30`). No automated rule enforces this yet
-  ([ruff#10137](https://github.com/astral-sh/ruff/issues/10137)), so treat it as a manual convention.
+  ([ruff#10137](https://github.com/astral-sh/ruff/issues/10137)). Treat it as a manual convention.
 - Ruff: line-length 120, Google-style docstrings. Type checker: BasedPyright. Python 3.10+.
-- Always use `uv run` — never bare `pip install` or manual venv activation.
-- `uv add <pkg>` = core dep (keep minimal), `uv add --dev <pkg>` = dev-only, `uv add --group recipes <pkg>` = recipes
-  group, `uv add --group docs <pkg>` = docs group.
-- `uv run --with <pkg> <cmd>` — temporarily add a package for a single invocation without modifying `pyproject.toml`.
-- `uv run --only-group dev <cmd>` — run with only a specific dep group, excluding core deps.
-- `uv sync --upgrade --all-groups` — upgrade all deps to latest compatible versions.
+- Always use `uv run`. Never use bare `pip install` or manual venv activation.
+- `uv add <pkg>` adds a core dependency. Keep the core list small.
+- `uv add --dev <pkg>` adds a dev dependency. `uv add --group recipes <pkg>` and `uv add --group docs <pkg>` add to the
+  recipes group and the docs group.
+- `uv run --with <pkg> <cmd>` adds a package for a single invocation. It does not modify `pyproject.toml`.
+- `uv run --only-group dev <cmd>` runs with one dependency group and excludes the core dependencies.
+- `uv sync --upgrade --all-groups` upgrades all dependencies to the latest compatible versions.
 
 ## Documentation Style
 
@@ -49,8 +50,8 @@ artifacts, commit messages, PR titles and bodies, and review comments. It does n
 tool output.
 
 The rules below follow the principles of ASD-STE100 (Simplified Technical English), applied informally. The rules are
-authoritative. Write for readers whose first language is not English. Apply the rules to prose you write or change. The
-rest of this file predates the rules.
+authoritative. Write for readers whose first language is not English. Fix prose that breaks a rule when you edit the
+file that holds it.
 
 **Do:**
 
@@ -74,28 +75,28 @@ rest of this file predates the rules.
 
 ## Scripts
 
-**`scripts/`** contains standalone helper scripts for common DevOps-type tasks any developer on the project may need
-(e.g., code generation, release prep, data migration). Create scripts sparingly — only for repeated workflows that don't
-fit neatly into a `make` target or one-liner.
+**`scripts/`** holds standalone helper scripts for common DevOps tasks that any developer on the project may need.
+Examples are code generation, release preparation, and data migration. Create scripts sparingly. Add one only for a
+repeated workflow that does not fit a `make` target or a one-liner.
 
 **Conventions:**
 
 - Start every script with a [uv script header](https://docs.astral.sh/uv/guides/scripts/#declaring-script-dependencies)
-  (`# /// script` block) declaring `requires-python` and any `dependencies`. This lets anyone run the script with
+  (`# /// script` block) that declares `requires-python` and any `dependencies`. Anyone can then run the script with
   `uv run scripts/foo.py` without installing extras into the project.
-- Use **Typer** for CLI argument parsing — it gives you `--help` for free with minimal boilerplate.
-- Use **Rich** for pretty terminal output (tables, progress bars, coloured status messages).
-- Keep scripts focused: one script, one job. If a script grows complex, it probably belongs in the library or a Makefile
-  target instead.
+- Use **Typer** for CLI argument parsing. Typer generates `--help` with little extra code.
+- Use **Rich** for terminal output such as tables, progress bars, and coloured status messages.
+- Keep scripts focused: one script, one job. A script that grows large belongs in the library or in a Makefile target.
 
 ## cibuildwheel Test Dependencies
 
 `[tool.cibuildwheel]` in `pyproject.toml` has its own `test-requires` list, separate from the `test` dependency group.
-When adding a new test dependency, add it to **both** the `[dependency-groups] test` list and `test-requires` under
-`[tool.cibuildwheel]`, otherwise publish workflow wheel tests will fail with `ModuleNotFoundError`.
+Add every new test dependency to **both** lists: `[dependency-groups] test` and `test-requires` under
+`[tool.cibuildwheel]`. Otherwise the publish workflow wheel tests fail with `ModuleNotFoundError`.
 
 ## README Feature Matrix
 
-Keep the feature matrix in `README.md` in sync. Update after finishing apply or archiving a change — set status to
-`Available` with spec link (e.g., `[Available](openspec/specs/feature/)`). Only add rows for major library pillars
-(parse, deparse, normalize, split, etc.), not minor helpers. Don't update during intermediate steps.
+Keep the feature matrix in `README.md` current. Update the matrix after you finish apply or archive a change. Set the
+status to `Available` and add a spec link (e.g., `[Available](openspec/specs/feature/)`). Add rows only for the main
+library features (parse, deparse, normalize, split). Do not add rows for small helpers. Do not update the matrix during
+intermediate steps.

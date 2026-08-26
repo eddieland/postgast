@@ -44,11 +44,13 @@ uv run pytest tests/test_foo.py::test_bar -v  # single test
 
 ## Documentation Style
 
-This style applies to every piece of prose the project produces: documentation, docstrings, OpenSpec artifacts, commit
-messages, PR titles and bodies, and review comments. It does not apply to code, identifiers, or quoted tool output.
+This style applies to every piece of prose the project produces. That includes documentation, docstrings, OpenSpec
+artifacts, commit messages, PR titles and bodies, and review comments. It does not apply to code, identifiers, or quoted
+tool output.
 
 The rules below follow the principles of ASD-STE100 (Simplified Technical English), applied informally. The rules are
-authoritative. Write for readers whose first language is not English.
+authoritative. Write for readers whose first language is not English. Apply the rules to prose you write or change. The
+rest of this file predates the rules.
 
 **Do:**
 
@@ -62,8 +64,8 @@ authoritative. Write for readers whose first language is not English.
 - Use a dash (em dash, en dash, or hyphen) as punctuation between clauses. Use a period, a comma, or parentheses
   instead. A hyphen inside a compound word is fine.
 - Use idioms. Write the literal meaning. A non-native speaker may not recognize the idiom.
-- Use phrasal verbs. Write "start" instead of "spin up", "remove" instead of "tear down", "deploy" instead of "roll
-  out", and "use" instead of "fall back on".
+- Use phrasal verbs. Write "start" instead of "spin up" and "remove" instead of "tear down". Write "deploy" instead of
+  "roll out" and "use" instead of "fall back on".
 - Use evaluative adjectives such as robust, elegant, seamless, comprehensive, powerful, significant, critical, or clean.
 - Use the patterns "not just X, but Y" and "it's not X, it's Y".
 - Write a three-item list for rhythm. Every item must carry content.

@@ -1,6 +1,7 @@
 # Contributing to postgast
 
-Thanks for your interest in contributing! This guide will help you get started.
+Thanks for your interest in contributing. This guide describes how to build postgast, how to run its checks, and how to
+open a pull request.
 
 ## Getting Started
 
@@ -24,7 +25,7 @@ Thanks for your interest in contributing! This guide will help you get started.
    make build-native
    ```
 
-1. **Run tests** to confirm everything works:
+1. **Run the tests** to confirm that the build works:
 
    ```bash
    make test-unit
@@ -62,17 +63,17 @@ uv run pytest tests/test_foo.py::test_bar -v
 - **Markdown formatter**: [mdformat](https://github.com/executablebooks/mdformat)
 - Minimum Python version: 3.10
 
-`make fmt` will fix most formatting issues automatically. CI runs the same checks, so running `make lint` locally before
-pushing will catch problems early.
+`make fmt` fixes most formatting problems. CI runs the same checks. Run `make lint` on your machine before you push to
+find problems early.
 
 ## Submitting a Pull Request
 
-1. Make sure `make lint` and `make test-unit` pass locally.
-1. Keep commits focused — one logical change per commit.
+1. Confirm that `make lint` and `make test-unit` pass on your machine.
+1. Keep each commit focused on one logical change.
 1. Push your branch and open a pull request against `main`.
-1. Describe **what** your change does and **why** in the PR description.
+1. Describe **what** your change does and **why** in the pull request description.
 
-CI will run formatting, linting, type-checking, and tests automatically on your PR.
+CI runs the formatter, the linter, the type checker, and the tests on your pull request.
 
 ## Reporting Issues
 
@@ -85,4 +86,4 @@ Open an issue on [GitHub Issues](https://github.com/eddieland/postgast/issues). 
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the [BSD 2-Clause License](LICENSE).
+If you contribute, you license your contribution under the [BSD 2-Clause License](LICENSE).

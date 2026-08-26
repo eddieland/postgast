@@ -1,9 +1,9 @@
 Contributing
 ============
 
-See the `contributing guide on GitHub <https://github.com/eddieland/postgast/blob/main/CONTRIBUTING.md>`_
-for full details on setting up a development environment, running tests, and
-submitting pull requests.
+The `contributing guide on GitHub <https://github.com/eddieland/postgast/blob/main/CONTRIBUTING.md>`_
+describes the development environment, the tests, and the pull request
+process.
 
 Quick Start
 -----------

@@ -42,6 +42,34 @@ uv run pytest tests/test_foo.py::test_bar -v  # single test
 - `uv run --only-group dev <cmd>` — run with only a specific dep group, excluding core deps.
 - `uv sync --upgrade --all-groups` — upgrade all deps to latest compatible versions.
 
+## Documentation Style
+
+This style applies to every piece of prose the project produces: documentation, docstrings, OpenSpec artifacts, commit
+messages, PR titles and bodies, and review comments. It does not apply to code, identifiers, or quoted tool output.
+
+The rules below follow the principles of ASD-STE100 (Simplified Technical English), applied informally. The rules are
+authoritative. Write for readers whose first language is not English.
+
+**Do:**
+
+- Write one idea per sentence. Keep each sentence under 20 words.
+- Use active voice and present tense.
+- Use the same term for the same concept every time.
+- Use concrete nouns. Name the file, the function, the table, or the service.
+
+**Do not:**
+
+- Use a dash (em dash, en dash, or hyphen) as punctuation between clauses. Use a period, a comma, or parentheses
+  instead. A hyphen inside a compound word is fine.
+- Use idioms. Write the literal meaning. A non-native speaker may not recognize the idiom.
+- Use phrasal verbs. Write "start" instead of "spin up", "remove" instead of "tear down", "deploy" instead of "roll
+  out", and "use" instead of "fall back on".
+- Use evaluative adjectives such as robust, elegant, seamless, comprehensive, powerful, significant, critical, or clean.
+- Use the patterns "not just X, but Y" and "it's not X, it's Y".
+- Write a three-item list for rhythm. Every item must carry content.
+- Open with filler such as "This ticket aims to", "In order to", or "As part of our ongoing effort". State the point
+  first.
+
 ## Scripts
 
 **`scripts/`** contains standalone helper scripts for common DevOps-type tasks any developer on the project may need

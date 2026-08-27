@@ -38,7 +38,7 @@ need `protoc`. `postgast` builds its message classes at import time from a descr
 | **AST Helpers**  | [Available](openspec/specs/ast-navigation/) | Extract tables, columns, functions; generate DROP from CREATE DDL          |
 | **Pretty Print** | [Available](openspec/specs/pretty-print/)   | Rudimentary SQL formatting via AST round-trip (strips comments)            |
 
-`postgast` uses `libpg_query` 18.0.0, the PostgreSQL 18 parser.
+`postgast` uses `libpg_query` from the `18-latest` branch, the PostgreSQL 18 parser.
 
 ## Installation
 

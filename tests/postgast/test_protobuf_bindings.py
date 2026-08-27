@@ -146,6 +146,26 @@ class TestPublishedSurface:
         assert pg_query_pb2.SummaryResult.Context.Name(0) == "None"
         assert pg_query_pb2.SummaryResult.Context.Value("Select") > 0
 
+    def test_attach_nested_types_fills_a_class_that_lacks_them(self):
+        """Exercise the loader's attach pass on a class with no nested types.
+
+        The pure-Python protobuf runtime does not attach nested types, so the loader attaches them itself. The upb
+        runtime attaches them up front, which leaves the loader's guarded ``setattr`` calls idle there. A bare class
+        forces those calls to run under every runtime.
+        """
+        # Like DESCRIPTOR_POOL above, the helper is not part of the generated .pyi surface.
+        attach = vars(pg_query_pb2)["_attach_nested_types"]
+        summary_descriptor = pg_query_pb2.DESCRIPTOR.message_types_by_name["SummaryResult"]
+
+        class Bare:
+            pass
+
+        attach(Bare, summary_descriptor)
+        table_cls = vars(Bare)["Table"]
+        context_wrapper = vars(Bare)["Context"]
+        assert hasattr(table_cls(), "name")
+        assert context_wrapper.Name(0) == "None"
+
 
 class TestDescriptorPool:
     def test_pool_is_private(self):

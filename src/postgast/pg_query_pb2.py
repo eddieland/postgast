@@ -28,6 +28,7 @@ from typing import Final as _Final
 from google.protobuf import descriptor_pb2 as _descriptor_pb2
 from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import message_factory as _message_factory
+from google.protobuf.descriptor import Descriptor as _Descriptor
 from google.protobuf.descriptor import FileDescriptor as _FileDescriptor
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 
@@ -85,6 +86,24 @@ def _build_pool() -> tuple[_descriptor_pool.DescriptorPool, _FileDescriptor]:
 DESCRIPTOR_POOL, DESCRIPTOR = _build_pool()
 
 
+def _attach_nested_types(cls: type, message_descriptor: _Descriptor) -> None:
+    """Attach nested message classes and nested enum wrappers to ``cls``, recursively.
+
+    The upb and C++ runtimes attach nested types themselves, so every ``setattr`` here is guarded and becomes a no-op
+    on those runtimes. The pure-Python runtime does not: ``message_factory.GetMessageClass`` leaves nested message
+    classes unreachable from the parent class. Platforms without a prebuilt protobuf extension (musllinux among them)
+    select the pure-Python runtime, so without this pass ``SummaryResult.Table`` would not exist there.
+    """
+    for nested_descriptor in message_descriptor.nested_types:
+        nested_cls = _message_factory.GetMessageClass(nested_descriptor)
+        _attach_nested_types(nested_cls, nested_descriptor)
+        if not hasattr(cls, nested_descriptor.name):
+            setattr(cls, nested_descriptor.name, nested_cls)
+    for enum_descriptor in message_descriptor.enum_types:
+        if not hasattr(cls, enum_descriptor.name):
+            setattr(cls, enum_descriptor.name, _enum_type_wrapper.EnumTypeWrapper(enum_descriptor))
+
+
 def _publish() -> None:
     """Bind every top-level message, enum, and enum value to a module-level name.
 
@@ -93,7 +112,9 @@ def _publish() -> None:
     """
     namespace = globals()
     for name, message_descriptor in DESCRIPTOR.message_types_by_name.items():
-        namespace[name] = _message_factory.GetMessageClass(message_descriptor)
+        message_cls = _message_factory.GetMessageClass(message_descriptor)
+        _attach_nested_types(message_cls, message_descriptor)
+        namespace[name] = message_cls
     for name, enum_descriptor in DESCRIPTOR.enum_types_by_name.items():
         namespace[name] = _enum_type_wrapper.EnumTypeWrapper(enum_descriptor)
         for value in enum_descriptor.values:

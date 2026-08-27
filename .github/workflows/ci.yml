@@ -142,22 +142,34 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Neither protobuf version is written down here: both are resolved from the protobuf declaration in
+          # No protobuf version is written down here: each leg resolves from the protobuf declaration in
           # pyproject.toml, so changing the floor there changes what this job exercises with no edit to this workflow.
           #
           # Only protobuf moves. Lowering *every* direct dependency (a bare `--resolution lowest-direct` over the whole
-          # environment) makes a red leg ambiguous — it could be any dependency's floor — and it forced an invented
-          # `psycopg[binary]` lower bound just to keep the resolution installable. Both legs therefore resolve the rest
-          # of the environment normally and move protobuf alone, so a failure here always names protobuf.
+          # environment) makes a red leg ambiguous (it could be any dependency's floor) and it forced an invented
+          # `psycopg[binary]` lower bound just to keep the resolution installable. Every leg therefore resolves the
+          # rest of the environment normally and moves protobuf alone, so a failure here always names protobuf.
           #
-          # The legs need `tomllib` to read the specifier out of pyproject.toml, so neither runs on 3.10. Python
-          # coverage is the `test` matrix's job; this one is about protobuf versions.
+          # The floor leg needs `tomllib` to read the specifier out of pyproject.toml, so no leg runs on 3.10. Python
+          # coverage is the `test` matrix's job; this one is about protobuf runtimes.
+          #
+          # `impl` feeds PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION. `upb` is the compiled extension, the default
+          # everywhere a prebuilt protobuf wheel exists.
           - leg: floor
             python-version: "3.12"
+            impl: upb
           # Deliberately unpinned, and deliberately not continue-on-error: if a new protobuf release breaks postgast,
           # this leg turning red with no change to the repository is the signal the job exists to raise.
           - leg: latest
             python-version: "3.13"
+            impl: upb
+          # protobuf ships no prebuilt extension wheel for musllinux, so musllinux wheels run the pure-Python runtime.
+          # That runtime diverges from upb in places (for example, it does not attach nested types to message classes).
+          # This leg runs the suite on it. The publish workflow's musllinux wheel test meets the same runtime; this leg
+          # raises the failure at PR time instead.
+          - leg: pure-python
+            python-version: "3.14"
+            impl: python
 
     steps:
       - name: Checkout
@@ -187,7 +199,7 @@ jobs:
 
       # Reads the protobuf requirement straight out of pyproject.toml, so the version this leg exercises tracks the
       # declaration with no edit here. The floor leg resolves that specifier downward (skipping yanked releases, so it
-      # lands on the lowest *installable* version); the latest leg ignores it and takes the newest release.
+      # lands on the lowest *installable* version); the other legs ignore it and take the newest release.
       - name: Move protobuf to this leg's version
         run: |
           set -euo pipefail
@@ -204,15 +216,46 @@ jobs:
             # synced version instead of the floor.
             uv pip install --resolution lowest-direct --reinstall-package protobuf "$spec"
           else
-            echo "latest leg: taking the newest protobuf release"
+            echo "${{ matrix.leg }} leg: taking the newest protobuf release"
             uv pip install --upgrade protobuf
           fi
 
-      - name: Report resolved protobuf version
+      - name: Report resolved protobuf runtime
+        env:
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: ${{ matrix.impl }}
         run: |
-          uv run --no-sync python -c \
-            "from google.protobuf import __version__; print(f'protobuf runtime: {__version__}')"
+          uv run --no-sync python -c "
+          from google.protobuf import __version__
+          from google.protobuf.internal import api_implementation
+          print(f'protobuf runtime: {__version__} ({api_implementation.Type()})')"
 
       # --no-sync so the version pinned above is not re-resolved away before the suite runs.
       - name: Run tests
+        env:
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: ${{ matrix.impl }}
         run: uv run --no-sync pytest -m "not fuzz"
+
+  # The publish workflow builds wheels with cibuildwheel inside manylinux and musllinux containers. Those containers
+  # differ from every `test` matrix runner: manylinux ships an old glibc, and musllinux ships musl, where protobuf has
+  # no prebuilt extension wheel and runs its pure-Python runtime. cibuildwheel also tests the installed wheel rather
+  # than the source tree. A change that only breaks in those containers passes the `test` matrix and then fails the
+  # release (the libpg_query strlcpy build failure and the pure-Python nested-type failure both did). This job builds
+  # and tests one CPython version in both containers on every PR, so that class of failure blocks the merge instead of
+  # the release. The full matrix (macOS, Windows, aarch64, every CPython) stays in the publish workflow, which also
+  # runs on a weekly schedule.
+  wheel-smoke:
+    name: Wheel smoke test
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Build and test Linux container wheels
+        uses: pypa/cibuildwheel@1828c10ab37f080699c7b81cea34097c684a7074 # v4.2.0
+        env:
+          CIBW_ARCHS: "x86_64"
+          CIBW_BUILD: "cp312-manylinux_x86_64 cp312-musllinux_x86_64"

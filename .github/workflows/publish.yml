@@ -4,6 +4,11 @@ on:
   release:
     types: [published]
   workflow_dispatch: # Enable manual trigger.
+  schedule:
+    # Weekly dry run on main: build and test every wheel, publish nothing (the publish job only runs on release
+    # events). This covers the platforms the CI wheel-smoke job skips (macOS, Windows, aarch64, every CPython) and
+    # catches drift from new dependency releases before a release depends on them.
+    - cron: "0 6 * * 1"
 
 # Only one publish workflow at a time.
 concurrency:

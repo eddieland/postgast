@@ -60,16 +60,32 @@ can compile libpg_query via the same build hook.
 - **WHEN** a user runs `pip install postgast` on a platform without a pre-built wheel
 - **THEN** pip falls back to the sdist, compiles libpg_query from the vendored source, and installs successfully
 
+### Requirement: sdist holds no compiled artifacts
+
+The sdist SHALL hold only source files. The build hook SHALL do nothing for the sdist target. The sdist SHALL exclude
+object files, static libraries, and shared libraries. The sdist SHALL include every file that the libpg_query build
+needs, including the headers under `src/postgres/include/lib/`.
+
+#### Scenario: Build sdist after a local native build
+
+- **WHEN** `uv build --sdist` runs in a checkout where `vendor/libpg_query` holds `.o` files and `libpg_query.so`
+- **THEN** the sdist contains no `.o`, `.a`, `.so`, `.dylib`, or `.dll` files
+
+#### Scenario: Build from sdist on another architecture
+
+- **WHEN** piwheels builds the sdist on armv7l
+- **THEN** `make build_shared` compiles every object for armv7l and links the shared library
+
 ### Requirement: CI builds wheels for target platform matrix
 
 The CI publish workflow SHALL use cibuildwheel to produce wheels for:
 
-- Linux: x86_64 and aarch64 (manylinux)
+- Linux: x86_64, aarch64, and armv7l (manylinux and musllinux)
 - macOS: x86_64 and arm64
-- Windows: AMD64
+- Windows: AMD64 and ARM64
 
 #### Scenario: Release publishes platform wheels
 
 - **WHEN** a release is published on GitHub
-- **THEN** cibuildwheel builds wheels for all five platform/architecture combinations
+- **THEN** cibuildwheel builds wheels for all seven platform/architecture combinations
 - **AND** all wheels are uploaded to PyPI

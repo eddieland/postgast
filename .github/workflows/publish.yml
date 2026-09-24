@@ -70,16 +70,30 @@ jobs:
             cibw_archs: "x86_64"
           - os: ubuntu-24.04-arm
             cibw_archs: "aarch64"
+          # 32-bit ARM (Raspberry Pi OS). Pip on a Pi reads PyPI and piwheels, so a wheel here removes the source build.
+          - os: ubuntu-24.04-arm
+            cibw_archs: "armv7l"
           - os: macos-latest
             cibw_archs: "arm64"
+          - os: macos-15-intel
+            cibw_archs: "x86_64"
           - os: windows-latest
             cibw_archs: "AMD64"
+          - os: windows-11-arm
+            cibw_archs: "ARM64"
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 0
           submodules: true
+
+      # Not every arm64 CPU can run 32-bit ARM code. QEMU lets the armv7l containers run on any arm64 runner.
+      - name: Set up QEMU (armv7l)
+        if: matrix.cibw_archs == 'armv7l'
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+        with:
+          platforms: arm
 
       - name: Build wheels
         uses: pypa/cibuildwheel@1828c10ab37f080699c7b81cea34097c684a7074 # v4.2.0

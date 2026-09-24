@@ -18,6 +18,13 @@ _LIB_NAMES = {
     "Windows": "pg_query.dll",
 }
 
+# Maps platform.machine() on Windows to the vcvarsall.bat target architecture.
+_VCVARS_ARCH = {
+    "AMD64": "x64",
+    "ARM64": "arm64",
+    "x86": "x86",
+}
+
 
 class CustomBuildHook(BuildHookInterface):
     """Build hook that compiles libpg_query and includes it in the wheel."""
@@ -29,7 +36,13 @@ class CustomBuildHook(BuildHookInterface):
 
         Set ``POSTGAST_SKIP_NATIVE_BUILD=1`` to skip compilation (useful in CI
         where the native library is built in a separate step).
+
+        The hook does nothing for the sdist target. An sdist must hold only sources. Object files or a shared library
+        compiled on the build host break source builds on other architectures, such as piwheels on armv7l.
         """
+        if self.target_name != "wheel":
+            return
+
         if os.environ.get("POSTGAST_SKIP_NATIVE_BUILD"):
             self.app.display_warning("POSTGAST_SKIP_NATIVE_BUILD is set — skipping native library build.")
             return
@@ -121,7 +134,8 @@ class CustomBuildHook(BuildHookInterface):
 
         If they're already available, this is a no-op. Otherwise, locates
         vcvarsall.bat via vswhere.exe and imports the developer environment
-        variables into the current process.
+        variables into the current process. The target architecture matches
+        the running interpreter, so a native ARM64 Python gets an ARM64 DLL.
         """
         if shutil.which("cl"):
             return
@@ -144,9 +158,15 @@ class CustomBuildHook(BuildHookInterface):
             msg = f"vcvarsall.bat not found at {vcvarsall}"
             raise RuntimeError(msg)
 
+        machine = platform.machine()
+        vcvars_arch = _VCVARS_ARCH.get(machine)
+        if vcvars_arch is None:
+            msg = f"Unsupported Windows architecture: {machine}"
+            raise RuntimeError(msg)
+
         # Run vcvarsall and capture the resulting environment.
         output = subprocess.check_output(
-            f'call "{vcvarsall}" x64 >nul 2>&1 && set',
+            f'call "{vcvarsall}" {vcvars_arch} >nul 2>&1 && set',
             shell=True,
             text=True,
         )

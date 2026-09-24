@@ -94,6 +94,17 @@ bump = true
 
 [tool.hatch.build.targets.sdist]
 include = ["src/postgast", "vendor/libpg_query", "hatch_build.py", "pg_query_exports.def", "THIRD-PARTY-LICENSES"]
+# Keep compiled artifacts out of the sdist. A source build on another architecture must compile from scratch.
+exclude = [
+    "*.o",
+    "*.obj",
+    "*.a",
+    "*.lib",
+    "*.so",
+    "*.dylib",
+    "*.dll",
+    "*.exp",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/postgast"]
@@ -212,13 +223,13 @@ test-requires = ["pytest", "hypothesis", "ruamel.yaml"]
 test-command = 'pytest {project}/tests -x -m "not fuzz"'
 
 [tool.cibuildwheel.linux]
-archs = ["x86_64", "aarch64"]
+archs = ["x86_64", "aarch64", "armv7l"]
 
 [tool.cibuildwheel.macos]
-archs = ["arm64"]
+archs = ["arm64", "x86_64"]
 
 [tool.cibuildwheel.windows]
-archs = ["AMD64"]
+archs = ["AMD64", "ARM64"]
 
 [tool.mdformat]
 wrap = 120

@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
     from google.protobuf.message import Message
 
-    from postgast import FingerprintResult, ParseResult, PgQueryError
+    from postgast import FingerprintResult, ParseResult, PgQueryError, StatementInfo
     from postgast.pg_query_pb2 import ScanResult
 
 __generated_with = "0.19.11"
@@ -44,6 +44,7 @@ def _():
 
     from postgast import (
         PgQueryError,
+        classify_statement,
         extract_functions,
         extract_tables,
         find_nodes,
@@ -57,6 +58,7 @@ def _():
 
     return (
         PgQueryError,
+        classify_statement,
         extract_functions,
         extract_tables,
         find_nodes,
@@ -463,6 +465,68 @@ def _(
         {_table_rows}
         """
         + _error_section
+    )
+    return
+
+
+@app.cell
+def _(
+    classify_statement: Callable[[ParseResult], StatementInfo | None],
+    mo: types.ModuleType,
+    parse: Callable[[str], ParseResult],
+    split: Callable[[str], list[str]],
+):
+    # --- Recipe: Detect DML statements in a migration ---
+    _DML_ACTIONS = {"INSERT", "UPDATE", "DELETE", "MERGE"}
+
+    _migration_sql = """
+    ALTER TABLE accounts ADD COLUMN status text DEFAULT 'active';
+    CREATE INDEX idx_accounts_status ON accounts (status);
+    UPDATE accounts SET status = 'active' WHERE status IS NULL;
+    DELETE FROM stale_sessions WHERE created < now() - interval '30 days';
+    CREATE TABLE audit_log (id serial, account_id int, message text);
+    INSERT INTO audit_log (account_id, message) SELECT id, 'backfilled' FROM accounts;
+    """
+
+    _statements = split(_migration_sql)
+
+    _rows: list[str] = []
+    _dml_found: list[str] = []
+    for _i, _stmt_sql in enumerate(_statements):
+        _info = classify_statement(parse(_stmt_sql))
+        _action = _info.action if _info else "UNKNOWN"
+        _is_dml = _action in _DML_ACTIONS
+        if _is_dml:
+            _dml_found.append(f"Statement {_i + 1} (`{_action}`)")
+        _preview = _stmt_sql.strip()[:60]
+        if len(_stmt_sql.strip()) > 60:
+            _preview += "..."
+        _rows.append(f"| {_i + 1} | `{_action}` | {'**DML**' if _is_dml else 'DDL'} | `{_preview}` |")
+
+    _table_rows = "\n".join(_rows)
+    _warning = (
+        f"**{len(_dml_found)} DML statement(s) found:** {', '.join(_dml_found)}"
+        if _dml_found
+        else "**No DML statements found** — this migration is schema-only."
+    )
+
+    mo.md(
+        f"""
+        ## Recipe 7: Detect DML Statements in a Migration
+
+        `classify_statement` distinguishes data-modifying statements (`INSERT`,
+        `UPDATE`, `DELETE`, `MERGE`) from schema-defining DDL (`CREATE`,
+        `ALTER`, `DROP`, ...).  Flagging DML mixed into a migration file catches
+        accidental data changes that need extra review — locking behavior,
+        affected row counts, rollback plans — before they ship alongside schema
+        changes.
+
+        | # | Action | Category | SQL Preview |
+        |---|--------|----------|-------------|
+        {_table_rows}
+
+        {_warning}
+        """
     )
     return
 

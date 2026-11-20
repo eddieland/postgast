@@ -119,7 +119,7 @@ jobs:
         shell: pwsh
         run: |
           cd vendor/libpg_query
-          cl -I. -I./vendor -I./src/postgres/include -I./src/include -I./src/postgres/include/port/win32 -I./src/postgres/include/port/win32_msvc /c src/*.c src/postgres/*.c vendor/protobuf-c/protobuf-c.c vendor/xxhash/xxhash.c protobuf/pg_query.pb-c.c
+          cl -I. -I./vendor -I./vendor/upb -I./vendor/upb/third_party/utf8_range -I./src/postgres/include -I./src/include -I./src/postgres/include/port/win32 -I./src/postgres/include/port/win32_msvc /c src/*.c src/postgres/*.c vendor/xxhash/xxhash.c vendor/upb/upb.c vendor/upb/third_party/utf8_range/utf8_range.c protobuf/pg_query.upb_minitable.c
           link /DLL /DEF:../../pg_query_exports.def /OUT:pg_query.dll *.obj
           Copy-Item pg_query.dll ../../src/postgast/pg_query.dll
 

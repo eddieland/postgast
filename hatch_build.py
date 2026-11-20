@@ -99,6 +99,8 @@ class CustomBuildHook(BuildHookInterface):
         include_dirs = [
             libpg_query_dir,
             libpg_query_dir / "vendor",
+            libpg_query_dir / "vendor" / "upb",
+            libpg_query_dir / "vendor" / "upb" / "third_party" / "utf8_range",
             libpg_query_dir / "src" / "postgres" / "include",
             libpg_query_dir / "src" / "include",
             libpg_query_dir / "src" / "postgres" / "include" / "port" / "win32",
@@ -113,9 +115,10 @@ class CustomBuildHook(BuildHookInterface):
         src_files = (
             glob.glob(str(libpg_query_dir / "src" / "*.c"))
             + glob.glob(str(libpg_query_dir / "src" / "postgres" / "*.c"))
-            + [str(libpg_query_dir / "vendor" / "protobuf-c" / "protobuf-c.c")]
             + [str(libpg_query_dir / "vendor" / "xxhash" / "xxhash.c")]
-            + [str(libpg_query_dir / "protobuf" / "pg_query.pb-c.c")]
+            + [str(libpg_query_dir / "vendor" / "upb" / "upb.c")]
+            + [str(libpg_query_dir / "vendor" / "upb" / "third_party" / "utf8_range" / "utf8_range.c")]
+            + [str(libpg_query_dir / "protobuf" / "pg_query.upb_minitable.c")]
         )
 
         # Compile all sources to object files in a single output directory.

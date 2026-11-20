@@ -4548,18 +4548,20 @@ class IndexElem(_message.Message):
     def __init__(self, name: _Optional[str] = ..., expr: _Optional[_Union[Node, _Mapping]] = ..., indexcolname: _Optional[str] = ..., collation: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., opclass: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., opclassopts: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., ordering: _Optional[_Union[SortByDir, str]] = ..., nulls_ordering: _Optional[_Union[SortByNulls, str]] = ...) -> None: ...
 
 class DefElem(_message.Message):
-    __slots__ = ("defnamespace", "defname", "arg", "defaction", "location")
+    __slots__ = ("defnamespace", "defname", "arg", "defaction", "location", "arg_location")
     DEFNAMESPACE_FIELD_NUMBER: _ClassVar[int]
     DEFNAME_FIELD_NUMBER: _ClassVar[int]
     ARG_FIELD_NUMBER: _ClassVar[int]
     DEFACTION_FIELD_NUMBER: _ClassVar[int]
     LOCATION_FIELD_NUMBER: _ClassVar[int]
+    ARG_LOCATION_FIELD_NUMBER: _ClassVar[int]
     defnamespace: str
     defname: str
     arg: Node
     defaction: DefElemAction
     location: int
-    def __init__(self, defnamespace: _Optional[str] = ..., defname: _Optional[str] = ..., arg: _Optional[_Union[Node, _Mapping]] = ..., defaction: _Optional[_Union[DefElemAction, str]] = ..., location: _Optional[int] = ...) -> None: ...
+    arg_location: int
+    def __init__(self, defnamespace: _Optional[str] = ..., defname: _Optional[str] = ..., arg: _Optional[_Union[Node, _Mapping]] = ..., defaction: _Optional[_Union[DefElemAction, str]] = ..., location: _Optional[int] = ..., arg_location: _Optional[int] = ...) -> None: ...
 
 class LockingClause(_message.Message):
     __slots__ = ("locked_rels", "strength", "wait_policy")
@@ -6446,12 +6448,14 @@ class RuleStmt(_message.Message):
     def __init__(self, relation: _Optional[_Union[RangeVar, _Mapping]] = ..., rulename: _Optional[str] = ..., where_clause: _Optional[_Union[Node, _Mapping]] = ..., event: _Optional[_Union[CmdType, str]] = ..., instead: bool = ..., actions: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., replace: bool = ...) -> None: ...
 
 class NotifyStmt(_message.Message):
-    __slots__ = ("conditionname", "payload")
+    __slots__ = ("conditionname", "payload", "payload_location")
     CONDITIONNAME_FIELD_NUMBER: _ClassVar[int]
     PAYLOAD_FIELD_NUMBER: _ClassVar[int]
+    PAYLOAD_LOCATION_FIELD_NUMBER: _ClassVar[int]
     conditionname: str
     payload: str
-    def __init__(self, conditionname: _Optional[str] = ..., payload: _Optional[str] = ...) -> None: ...
+    payload_location: int
+    def __init__(self, conditionname: _Optional[str] = ..., payload: _Optional[str] = ..., payload_location: _Optional[int] = ...) -> None: ...
 
 class ListenStmt(_message.Message):
     __slots__ = ("conditionname",)
@@ -6851,30 +6855,34 @@ class AlterPublicationStmt(_message.Message):
     def __init__(self, pubname: _Optional[str] = ..., options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., pubobjects: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., for_all_tables: bool = ..., action: _Optional[_Union[AlterPublicationAction, str]] = ...) -> None: ...
 
 class CreateSubscriptionStmt(_message.Message):
-    __slots__ = ("subname", "conninfo", "publication", "options")
+    __slots__ = ("subname", "conninfo", "publication", "options", "conninfo_location")
     SUBNAME_FIELD_NUMBER: _ClassVar[int]
     CONNINFO_FIELD_NUMBER: _ClassVar[int]
     PUBLICATION_FIELD_NUMBER: _ClassVar[int]
     OPTIONS_FIELD_NUMBER: _ClassVar[int]
+    CONNINFO_LOCATION_FIELD_NUMBER: _ClassVar[int]
     subname: str
     conninfo: str
     publication: _containers.RepeatedCompositeFieldContainer[Node]
     options: _containers.RepeatedCompositeFieldContainer[Node]
-    def __init__(self, subname: _Optional[str] = ..., conninfo: _Optional[str] = ..., publication: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ...) -> None: ...
+    conninfo_location: int
+    def __init__(self, subname: _Optional[str] = ..., conninfo: _Optional[str] = ..., publication: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., conninfo_location: _Optional[int] = ...) -> None: ...
 
 class AlterSubscriptionStmt(_message.Message):
-    __slots__ = ("kind", "subname", "conninfo", "publication", "options")
+    __slots__ = ("kind", "subname", "conninfo", "publication", "options", "conninfo_location")
     KIND_FIELD_NUMBER: _ClassVar[int]
     SUBNAME_FIELD_NUMBER: _ClassVar[int]
     CONNINFO_FIELD_NUMBER: _ClassVar[int]
     PUBLICATION_FIELD_NUMBER: _ClassVar[int]
     OPTIONS_FIELD_NUMBER: _ClassVar[int]
+    CONNINFO_LOCATION_FIELD_NUMBER: _ClassVar[int]
     kind: AlterSubscriptionType
     subname: str
     conninfo: str
     publication: _containers.RepeatedCompositeFieldContainer[Node]
     options: _containers.RepeatedCompositeFieldContainer[Node]
-    def __init__(self, kind: _Optional[_Union[AlterSubscriptionType, str]] = ..., subname: _Optional[str] = ..., conninfo: _Optional[str] = ..., publication: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ...) -> None: ...
+    conninfo_location: int
+    def __init__(self, kind: _Optional[_Union[AlterSubscriptionType, str]] = ..., subname: _Optional[str] = ..., conninfo: _Optional[str] = ..., publication: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., options: _Optional[_Iterable[_Union[Node, _Mapping]]] = ..., conninfo_location: _Optional[int] = ...) -> None: ...
 
 class DropSubscriptionStmt(_message.Message):
     __slots__ = ("subname", "missing_ok", "behavior")

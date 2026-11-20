@@ -980,6 +980,7 @@ class AlterSubscriptionStmt(AstNode):
         "conninfo",
         "publication",
         "options",
+        "conninfo_location",
     )
 
     @property
@@ -1001,6 +1002,10 @@ class AlterSubscriptionStmt(AstNode):
     @property
     def options(self) -> list[AstNode]:
         return _wrap_list(self._pb.options)
+
+    @property
+    def conninfo_location(self) -> int:
+        return self._pb.conninfo_location
 
 
 class AlterSystemStmt(AstNode):
@@ -3208,6 +3213,7 @@ class CreateSubscriptionStmt(AstNode):
         "conninfo",
         "publication",
         "options",
+        "conninfo_location",
     )
 
     @property
@@ -3225,6 +3231,10 @@ class CreateSubscriptionStmt(AstNode):
     @property
     def options(self) -> list[AstNode]:
         return _wrap_list(self._pb.options)
+
+    @property
+    def conninfo_location(self) -> int:
+        return self._pb.conninfo_location
 
 
 class CreateTableAsStmt(AstNode):
@@ -3541,6 +3551,7 @@ class DefElem(AstNode):
         "defname",
         "arg",
         "defaction",
+        "arg_location",
     )
 
     @property
@@ -3562,6 +3573,10 @@ class DefElem(AstNode):
     @property
     def location(self) -> int:
         return self._pb.location
+
+    @property
+    def arg_location(self) -> int:
+        return self._pb.arg_location
 
 
 class DefineStmt(AstNode):
@@ -6067,6 +6082,7 @@ class NotifyStmt(AstNode):
     __match_args__ = (
         "conditionname",
         "payload",
+        "payload_location",
     )
 
     @property
@@ -6076,6 +6092,10 @@ class NotifyStmt(AstNode):
     @property
     def payload(self) -> str:
         return self._pb.payload
+
+    @property
+    def payload_location(self) -> int:
+        return self._pb.payload_location
 
 
 class NullIfExpr(AstNode):
